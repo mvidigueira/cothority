@@ -1813,7 +1813,7 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	// failure).
 	ourLatest, err := s.db().GetLatestByID(scID)
 	if err != nil {
-		log.Warn(s.ServerIdentity(), "we do not know about the skipchain ID")
+		log.Warnf("%s: we do not know about the skipchain ID %x", s.ServerIdentity(), scID)
 		return []ClientTransaction{}
 	}
 	latestSB := s.db().GetByID(latestID)

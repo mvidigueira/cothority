@@ -273,7 +273,7 @@ func (s *Service) TestStore(ts *TestStore) (*TestStore, error) {
 		s.ts.ByzCoinID = ts.ByzCoinID
 		s.ts.SpawnerIID = ts.SpawnerIID
 	} else {
-		log.Lvlf1("Retrieving TestStore %x / %x", s.ts.ByzCoinID, s.ts.SpawnerIID)
+		log.Lvlf1("Retrieving TestStore %x / %x", s.ts.ByzCoinID[:], s.ts.SpawnerIID[:])
 	}
 	return &s.ts, nil
 }
