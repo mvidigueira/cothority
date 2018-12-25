@@ -1895,9 +1895,10 @@ func (s *Service) monitorLeaderFailure() {
 				gen := []byte(key)
 				latest, err := s.db().GetLatestByID(gen)
 				if err != nil {
-					panic("heartbeat monitors are started after " +
+					log.Error("heartbeat monitors are started after " +
 						"the creation of the genesis block, " +
-						"so the block should always exist")
+						"so the block should always exist: ", err)
+					s.heartbeats.stop(key)
 				}
 				req := viewchange.InitReq{
 					SignerID: s.ServerIdentity().ID,
@@ -1939,7 +1940,7 @@ func (s *Service) startAllChains() error {
 	s.closedMutex.Lock()
 	defer s.closedMutex.Unlock()
 	if !s.closed {
-		return errors.New("Can only call startAllChains if the service has been closed before")
+		return errors.New("can only call startAllChains if the service has been closed before")
 	}
 	s.SetPropagationTimeout(120 * time.Second)
 	msg, err := s.Load(storageID)
@@ -1950,7 +1951,7 @@ func (s *Service) startAllChains() error {
 		var ok bool
 		s.storage, ok = msg.(*bcStorage)
 		if !ok {
-			return errors.New("Data of wrong type")
+			return errors.New("data of wrong type")
 		}
 	}
 	s.stateTries = make(map[string]*stateTrie)
@@ -1978,6 +1979,11 @@ func (s *Service) startAllChains() error {
 		interval, _, err := s.LoadBlockInfo(gen)
 		if err != nil {
 			log.Errorf("%s Ignoring chain %x because we can't load blockInterval: %s", s.ServerIdentity(), gen, err)
+			continue
+		}
+
+		if s.db().GetByID(gen) == nil{
+			log.Errorf("%s ignoring chain with missing genesis-block %x", s.ServerIdentity(), gen)
 			continue
 		}
 
