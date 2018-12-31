@@ -5,7 +5,7 @@ set -e
 OPTIND=1         # Reset in case getopts has been used previously in the shell.
 
 # Initialize our own variables:
-debug_lvl=0
+verbose=0
 nbr_nodes=3
 base_port=7000
 base_ip=localhost
@@ -49,7 +49,7 @@ export DEBUG_TIME=true
 rm -f public.toml
 mkdir -p log
 touch running
-for n in $( seq $nbr_nodes ); do
+for n in $( seq $nbr_nodes -1 1 ); do
   co=co$n
   PORT=$(($base_port + 2 * n))
   if [ ! -d $co ]; then
