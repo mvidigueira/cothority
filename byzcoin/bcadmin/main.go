@@ -1,10 +1,18 @@
 package main
 
 import (
+	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/BurntSushi/toml"
+	"github.com/dedis/cothority/skipchain"
+	"github.com/dedis/kyber/suites"
+	"github.com/dedis/kyber/util/encoding"
+	"github.com/dedis/protobuf"
 	"io"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -20,7 +28,7 @@ import (
 	"github.com/dedis/onet/log"
 	"github.com/dedis/onet/network"
 
-	cli "gopkg.in/urfave/cli.v1"
+	"gopkg.in/urfave/cli.v1"
 )
 
 func init() {
@@ -28,6 +36,31 @@ func init() {
 }
 
 var cmds = cli.Commands{
+	{
+		Name:    "debug",
+		Usage:   "interact with byzcoin for debugging",
+		Aliases: []string{"d"},
+		Subcommands: cli.Commands{
+			{
+				Name:      "list",
+				Usage:     "Lists all byzcoin instances",
+				Action:    debugList,
+				ArgsUsage: "ip:port",
+			},
+			{
+				Name:      "dump",
+				Usage:     "dumps a given byzcoin instance",
+				Action:    debugDump,
+				ArgsUsage: "ip:port byzcoin-id",
+			},
+			{
+				Name:      "remove",
+				Usage:     "removes a given byzcoin instance",
+				Action:    debugRemove,
+				ArgsUsage: "private.toml byzcoin-id",
+			},
+		},
+	},
 	{
 		Name:    "create",
 		Usage:   "create a ledger",
@@ -433,8 +466,122 @@ func darcCli(c *cli.Context) error {
 	case "rule":
 		return darcRule(c, d, c.Bool("replace"), c.Bool("delete"), cfg, cl)
 	default:
-		return errors.New("Invalid argument for darc command : add, show and rule are the valid options")
+		return errors.New("invalid argument for darc command : add, show and rule are the valid options")
 	}
+}
+
+func debugList(c *cli.Context) error {
+	if c.NArg() < 1 {
+		return errors.New("please give ip:port as argument")
+	}
+
+	resp, err := byzcoin.Debug(network.NewAddress(network.TLS, c.Args().First()), nil)
+	if err != nil {
+		return err
+	}
+	sort.SliceStable(resp.Byzcoins, func(i, j int)bool{
+		var iData byzcoin.DataHeader
+		var jData byzcoin.DataHeader
+		err := protobuf.Decode(resp.Byzcoins[i].Genesis.Data, &iData)
+		if err != nil{
+			return false
+		}
+		err = protobuf.Decode(resp.Byzcoins[j].Genesis.Data, &jData)
+		if err != nil{
+			return false
+		}
+		return iData.Timestamp > jData.Timestamp
+	})
+	for _, rb := range resp.Byzcoins {
+		log.Infof("ByzCoinID %x has", rb.ByzCoinID)
+		headerGenesis := byzcoin.DataHeader{}
+		headerLatest := byzcoin.DataHeader{}
+		err := protobuf.Decode(rb.Genesis.Data, &headerGenesis)
+		if err != nil {
+			return err
+		}
+		err = protobuf.Decode(rb.Latest.Data, &headerLatest)
+		if err != nil {
+			return err
+		}
+		log.Infof("\tBlocks: %d\n\tFrom %s to %s\n",
+			rb.Latest.Index,
+			time.Unix(headerGenesis.Timestamp / 1e9, 0),
+			time.Unix(headerLatest.Timestamp / 1e9, 0))
+	}
+	return nil
+}
+
+func debugDump(c *cli.Context) error {
+	if c.NArg() < 2 {
+		return errors.New("please give the following arguments: ip:port byzcoin-id")
+	}
+
+	bcidBuf, err := hex.DecodeString(c.Args().Get(1))
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	bcid := skipchain.SkipBlockID(bcidBuf)
+	resp, err := byzcoin.Debug(network.NewAddress(network.TLS, c.Args().First()), &bcid)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	sort.SliceStable(resp.Dump, func(i, j int)bool{
+		return bytes.Compare(resp.Dump[i].Key, resp.Dump[j].Key) < 0
+	})
+	for _, inst := range resp.Dump{
+		log.Infof("%x / %d: %s", inst.Key, inst.State.Version, string(inst.State.ContractID))
+	}
+
+	return nil
+}
+
+func debugRemove(c *cli.Context) error{
+	if c.NArg() < 2{
+		return errors.New("please give the following arguments: private.toml byzcoin-id")
+	}
+
+	hc := &app.CothorityConfig{}
+	_, err := toml.DecodeFile(c.Args().First(), hc)
+	if err != nil {
+		return err
+	}
+
+	// Backwards compatibility with configs before we included the suite name
+	if hc.Suite == "" {
+		hc.Suite = "Ed25519"
+	}
+	suite, err := suites.Find(hc.Suite)
+	if err != nil {
+		return err
+	}
+
+	// Try to decode the Hex values
+	private, err := encoding.StringHexToScalar(suite, hc.Private)
+	if err != nil {
+		return fmt.Errorf("parsing private key: %v", err)
+	}
+	point, err := encoding.StringHexToPoint(suite, hc.Public)
+	if err != nil {
+		return fmt.Errorf("parsing public key: %v", err)
+	}
+	si := network.NewServerIdentity(point, hc.Address)
+	si.SetPrivate(private)
+	si.Description = hc.Description
+	bcidBuf, err := hex.DecodeString(c.Args().Get(1))
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+	bcid := skipchain.SkipBlockID(bcidBuf)
+	err = byzcoin.DebugRemove(si.Address, si.GetPrivate(), bcid)
+	if err != nil{
+		return err
+	}
+	log.Infof("Successfully removed ByzCoinID %x from %s", bcid, si.Address)
+	return nil
 }
 
 func darcAdd(c *cli.Context, dGen *darc.Darc, cfg lib.Config, cl *byzcoin.Client) error {

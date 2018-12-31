@@ -318,7 +318,7 @@ func (sbf *SkipBlockFix) CalculateHash() SkipBlockID {
 	hash := sha256.New()
 	for _, i := range []int{sbf.Index, sbf.Height, sbf.MaximumHeight,
 		sbf.BaseHeight} {
-		binary.Write(hash, binary.LittleEndian, i)
+		_ = binary.Write(hash, binary.LittleEndian, i)
 	}
 	for _, bl := range sbf.BackLinkIDs {
 		hash.Write(bl)
@@ -331,7 +331,10 @@ func (sbf *SkipBlockFix) CalculateHash() SkipBlockID {
 	hash.Write(sbf.Data)
 	if sbf.Roster != nil {
 		for _, pub := range sbf.Roster.Publics() {
-			pub.MarshalTo(hash)
+			_, err := pub.MarshalTo(hash)
+			if err != nil {
+				panic("couldn't marshall point to hash: " + err.Error())
+			}
 		}
 	}
 	buf := hash.Sum(nil)
@@ -646,7 +649,7 @@ func NewSkipBlockDB(db *bolt.DB, bn []byte) *SkipBlockDB {
 // GetStatus is a function that returns the status report of the db.
 func (db *SkipBlockDB) GetStatus() *onet.Status {
 	out := make(map[string]string)
-	db.DB.View(func(tx *bolt.Tx) error {
+	err := db.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(db.bucketName))
 		s := b.Stats()
 		out["Blocks"] = strconv.Itoa(s.KeyN)
@@ -655,6 +658,10 @@ func (db *SkipBlockDB) GetStatus() *onet.Status {
 		out["Bytes"] = strconv.Itoa(total)
 		return nil
 	})
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
 	return &onet.Status{Field: out}
 }
 
@@ -803,7 +810,7 @@ func (db *SkipBlockDB) latestUpdate(sb *SkipBlock) {
 // Length returns the actual length using mutexes
 func (db *SkipBlockDB) Length() int {
 	var i int
-	db.View(func(tx *bolt.Tx) error {
+	_ = db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(db.bucketName))
 		i = b.Stats().KeyN
 		return nil
@@ -827,16 +834,16 @@ func (db *SkipBlockDB) GetResponsible(sb *SkipBlock) (*SkipBlock, error) {
 		}
 		ret := db.GetByID(sb.ParentBlockID)
 		if ret == nil {
-			return nil, errors.New("No Roster and no parent")
+			return nil, errors.New("no Roster and no parent")
 		}
 		return ret, nil
 	}
 	if len(sb.BackLinkIDs) == 0 {
-		return nil, errors.New("Invalid block: no backlink")
+		return nil, errors.New("invalid block: no backlink")
 	}
 	prev := db.GetByID(sb.BackLinkIDs[0])
 	if prev == nil {
-		return nil, errors.New("Didn't find responsible")
+		return nil, errors.New("didn't find responsible")
 	}
 	return prev, nil
 }
@@ -856,7 +863,7 @@ func (db *SkipBlockDB) VerifyLinks(sb *SkipBlock) error {
 	if !sb.ParentBlockID.IsNull() {
 		parent := db.GetByID(sb.ParentBlockID)
 		if parent == nil {
-			return errors.New("Didn't find parent")
+			return errors.New("didn't find parent")
 		}
 		if err := parent.VerifyForwardSignatures(); err != nil {
 			return err
@@ -885,7 +892,7 @@ func (db *SkipBlockDB) VerifyLinks(sb *SkipBlock) error {
 			log.Lvl3("Didn't find back-link, but have a good forward-link")
 			return nil
 		}
-		return errors.New("Didn't find height-0 skipblock in db")
+		return errors.New("didn't find height-0 skipblock in db")
 	}
 	if err := sbBack.VerifyForwardSignatures(); err != nil {
 		return err
@@ -952,7 +959,7 @@ func (db *SkipBlockDB) GetFuzzy(id string) (*SkipBlock, error) {
 	}
 
 	var sb *SkipBlock
-	db.View(func(tx *bolt.Tx) error {
+	err = db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(db.bucketName)).Cursor()
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			if bytes.HasPrefix(k, match) {
@@ -976,7 +983,7 @@ func (db *SkipBlockDB) GetFuzzy(id string) (*SkipBlock, error) {
 		}
 		return nil
 	})
-	return sb, nil
+	return sb, err
 }
 
 // GetProof returns the shortest chain from the genesis to the latest block
@@ -1015,6 +1022,39 @@ func (db *SkipBlockDB) GetProof(sid SkipBlockID) (sbs []*SkipBlock, err error) {
 // GetSkipchains returns all latest skipblocks from all skipchains.
 func (db *SkipBlockDB) GetSkipchains() (map[string]*SkipBlock, error) {
 	return db.getAll()
+}
+
+func (db *SkipBlockDB) RemoveSkipchain(scid SkipBlockID) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(db.bucketName))
+		sb, err := db.getFromTx(tx, scid)
+		if err != nil {
+			return err
+		}
+		for {
+			err := b.Delete(sb.Hash)
+			if err != nil {
+				return err
+			}
+			if len(sb.ForwardLink) == 0 {
+				return nil
+			}
+
+			var next *SkipBlock
+			for _, fl := range sb.ForwardLink {
+				n, err := db.getFromTx(tx, fl.To)
+				if err == nil {
+					next = n
+					break
+				}
+			}
+			if next == nil {
+				log.Error("didn't find next block")
+				return nil
+			}
+			sb = next
+		}
+	})
 }
 
 // storeToTx stores the skipblock into the database.

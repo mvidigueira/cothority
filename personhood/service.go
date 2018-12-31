@@ -8,6 +8,7 @@ runs on the node.
 import (
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"sort"
 
@@ -279,8 +280,14 @@ func (s *Service) TestStore(ts *TestStore) (*TestStore, error) {
 }
 
 func newService(c *onet.Context) (onet.Service, error) {
+	bid, _ := hex.DecodeString("9a812404dd8306bcae1cf419a643c21041731a8972b1ddbe3295614706c9183c")
+	sid, _ := hex.DecodeString("8898f2dd77ec045cd1ec67302f029e513ced173ab8ccf2c8ee4c9a306bd39091")
 	s := &Service{
 		ServiceProcessor: onet.NewServiceProcessor(c),
+		ts: TestStore{
+			ByzCoinID: bid,
+			SpawnerIID: byzcoin.NewInstanceID(sid),
+		},
 	}
 	if err := s.RegisterHandlers(s.AnswerQuestionnaire, s.LinkPoP, s.ListMessages,
 		s.ListQuestionnaires, s.ReadMessage, s.RegisterQuestionnaire, s.SendMessage,

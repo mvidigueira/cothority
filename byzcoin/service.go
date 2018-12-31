@@ -8,6 +8,8 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/dedis/cothority/byzcoin/trie"
+	"github.com/dedis/kyber/sign/schnorr"
 	"math"
 	"regexp"
 	"strings"
@@ -352,7 +354,7 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 		return nil, errors.New("version mismatch")
 	}
 
-	log.Printf("Returning proof for %x from chain %x",
+	log.Printf("Returning proof for %x from chain '%x'",
 		req.Key, req.ID)
 
 	sb := s.db().GetByID(req.ID)
@@ -610,6 +612,127 @@ func (s *Service) CheckStateChangeValidity(req *CheckStateChangeValidity) (*Chec
 	}, nil
 }
 
+type leafNode struct {
+	Prefix []bool
+	Key    []byte
+	Value  []byte
+}
+
+func (s *Service) Debug(req *DebugRequest) (resp *DebugResponse, err error) {
+	resp = &DebugResponse{}
+	log.Printf("%+v", req)
+	if len(req.ByzCoinID) != 32 {
+		rep, err := s.skService().GetAllSkipChainIDs(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, scID := range rep.IDs {
+			latest, err := s.db().GetLatestByID(scID)
+			if err != nil {
+				continue
+			}
+			if !s.hasByzCoinVerification(skipchain.SkipBlockID(latest.SkipChainID())) {
+				continue
+			}
+			genesis := s.db().GetByID(latest.SkipChainID())
+			resp.Byzcoins = append(resp.Byzcoins, DebugResponseByzcoin{
+				ByzCoinID: latest.SkipChainID(),
+				Genesis:   genesis,
+				Latest:    latest,
+			})
+		}
+		return resp, nil
+	}
+	st, err := s.getStateTrie(skipchain.SkipBlockID(req.ByzCoinID))
+	if err != nil {
+		return nil, errors.New("didn't find this byzcoin instance: " + err.Error())
+	}
+	err = st.DB().View(func(b trie.Bucket) error {
+		err := b.ForEach(func(k, v []byte) error {
+			if len(k) == 32 {
+				if v[0] == byte(3) {
+					ln := leafNode{}
+					err = protobuf.Decode(v[1:], &ln)
+					if err != nil {
+						log.Error(err)
+						// Not all key/value pairs are valid statechanges
+						return nil
+					}
+					scb := StateChangeBody{}
+					err = protobuf.Decode(ln.Value, &scb)
+					resp.Dump = append(resp.Dump, DebugResponseState{Key: ln.Key, State: scb})
+				}
+			}
+			return nil
+		})
+		return err
+	})
+	return
+}
+
+func (s *Service) DebugRemove(req *DebugRemoveRequest) (*DebugResponse, error) {
+	log.Printf("Asked to remove %x", req.ByzCoinID)
+	if err := schnorr.Verify(cothority.Suite, s.ServerIdentity().Public, req.ByzCoinID, req.Signature); err != nil {
+		log.Error("Signature failure:", err)
+		return nil, err
+	}
+	idStr := string(req.ByzCoinID)
+	if s.heartbeats.exists(idStr) {
+		log.Lvl2("Removing heartbeat")
+		s.heartbeats.stop(idStr)
+	}
+
+	s.pollChanMut.Lock()
+	pc, exists := s.pollChan[idStr]
+	if exists {
+		log.Lvl2("Closing polling-channel")
+		close(pc)
+		delete(s.pollChan, idStr)
+	}
+	s.pollChanMut.Unlock()
+
+	s.stateTriesLock.Lock()
+	log.Printf("%+v", s.stateTries)
+	idStrHex := fmt.Sprintf("%x", req.ByzCoinID)
+	_, exists = s.stateTries[idStrHex]
+	if exists {
+		log.Lvl2("Removing state-trie")
+		db, bn := s.GetAdditionalBucket([]byte(idStrHex))
+		if db == nil {
+			return nil, errors.New("didn't find trie for this byzcoin-ID")
+		}
+		err := db.Update(func(tx *bolt.Tx) error {
+			log.Printf("Deleting bucket %x", bn)
+			return tx.DeleteBucket(bn)
+		})
+		if err != nil {
+			return nil, err
+		}
+		delete(s.stateTries, idStr)
+		err = s.db().RemoveSkipchain(req.ByzCoinID)
+		if err != nil {
+			log.Error("couldn't remove the whole chain:", err)
+		}
+	}
+	s.stateTriesLock.Unlock()
+
+	s.darcToScMut.Lock()
+	for k, sc := range s.darcToSc {
+		if sc.Equal(skipchain.SkipBlockID(req.ByzCoinID)) {
+			log.Lvl2("Removing darc-to-skipchain mapping")
+			delete(s.darcToSc, k)
+		}
+	}
+	s.darcToScMut.Unlock()
+
+	log.Lvl2("Stopping view change monitor")
+	s.viewChangeMan.stop(skipchain.SkipBlockID(req.ByzCoinID))
+
+	s.save()
+	return &DebugResponse{}, nil
+}
+
 // SetPropagationTimeout overrides the default propagation timeout that is used
 // when a new block is announced to the nodes as well as the skipchain
 // propagation timeout.
@@ -828,6 +951,7 @@ func (s *Service) downloadDB(sb *skipchain.SkipBlock) error {
 			s.stateTriesLock.Lock()
 			s.stateTries[idStr] = st
 			s.stateTriesLock.Unlock()
+			log.Lvlf1("%s: successfully downloaded database", s.ServerIdentity())
 			return nil
 		}()
 		if err == nil {
@@ -836,6 +960,33 @@ func (s *Service) downloadDB(sb *skipchain.SkipBlock) error {
 		log.Errorf("Couldn't load database from %s - got error %s", roster.List[0], err)
 	}
 	return errors.New("none of the non-leader and non-subleader nodes were able to give us a copy of the state")
+}
+
+func(s *Service)catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error{
+	s.updateCollectionLock.Lock()
+	if s.catchingUp{
+		s.updateCollectionLock.Unlock()
+		return errors.New("already catching up")
+	}
+	s.catchingUp = true
+	s.updateCollectionLock.Unlock()
+	log.Print(s.ServerIdentity())
+
+	cl := skipchain.NewClient()
+	// TODO: make sure the downloaded block is correct
+	search, err := cl.GetUpdateChain(r, scID)
+	if err != nil {
+		return err
+	}
+	if len(search.Update) == 0 {
+		log.Lvlf1("%s: Got empty skipblock", s.ServerIdentity())
+		return errors.New("got empty skipblock")
+	}
+	for _, sb := range search.Update{
+		log.Printf("Got block %d", sb.Index)
+	}
+	s.catchUp(search.Update[len(search.Update)-1])
+	return nil
 }
 
 // catchUp takes a skipblock as reference for the roster, the current index,
@@ -848,6 +999,7 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		s.catchingUp = false
 		s.updateCollectionLock.Unlock()
 	}()
+	log.Printf("Catching up %x / %d", sb.SkipChainID(), sb.Index)
 
 	// Load the trie.
 	st, err := s.getStateTrie(sb.SkipChainID())
@@ -860,6 +1012,7 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 	trieIndex := st.GetIndex()
 
 	if sb.Index-trieIndex > catchupDownloadAll {
+		log.Lvl2("Downloading whole DB for catching up")
 		err := s.downloadDB(sb)
 		if err != nil {
 			log.Error("Error while downloading trie:", err)
@@ -876,12 +1029,16 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		return
 	}
 	latest := search.SkipBlock
+	log.Print(trieIndex, sb.Index, latest.Index)
 	for trieIndex < sb.Index {
 		log.Lvlf1("%s: our index: %d - latest known index: %d", s.ServerIdentity(), trieIndex, sb.Index)
 		updates, err := cl.GetUpdateChainLevel(sb.Roster, latest.Hash, 1, catchupFetchBlocks)
 		if err != nil {
 			log.Error("Couldn't update blocks: " + err.Error())
 			return
+		}
+		for _, sb := range updates{
+			log.Print("Got blocks", sb.Index)
 		}
 
 		// This will call updateCollectionCallback with the next block to add
@@ -890,8 +1047,8 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 			log.Error("Got an invalid, unlinkable block: " + err.Error())
 			return
 		}
-		trieIndex += len(updates)
 		latest = updates[len(updates)-1]
+		trieIndex = latest.Index
 	}
 }
 
@@ -1168,6 +1325,7 @@ func (s *Service) getStateTrie(id skipchain.SkipBlockID) (*stateTrie, error) {
 	col := s.stateTries[idStr]
 	if col == nil {
 		db, name := s.GetAdditionalBucket([]byte(idStr))
+		log.Printf("loaded bucket %x", name)
 		st, err := loadStateTrie(db, name)
 		if err != nil {
 			return nil, err
@@ -1587,7 +1745,7 @@ clientTransactions:
 		for _, instr := range tx.ClientTransaction.Instructions {
 			scs, cout, err := s.executeInstruction(sstTempC, cin, instr, h)
 			if err != nil {
-				log.Errorf("%s Call to contract returned error: %s", s.ServerIdentity(), err)
+				log.Errorf("%s Instruction %s returned error: %s", s.ServerIdentity(), instr, err)
 				tx.Accepted = false
 				txOut = append(txOut, tx)
 				continue clientTransactions
@@ -1796,7 +1954,16 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	defer s.working.Done()
 	actualLeader, err := s.getLeader(scID)
 	if err != nil {
-		log.Lvlf1("%s: could not find a leader on %x with error: %s", s.ServerIdentity(), scID, err)
+		log.Lvlf2("%s: could not find a leader on %x with error: %s", s.ServerIdentity(), scID, err)
+		if s.skService().ChainIsFriendly(scID) {
+			log.Lvlf1("%s: catching up with chain %x", s.ServerIdentity(), scID)
+			err = s.catchupFromID(roster, scID)
+			if err != nil{
+				log.Error(err)
+			}
+		} else {
+			log.Lvlf1("%s: Got asked for transactions of unknown, non-friendly chain %x", s.ServerIdentity(), scID)
+		}
 		return []ClientTransaction{}
 	}
 	if !leader.Equal(actualLeader) {
@@ -1813,7 +1980,11 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	// failure).
 	ourLatest, err := s.db().GetLatestByID(scID)
 	if err != nil {
-		log.Warnf("%s: we do not know about the skipchain ID %x", s.ServerIdentity(), scID)
+		log.Warnf("%s: we do not know about the skipchain ID %x: %s", s.ServerIdentity(), scID, err)
+		err = s.catchupFromID(roster, scID)
+		if err != nil{
+			log.Error(err)
+		}
 		return []ClientTransaction{}
 	}
 	latestSB := s.db().GetByID(latestID)
@@ -1895,8 +2066,8 @@ func (s *Service) monitorLeaderFailure() {
 				gen := []byte(key)
 				latest, err := s.db().GetLatestByID(gen)
 				if err != nil {
-					log.Error("heartbeat monitors are started after " +
-						"the creation of the genesis block, " +
+					log.Error("heartbeat monitors are started after "+
+						"the creation of the genesis block, "+
 						"so the block should always exist: ", err)
 					s.heartbeats.stop(key)
 				}
@@ -1982,14 +2153,20 @@ func (s *Service) startAllChains() error {
 			continue
 		}
 
-		if s.db().GetByID(gen) == nil{
+		if s.db().GetByID(gen) == nil {
 			log.Errorf("%s ignoring chain with missing genesis-block %x", s.ServerIdentity(), gen)
 			continue
+		}
+		latest, err := s.db().GetLatestByID(gen)
+		if err != nil {
+			log.Errorf("%s ignoring chain %x where latest block cannot be found: %s",
+				s.ServerIdentity(), gen, err)
 		}
 
 		leader, err := s.getLeader(gen)
 		if err != nil {
-			panic("getLeader should not return an error if roster is initialised.")
+			log.Error("getLeader should not return an error if roster is initialised:", err)
+			continue
 		}
 		if leader.Equal(s.ServerIdentity()) {
 			s.pollChanMut.Lock()
@@ -2010,7 +2187,7 @@ func (s *Service) startAllChains() error {
 		if s.heartbeats.exists(string(gen)) {
 			return errors.New("we are just starting the service, there should be no existing heartbeat monitors")
 		}
-		log.Lvlf2("%s started heartbeat monitor for %x", s.ServerIdentity(), gen)
+		log.Lvlf2("%s started heartbeat monitor for block %d of %x", s.ServerIdentity(), latest.Index, gen)
 		s.heartbeats.start(string(gen), interval*rotationWindow, s.heartbeatsTimeout)
 
 		// initiate the view-change manager
@@ -2217,7 +2394,9 @@ func newService(c *onet.Context) (onet.Service, error) {
 		s.GetInstanceVersion,
 		s.GetLastInstanceVersion,
 		s.GetAllInstanceVersion,
-		s.CheckStateChangeValidity)
+		s.CheckStateChangeValidity,
+		s.Debug,
+		s.DebugRemove)
 	if err != nil {
 		log.ErrFatal(err, "Couldn't register messages")
 	}
