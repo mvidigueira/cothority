@@ -5,7 +5,6 @@ import (
 	"github.com/dedis/cothority/darc"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber"
-	"github.com/dedis/onet"
 )
 
 // PROTOSTART
@@ -235,20 +234,23 @@ type SpawnerStruct struct {
 	Beneficiary    byzcoin.InstanceID
 }
 
-// PopPartyInstance is the data that is stored in a pop-party instance.
-type PopPartyInstance struct {
+// PopPartyStruct is the data that is stored in a pop-party instance.
+type PopPartyStruct struct {
 	// State has one of the following values:
-	// 1: it is a configuration only
-	// 2: it is a finalized pop-party
+	//  1: it is a configuration only
+	//  2: scanning in progress
+	//  3: it is a finalized pop-party
 	State int
 	// Organizers is the number of organizers responsible for this party
 	Organizers int
 	// Finalizations is a slice of organizer-darcIDs who agree on the list of
 	// public keys in the FinalStatement.
 	Finalizations []darc.ID
-	// FinalStatement has either only the Desc inside if State == 1, or all fields
-	// set if State == 2.
-	FinalStatement *FinalStatement
+	// Description holds the name, date and location of the party and is available
+	// before the barrier point.
+	Description PopDesc
+	// Attendees is the slice of public keys of all confirmed attendees
+	Attendees Attendees
 	// Miners holds all tags of the linkable ring signatures that already
 	// mined this party.
 	Miners []LRSTag
@@ -264,15 +266,14 @@ type PopPartyInstance struct {
 
 // PopDesc holds the name, date and a roster of all involved conodes.
 type PopDesc struct {
-	// Name and purpose of the party.
+	// Name of the party.
 	Name string
-	// DateTime of the party. It is in the following format, following UTC:
-	//   YYYY-MM-DD HH:mm
-	DateTime string
+	// Purpose of the party
+	Purpose string
+	// DateTime of the party. It is stored as seconds since the Unix-epoch, 1/1/1970
+	DateTime uint64
 	// Location of the party
 	Location string
-	// Roster of all responsible conodes for that party.
-	Roster *onet.Roster
 }
 
 // FinalStatement is the final configuration holding all data necessary
