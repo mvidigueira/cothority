@@ -283,6 +283,75 @@ func TestService_AddTransaction_WrongNode(t *testing.T) {
 	require.Nil(t, err)
 }
 
+// Tests what happens if a transaction with two instructions is sent: one valid and one invalid
+// instruction.
+func TestService_AddTransaction_ValidInvalid(t *testing.T) {
+	log.SetShowTime(true)
+	s := newSerN(t, 1, time.Second, 4, false)
+	defer s.local.CloseAll()
+
+	// add the first tx to create the instance
+	log.Lvl1("Adding the first tx")
+	dcID := random.Bits(256, false, random.New())
+	tx1, err := createOneClientTxWithCounter(s.darc.GetBaseID(), dummyContract, dcID, s.signer, 1)
+	require.Nil(t, err)
+	atx := &AddTxRequest{
+		Version:       CurrentVersion,
+		SkipchainID:   s.genesis.SkipChainID(),
+		Transaction:   tx1,
+		InclusionWait: 5,
+	}
+	_, err = s.service().AddTransaction(atx)
+	require.Nil(t, err)
+
+	// add a second tx that holds two instructions: one valid and one invalid (creates the same contract)
+	log.Lvl1("Adding the second tx")
+	instr1 := createInvokeInstr(NewInstanceID(dcID), "evolve","data", dcID)
+	instr1.SignerCounter = []uint64{2}
+	instr2 := createSpawnInstr(s.darc.GetBaseID(), dummyContract, "data", dcID)
+	instr2.SignerCounter = []uint64{3}
+	tx2 := ClientTransaction{
+		Instructions: []Instruction{instr1, instr2},
+	}
+	h := tx2.Instructions.Hash()
+	for i := range tx2.Instructions {
+		err := tx2.Instructions[i].SignWith(h, s.signer)
+		require.Nil(t, err)
+	}
+	atx = &AddTxRequest{
+		Version:       CurrentVersion,
+		SkipchainID:   s.genesis.SkipChainID(),
+		Transaction:   tx2,
+		InclusionWait: 5,
+	}
+	_, err = s.service().AddTransaction(atx)
+	require.NotNil(t, err)
+
+	// add a third tx that holds two valid instructions
+	log.Lvl1("Adding a third, valid tx")
+	instr1 = createInvokeInstr(NewInstanceID(dcID), "evolve", "data", dcID)
+	instr1.SignerCounter = []uint64{2}
+	dcID2 := random.Bits(256, true, random.New())
+	instr2 = createSpawnInstr(s.darc.GetBaseID(), dummyContract, "data", dcID2)
+	instr2.SignerCounter = []uint64{3}
+	tx3 := ClientTransaction{
+		Instructions: []Instruction{instr1, instr2},
+	}
+	h = tx3.Instructions.Hash()
+	for i := range tx3.Instructions {
+		err := tx3.Instructions[i].SignWith(h, s.signer)
+		require.Nil(t, err)
+	}
+	atx = &AddTxRequest{
+		Version:       CurrentVersion,
+		SkipchainID:   s.genesis.SkipChainID(),
+		Transaction:   tx3,
+		InclusionWait: 5,
+	}
+	_, err = s.service().AddTransaction(atx)
+	require.Nil(t, err)
+}
+
 func TestService_GetProof(t *testing.T) {
 	s := newSer(t, 2, testInterval)
 	defer s.local.CloseAll()
@@ -389,7 +458,7 @@ func TestService_WrongSigner(t *testing.T) {
 	s := newSer(t, 1, testInterval)
 	defer s.local.CloseAll()
 
-	in1 := createInstr(s.darc.GetBaseID(), dummyContract, "data", []byte("whatever"))
+	in1 := createSpawnInstr(s.darc.GetBaseID(), dummyContract, "data", []byte("whatever"))
 	in1.SignerCounter = []uint64{1}
 
 	signer := darc.NewSignerEd25519(nil, nil)
@@ -415,7 +484,7 @@ func TestService_Depending(t *testing.T) {
 	// the first one having executed.
 
 	// First instruction: spawn a dummy value.
-	in1 := createInstr(s.darc.GetBaseID(), dummyContract, "data", []byte("something to delete"))
+	in1 := createSpawnInstr(s.darc.GetBaseID(), dummyContract, "data", []byte("something to delete"))
 	in1.SignerCounter = []uint64{1}
 
 	// Second instruction: delete the value we just spawned.
@@ -487,7 +556,7 @@ func TestService_BadDataHeader(t *testing.T) {
 
 	ser := s.services[0]
 	c := ser.Context
-	skipchain.RegisterVerification(c, verifyByzCoin, func(newID []byte, newSB *skipchain.SkipBlock) bool {
+	err := skipchain.RegisterVerification(c, verifyByzCoin, func(newID []byte, newSB *skipchain.SkipBlock) bool {
 		// Hack up the DataHeader to make the TrieRoot the wrong size.
 		var header DataHeader
 		err := protobuf.DecodeWithConstructors(newSB.Data, &header, network.DefaultConstructors(cothority.Suite))
@@ -499,6 +568,7 @@ func TestService_BadDataHeader(t *testing.T) {
 
 		return ser.verifySkipBlock(newID, newSB)
 	})
+	require.Nil(t, err)
 
 	tx, err := createOneClientTx(s.darc.GetBaseID(), dummyContract, s.value, s.signer)
 	require.Nil(t, err)
@@ -1329,7 +1399,7 @@ func TestService_SetConfigRosterNewNodes(t *testing.T) {
 	testDarc := darc.NewDarc(darc.InitRules(ids, ids), []byte("testDarc"))
 	testDarcBuf, err := testDarc.ToProto()
 	require.Nil(t, err)
-	instr := createInstr(s.darc.GetBaseID(), ContractDarcID, "darc", testDarcBuf)
+	instr := createSpawnInstr(s.darc.GetBaseID(), ContractDarcID, "darc", testDarcBuf)
 	require.Nil(t, err)
 	ctx, err := combineInstrsAndSign(s.signer, instr)
 	require.Nil(t, err)
@@ -1487,7 +1557,7 @@ func addDummyTxs(t *testing.T, s *ser, nbr int, perCTx int, count int) int {
 			dummyDarc := darc.NewDarc(darc.InitRules(ids, ids), desc)
 			dummyDarcBuf, err := dummyDarc.ToProto()
 			require.Nil(t, err)
-			instr := createInstr(s.darc.GetBaseID(), ContractDarcID,
+			instr := createSpawnInstr(s.darc.GetBaseID(), ContractDarcID,
 				"darc", dummyDarcBuf)
 			instr.SignerCounter[0] = uint64(count)
 			count++
@@ -1509,7 +1579,7 @@ func TestService_SetConfigRosterDownload(t *testing.T) {
 	testDarc := darc.NewDarc(darc.InitRules(ids, ids), []byte("testDarc"))
 	testDarcBuf, err := testDarc.ToProto()
 	require.Nil(t, err)
-	instr := createInstr(s.darc.GetBaseID(), ContractDarcID, "darc", testDarcBuf)
+	instr := createSpawnInstr(s.darc.GetBaseID(), ContractDarcID, "darc", testDarcBuf)
 	require.Nil(t, err)
 	ctx, err := combineInstrsAndSign(s.signer, instr)
 	require.Nil(t, err)
@@ -2405,8 +2475,18 @@ func dummyContractFunc(cdb ReadOnlyStateTrie, inst Instruction, c []Coin) ([]Sta
 
 	switch inst.GetType() {
 	case SpawnType:
+		if len(inst.Spawn.Args.Search("data")) == 32 {
+			return []StateChange{
+				NewStateChange(Create, NewInstanceID(inst.Spawn.Args.Search("data")), inst.Spawn.ContractID,
+					[]byte{}, darcID),
+			}, nil, nil
+		}
 		return []StateChange{
 			NewStateChange(Create, NewInstanceID(inst.Hash()), inst.Spawn.ContractID, inst.Spawn.Args[0].Value, darcID),
+		}, nil, nil
+	case InvokeType:
+		return []StateChange{
+			NewStateChange(Update, inst.InstanceID, dummyContract, inst.Invoke.Args[0].Value, darcID),
 		}, nil, nil
 	case DeleteType:
 		return []StateChange{
@@ -2428,9 +2508,12 @@ func registerDummy(servers []*onet.Server) {
 	// For testing - there must be a better way to do that. But putting
 	// services []skipchain.Service in the method signature doesn't work :(
 	for _, s := range servers {
-		RegisterContract(s, dummyContract, adaptor(dummyContractFunc))
-		RegisterContract(s, slowContract, adaptor(slowContractFunc))
-		RegisterContract(s, invalidContract, adaptor(invalidContractFunc))
+		err := RegisterContract(s, dummyContract, adaptor(dummyContractFunc))
+		log.ErrFatal(err)
+		err = RegisterContract(s, slowContract, adaptor(slowContractFunc))
+		log.ErrFatal(err)
+		err = RegisterContract(s, invalidContract, adaptor(invalidContractFunc))
+		log.ErrFatal(err)
 	}
 }
 

@@ -309,11 +309,12 @@ func (instrs Instructions) Hash() []byte {
 type TxResults []TxResult
 
 // NewTxResults takes a list of client transactions and wraps them up
-// in a TxResults with Accepted set to false for each.
+// in a TxResults with Accepted set to true for each.
 func NewTxResults(ct ...ClientTransaction) TxResults {
 	out := make([]TxResult, len(ct))
 	for i := range ct {
 		out[i].ClientTransaction = ct[i]
+		out[i].Accepted = true
 	}
 	return out
 }

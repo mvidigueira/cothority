@@ -1578,7 +1578,7 @@ func (s *Service) ChainIsFriendly(scID SkipBlockID) bool {
 	defer s.storageMutex.Unlock()
 
 	// If no skipchains are stored, allow everything
-	if len(s.Storage.Follow) == 0 {
+	if len(s.Storage.FollowIDs) == 0 {
 		return true
 	}
 	// accept all blocks that are already stored with us.
@@ -1606,6 +1606,10 @@ func (s *Service) BlockIsFriendly(sb *SkipBlock) bool {
 		return true
 	}
 
+	// If no skipchains are stored, allow everything
+	if len(s.Storage.Follow) == 0 {
+		return true
+	}
 	// For each Follow, find out if it permits this chain.
 	for _, fct := range s.Storage.Follow {
 		err := fct.GetLatest(s.ServerIdentity(), s)

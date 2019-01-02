@@ -178,7 +178,6 @@ func (s *Service) CreateGenesisBlock(req *CreateGenesisBlock) (
 	if req.Version != CurrentVersion {
 		return nil, fmt.Errorf("version mismatch - got %d but need %d", req.Version, CurrentVersion)
 	}
-	log.Printf("%+v", req)
 	if req.Roster.List == nil {
 		return nil, errors.New("must provide a roster")
 	}
@@ -693,7 +692,6 @@ func (s *Service) DebugRemove(req *DebugRemoveRequest) (*DebugResponse, error) {
 	s.pollChanMut.Unlock()
 
 	s.stateTriesLock.Lock()
-	log.Printf("%+v", s.stateTries)
 	idStrHex := fmt.Sprintf("%x", req.ByzCoinID)
 	_, exists = s.stateTries[idStrHex]
 	if exists {
@@ -703,7 +701,6 @@ func (s *Service) DebugRemove(req *DebugRemoveRequest) (*DebugResponse, error) {
 			return nil, errors.New("didn't find trie for this byzcoin-ID")
 		}
 		err := db.Update(func(tx *bolt.Tx) error {
-			log.Printf("Deleting bucket %x", bn)
 			return tx.DeleteBucket(bn)
 		})
 		if err != nil {
@@ -962,15 +959,14 @@ func (s *Service) downloadDB(sb *skipchain.SkipBlock) error {
 	return errors.New("none of the non-leader and non-subleader nodes were able to give us a copy of the state")
 }
 
-func(s *Service)catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error{
+func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error {
 	s.updateCollectionLock.Lock()
-	if s.catchingUp{
+	if s.catchingUp {
 		s.updateCollectionLock.Unlock()
 		return errors.New("already catching up")
 	}
 	s.catchingUp = true
 	s.updateCollectionLock.Unlock()
-	log.Print(s.ServerIdentity())
 
 	cl := skipchain.NewClient()
 	// TODO: make sure the downloaded block is correct
@@ -982,8 +978,8 @@ func(s *Service)catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error{
 		log.Lvlf1("%s: Got empty skipblock", s.ServerIdentity())
 		return errors.New("got empty skipblock")
 	}
-	for _, sb := range search.Update{
-		log.Printf("Got block %d", sb.Index)
+	for _, sb := range search.Update {
+		log.Lvl2("Update: got block %d", sb.Index)
 	}
 	s.catchUp(search.Update[len(search.Update)-1])
 	return nil
@@ -1029,16 +1025,12 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		return
 	}
 	latest := search.SkipBlock
-	log.Print(trieIndex, sb.Index, latest.Index)
 	for trieIndex < sb.Index {
 		log.Lvlf1("%s: our index: %d - latest known index: %d", s.ServerIdentity(), trieIndex, sb.Index)
 		updates, err := cl.GetUpdateChainLevel(sb.Roster, latest.Hash, 1, catchupFetchBlocks)
 		if err != nil {
 			log.Error("Couldn't update blocks: " + err.Error())
 			return
-		}
-		for _, sb := range updates{
-			log.Print("Got blocks", sb.Index)
 		}
 
 		// This will call updateCollectionCallback with the next block to add
@@ -1325,7 +1317,6 @@ func (s *Service) getStateTrie(id skipchain.SkipBlockID) (*stateTrie, error) {
 	col := s.stateTries[idStr]
 	if col == nil {
 		db, name := s.GetAdditionalBucket([]byte(idStr))
-		log.Printf("loaded bucket %x", name)
 		st, err := loadStateTrie(db, name)
 		if err != nil {
 			return nil, err
@@ -1452,7 +1443,7 @@ func (s *Service) startPolling(scID skipchain.SkipBlockID) chan bool {
 						" This function should never be called on a skipchain that does not exist.")
 				}
 
-				log.Lvlf2("%s: Starting new block %d for chain %x", s.ServerIdentity(), latest.Index+1, scID)
+				log.Lvlf3("%s: Starting new block %d for chain %x", s.ServerIdentity(), latest.Index+1, scID)
 				tree := bcConfig.Roster.GenerateNaryTree(len(bcConfig.Roster.List))
 
 				proto, err := s.CreateProtocol(collectTxProtocol, tree)
@@ -1742,6 +1733,7 @@ clientTransactions:
 		// (via cdbTemp = cdbI.c), otherwise dump it.
 		sstTempC := sstTemp.Clone()
 		h := tx.ClientTransaction.Instructions.Hash()
+		var statesTemp StateChanges
 		for _, instr := range tx.ClientTransaction.Instructions {
 			scs, cout, err := s.executeInstruction(sstTempC, cin, instr, h)
 			if err != nil {
@@ -1801,8 +1793,8 @@ clientTransactions:
 				txOut = append(txOut, tx)
 				continue clientTransactions
 			}
-			states = append(states, scs...)
-			states = append(states, counterScs...)
+			statesTemp = append(statesTemp, scs...)
+			statesTemp = append(statesTemp, counterScs...)
 			cin = cout
 		}
 
@@ -1838,6 +1830,7 @@ clientTransactions:
 		tx.Accepted = true
 		txOut = append(txOut, tx)
 		blocksz += txsz
+		states = append(states, statesTemp...)
 	}
 
 	// Store the result in the cache before returning.
@@ -1851,7 +1844,8 @@ clientTransactions:
 func (s *Service) executeInstruction(st ReadOnlyStateTrie, cin []Coin, instr Instruction, ctxHash []byte) (scs StateChanges, cout []Coin, err error) {
 	defer func() {
 		if re := recover(); re != nil {
-			err = errors.New(re.(string))
+			log.Error(log.Stack())
+			err = fmt.Errorf("%s", re)
 		}
 	}()
 
@@ -1871,18 +1865,18 @@ func (s *Service) executeInstruction(st ReadOnlyStateTrie, cin []Coin, instr Ins
 	// If the leader does not have a verifier for this contract, it drops the
 	// transaction.
 	if !exists {
-		err = fmt.Errorf("Leader is dropping instruction of unknown contract \"%s\" on instance \"%x\"", contractID, instr.InstanceID.Slice())
+		err = fmt.Errorf("leader is dropping instruction of unknown contract \"%s\" on instance \"%x\"", contractID, instr.InstanceID.Slice())
 		return
 	}
 	// Now we call the contract function with the data of the key.
-	log.Lvlf3("%s Calling contract '%s'", s.ServerIdentity(), contractID)
+	log.Lvlf2("%s Calling contract '%s'", s.ServerIdentity(), contractID)
 
 	c, err := contractFactory(contents)
 	if err != nil {
 		return nil, nil, err
 	}
 	if c == nil {
-		return nil, nil, errors.New("conrtact factory returned nil contract instance")
+		return nil, nil, errors.New("contract factory returned nil contract instance")
 	}
 
 	err = c.VerifyInstruction(st, instr, ctxHash)
@@ -1958,7 +1952,7 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 		if s.skService().ChainIsFriendly(scID) {
 			log.Lvlf1("%s: catching up with chain %x", s.ServerIdentity(), scID)
 			err = s.catchupFromID(roster, scID)
-			if err != nil{
+			if err != nil {
 				log.Error(err)
 			}
 		} else {
@@ -1982,7 +1976,7 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	if err != nil {
 		log.Warnf("%s: we do not know about the skipchain ID %x: %s", s.ServerIdentity(), scID, err)
 		err = s.catchupFromID(roster, scID)
-		if err != nil{
+		if err != nil {
 			log.Error(err)
 		}
 		return []ClientTransaction{}
