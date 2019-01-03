@@ -5,15 +5,18 @@ import (
 	"github.com/dedis/cothority/darc"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber"
+	"github.com/dedis/onet"
 )
 
 // PROTOSTART
 // type :skipchain.SkipBlockID:bytes
 // type :byzcoin.InstanceID:bytes
+// type :darc.ID:bytes
 // package personhood;
 //
 // import "darc.proto";
 // import "byzcoin.proto";
+// import "onet.proto";
 //
 // option java_package = "ch.epfl.dedis.lib.proto";
 // option java_outer_classname = "Personhood";
@@ -26,14 +29,12 @@ type LinkPoP struct {
 
 // Party represents everything necessary to find a party in the ledger.
 type Party struct {
+	// Roster is the list of nodes responsible for the byzcoin instance
+	Roster onet.Roster
 	// ByzCoinID represents the ledger where the pop-party is stored.
 	ByzCoinID skipchain.SkipBlockID
 	// InstanceID is where to find the party in the ledger.
 	InstanceID byzcoin.InstanceID
-	// FinalStatement describes the party and the signature of the organizers.
-	FinalStatement FinalStatement
-	// Darc being responsible for the PartyInstance.
-	Darc darc.Darc
 	// Signer can call Invoke on the PartyInstance.
 	Signer darc.Signer
 }
@@ -243,9 +244,9 @@ type PopPartyStruct struct {
 	State int
 	// Organizers is the number of organizers responsible for this party
 	Organizers int
-	// Finalizations is a slice of organizer-darcIDs who agree on the list of
+	// Finalizations is a slice of darc-identities who agree on the list of
 	// public keys in the FinalStatement.
-	Finalizations []darc.ID
+	Finalizations []string
 	// Description holds the name, date and location of the party and is available
 	// before the barrier point.
 	Description PopDesc

@@ -208,7 +208,7 @@ func (s *Service) ReadMessage(rm *ReadMessage) (*ReadMessageReply, error) {
 	msg.Balance -= msg.Reward
 	read.Readers = append(read.Readers, rm.Reader)
 
-	cl := byzcoin.NewClient(party.ByzCoinID, *party.FinalStatement.Desc.Roster)
+	cl := byzcoin.NewClient(party.ByzCoinID, party.Roster)
 	signerCtrs, err := cl.GetSignerCounters(party.Signer.Identity().String())
 	if err != nil {
 		return nil, err
@@ -294,6 +294,7 @@ func newService(c *onet.Context) (onet.Service, error) {
 		s.TopupQuestionnaire, s.TopupMessage, s.TestStore); err != nil {
 		return nil, errors.New("Couldn't register messages")
 	}
+	byzcoin.RegisterContract(c, ContractPopParty, contractPopPartyFromBytes)
 	byzcoin.RegisterContract(c, ContractSpawnerID, contractSpawnerFromBytes)
 	byzcoin.RegisterContract(c, ContractCredentialID, contractCredentialFromBytes)
 

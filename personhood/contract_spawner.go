@@ -50,6 +50,7 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	ca := inst.DeriveID("")
 	var instBuf []byte
 	cID := inst.Spawn.ContractID
+	log.LLvlf3("Spawning %s instance to %x", cID, ca.Slice())
 	switch cID {
 	case ContractSpawnerID:
 		c.ParseArgs(inst.Spawn.Args)
@@ -115,21 +116,11 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 		if err = c.getCoins(cout, c.CostParty); err != nil {
 			return
 		}
-		instBuf = inst.Spawn.Args.Search("finalStatement")
-		var fs FinalStatement
-		err = protobuf.Decode(instBuf, &fs)
-		if err != nil {
-			return nil, nil, err
-		}
-		darcID = inst.Spawn.Args.Search("darcID")
-		if darcID == nil {
-			return nil, nil, errors.New("darcID argument is missing")
-		}
+		return contractPopParty{}.Spawn(rst, inst, cout)
 	default:
 		log.Print("Unknown contract", cID)
 		return nil, nil, errors.New("don't know how to spawn this type of contract")
 	}
-	log.Lvlf3("Spawning %s instance to %x", cID, ca.Slice())
 	sc = []byzcoin.StateChange{
 		byzcoin.NewStateChange(byzcoin.Create, ca, cID, instBuf, darcID),
 	}

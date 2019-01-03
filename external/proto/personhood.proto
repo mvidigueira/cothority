@@ -3,6 +3,7 @@ package personhood;
 
 import "darc.proto";
 import "byzcoin.proto";
+import "onet.proto";
 
 option java_package = "ch.epfl.dedis.lib.proto";
 option java_outer_classname = "Personhood";
@@ -15,16 +16,14 @@ message LinkPoP {
 
 // Party represents everything necessary to find a party in the ledger.
 message Party {
+  // Roster is the list of nodes responsible for the byzcoin instance
+  required onet.Roster roster = 1;
   // ByzCoinID represents the ledger where the pop-party is stored.
-  required bytes byzcoinid = 1;
+  required bytes byzcoinid = 2;
   // InstanceID is where to find the party in the ledger.
-  required bytes instanceid = 2;
-  // FinalStatement describes the party and the signature of the organizers.
-  required FinalStatement finalstatement = 3;
-  // Darc being responsible for the PartyInstance.
-  required darc.Darc darc = 4;
+  required bytes instanceid = 3;
   // Signer can call Invoke on the PartyInstance.
-  required darc.Signer signer = 5;
+  required darc.Signer signer = 4;
 }
 
 // StringReply can be used by all calls that need a string to be returned
@@ -232,9 +231,9 @@ message PopPartyStruct {
   required sint32 state = 1;
   // Organizers is the number of organizers responsible for this party
   required sint32 organizers = 2;
-  // Finalizations is a slice of organizer-darcIDs who agree on the list of
+  // Finalizations is a slice of darc-identities who agree on the list of
   // public keys in the FinalStatement.
-  repeated darc.ID finalizations = 3;
+  repeated string finalizations = 3;
   // Description holds the name, date and location of the party and is available
   // before the barrier point.
   required PopDesc description = 4;

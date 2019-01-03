@@ -10,18 +10,23 @@ nbr_nodes=3
 base_port=7000
 base_ip=localhost
 data_dir=.
+show_all="true"
 
-while getopts "h?v:n:p:i:d:" opt; do
+while getopts "h?v:n:p:i:d:qf" opt; do
     case "$opt" in
     h|\?)
-        echo "-h help"
-        echo "-v verbose"
-        echo "-vv more verbose"
-        echo "-vvv very verbose"
-        echo "-n number of nodes (3)"
-        echo "-p port base in case of new configuration (7000)"
-        echo "-i IP in case of new configuration (localhost)"
-        echo "-d data dir to store private keys, databases and logs (.)"
+        echo "Allowed arguments:
+
+        -h help
+        -v verbose
+        -vv more verbose
+        -vvv very verbose
+        -n number of nodes (3)
+        -p port base in case of new configuration (7000)
+        -i IP in case of new configuration (localhost)
+        -d data dir to store private keys, databases and logs (.)
+        -q quiet all non-leader nodes
+        -f flush databases and start from scratch"
         exit 0
         ;;
     v)  verbose=$OPTARG
@@ -34,6 +39,10 @@ while getopts "h?v:n:p:i:d:" opt; do
         ;;
     d)  data_dir=$OPTARG
         ;;
+    q)  show_all=""
+        ;;
+    f)  flush="yes"
+        ;;
     esac
 done
 
@@ -45,6 +54,10 @@ CONODE_BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"/conode
 mkdir -p $data_dir
 cd $data_dir
 export DEBUG_TIME=true
+if [ "$flush" ]; then
+  echo "Flushing databases"
+  rm -f *db
+fi
 
 rm -f public.toml
 mkdir -p log
@@ -57,9 +70,15 @@ for n in $( seq $nbr_nodes -1 1 ); do
   fi
   (
     LOG=log/conode_${co}_$PORT
+    SHOW=$( [ "$n" -eq 1 -o "$show_all" ] && echo "showing" || echo "" )
     export CONODE_SERVICE_PATH=$(pwd)
-    while [ -f running ]; do
-      $CONODE_BIN -d $verbose -c $co/private.toml server 2>&1 | tee $LOG-$(date +%y%m%d-%H%M).log
+    while [[ -f running ]]; do
+      echo "Starting conode $LOG"
+      if [[ "$SHOW" ]]; then
+        $CONODE_BIN -d $verbose -c $co/private.toml server 2>&1 | tee $LOG-$(date +%y%m%d-%H%M).log
+      else
+        $CONODE_BIN -d $verbose -c $co/private.toml server > $LOG-$(date +%y%m%d-%H%M).log 2>&1
+      fi
       sleep 1
     done
   ) &

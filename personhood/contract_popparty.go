@@ -1,8 +1,15 @@
 package personhood
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/dedis/kyber"
+	"github.com/dedis/kyber/group/edwards25519"
+	"github.com/dedis/kyber/sign/anon"
+	"github.com/dedis/kyber/xof/blake2xs"
 	"github.com/dedis/onet/log"
 	"strings"
 
@@ -20,13 +27,13 @@ import (
 //   3 - finalized
 var ContractPopParty = "popParty"
 
-type contract struct {
+type contractPopParty struct {
 	byzcoin.BasicContract
 	PopPartyStruct
 }
 
 func contractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
-	c := &contract{}
+	c := &contractPopParty{}
 	err := protobuf.DecodeWithConstructors(in, &c.PopPartyStruct, network.DefaultConstructors(cothority.Suite))
 	if err != nil {
 		return nil, errors.New("couldn't unmarshal existing PopPartyStruct: " + err.Error())
@@ -34,7 +41,15 @@ func contractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
 	return c, nil
 }
 
-func (c *contract) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c contractPopParty) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
+	if inst.GetType() == byzcoin.InvokeType && inst.Invoke.Command == "mine"{
+		log.Lvl2("not verifying darc for mining")
+		return nil
+	}
+	return c.BasicContract.VerifyInstruction(rst, inst, ctxHash)
+}
+
+func (c contractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	descBuf := inst.Spawn.Args.Search("description")
@@ -63,18 +78,32 @@ func (c *contract) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction
 	expr := d.Rules.Get("invoke:finalize")
 	c.Organizers = len(strings.Split(string(expr), "|"))
 
+	miningRewardBuf := inst.Spawn.Args.Search("miningReward")
+	if miningRewardBuf == nil{
+		return nil, nil, errors.New("no miningReward argument")
+	}
+	c.MiningReward = binary.LittleEndian.Uint64(miningRewardBuf)
+
 	ppiBuf, err := protobuf.Encode(&c.PopPartyStruct)
 	if err != nil {
 		return nil, nil, errors.New("couldn't marshal PopPartyStruct: " + err.Error())
 	}
 
 	scs = byzcoin.StateChanges{
-		byzcoin.NewStateChange(byzcoin.Create, inst.DeriveID(""), inst.Spawn.ContractID, ppiBuf, darc.ID(inst.InstanceID[:])),
+		byzcoin.NewStateChange(byzcoin.Create, inst.DeriveID(""), ContractPopParty, ppiBuf, darcID),
 	}
 	return
 }
 
-func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+type suite_blake2s struct{
+	edwards25519.SuiteEd25519
+}
+
+func (sb suite_blake2s) XOF(key []byte) kyber.XOF {
+	return blake2xs.New(key)
+}
+
+func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -94,9 +123,6 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 		if c.State != 2 {
 			return nil, nil, fmt.Errorf("can only finalize when barrier point is passed")
 		}
-		if inst.Signatures[0].Signer.Darc == nil {
-			return nil, nil, errors.New("only darc-signers allowed for finalizing")
-		}
 
 		attBuf := inst.Invoke.Args.Search("attendees")
 		if attBuf == nil {
@@ -106,9 +132,9 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 		err = protobuf.DecodeWithConstructors(attBuf, &atts, network.DefaultConstructors(cothority.Suite))
 
 		alreadySigned := false
-		orgDarc := inst.Signatures[0].Signer.Darc.ID
+		orgSigner := inst.Signatures[0].Signer.String()
 		for _, f := range c.Finalizations {
-			if f.Equal(orgDarc) {
+			if f == orgSigner {
 				alreadySigned = true
 				break
 			}
@@ -118,7 +144,7 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 			// Store first proposition of list of attendees or reset if the same
 			// organizer submits again
 			c.Attendees = atts
-			c.Finalizations = []darc.ID{orgDarc}
+			c.Finalizations = []string{orgSigner}
 		} else {
 			// Check if it is the same set of attendees or not
 			same := true
@@ -128,15 +154,15 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 				}
 			}
 			if same {
-				c.Finalizations = append(c.Finalizations, orgDarc)
-				if len(c.Finalizations) == c.Organizers{
-					log.Lvl2("Successfully finalized party %s / %x", c.Description.Name, inst.InstanceID[:])
-					c.State = 3
-				}
+				c.Finalizations = append(c.Finalizations, orgSigner)
 			} else {
 				c.Attendees = atts
-				c.Finalizations = []darc.ID{orgDarc}
+				c.Finalizations = []string{orgSigner}
 			}
+		}
+		if len(c.Finalizations) == c.Organizers {
+			log.Lvlf2("Successfully finalized party %s / %x", c.Description.Name, inst.InstanceID[:])
+			c.State = 3
 		}
 
 	case "addParty":
@@ -153,26 +179,62 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 		if lrs == nil {
 			return nil, nil, errors.New("need lrs argument")
 		}
+		tag, err := anon.Verify(&suite_blake2s{}, []byte("mine"), c.Attendees.Keys, inst.InstanceID[:], lrs)
+		if err != nil{
+			return nil, nil, errors.New("error while verifying signature: " + err.Error())
+		}
+		for _, t := range c.Miners{
+			if bytes.Compare(t.Tag, tag) == 0{
+				return nil, nil, errors.New("this attendee already mined")
+			}
+		}
+		c.Miners = append(c.Miners, LRSTag{Tag: tag})
 
+		var coin byzcoin.Coin
+		var coinDarc darc.ID
+		coinAction := byzcoin.Update
 		coinIID := inst.Invoke.Args.Search("coinIID")
 		if coinIID == nil {
-			return nil, nil, errors.New("need coinIID argument")
-		}
-		coinBuf, _, cid, coinDarc, err := rst.GetValues(coinIID)
-		if cid != contracts.ContractCoinID {
-			return nil, nil, errors.New("coinIID is not a coin contract")
-		}
-		var coin byzcoin.Coin
-		err = protobuf.Decode(coinBuf, &coin)
-		if err != nil {
-			return nil, nil, errors.New("couldn't unmarshal coin: " + err.Error())
+			newDarcBuf := inst.Invoke.Args.Search("newDarc")
+			if newDarcBuf == nil {
+				return nil, nil, errors.New("need either coinIID or newDarc argument")
+			}
+			newDarc, err := darc.NewFromProtobuf(newDarcBuf)
+			if err != nil{
+				return nil, nil, errors.New("couldn't unmarshal darc: " + err.Error())
+			}
+			// Creating new darc for new user
+			log.Lvl2("Creating new darc for user")
+			scs = append(scs, byzcoin.NewStateChange(byzcoin.Create,
+				byzcoin.NewInstanceID(newDarc.GetBaseID()), byzcoin.ContractDarcID,
+				newDarcBuf, darcID))
+			coinAction = byzcoin.Create
+			h := sha256.New()
+			h.Write([]byte("coin"))
+			h.Write(newDarc.GetBaseID())
+			coinIID = h.Sum(nil)
+			coin.Name = byzcoin.NewInstanceID([]byte("SpawnerCoin"))
+		} else {
+			var cid string
+			var coinBuf []byte
+			coinBuf, _, cid, coinDarc, err = rst.GetValues(coinIID)
+			if cid != contracts.ContractCoinID {
+				return nil, nil, errors.New("coinIID is not a coin contract")
+			}
+			err = protobuf.Decode(coinBuf, &coin)
+			if err != nil {
+				return nil, nil, errors.New("couldn't unmarshal coin: " + err.Error())
+			}
 		}
 		err = coin.SafeAdd(c.MiningReward)
 		if err != nil {
 			return nil, nil, errors.New("couldn't add mining reward: " + err.Error())
 		}
-		coinBuf, err = protobuf.Encode(coin)
-		scs = append(scs, byzcoin.NewStateChange(byzcoin.Update,
+		coinBuf, err := protobuf.Encode(&coin)
+		if err != nil{
+			return nil, nil, errors.New("couldn't encode coin: " + err.Error())
+		}
+		scs = append(scs, byzcoin.NewStateChange(coinAction,
 			byzcoin.NewInstanceID(coinIID),
 			contracts.ContractCoinID, coinBuf, coinDarc))
 
@@ -186,6 +248,7 @@ func (c *contract) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructio
 		return nil, nil, errors.New("couldn't marshal PopPartyStruct: " + err.Error())
 	}
 
+	log.Printf("Storing new pop-party: %x", ppiBuf)
 	// Update existing party structure
 	scs = append(scs, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID, ContractPopParty, ppiBuf, darcID))
 

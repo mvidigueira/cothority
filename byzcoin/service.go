@@ -376,6 +376,8 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 		return
 	}
 
+	_, v := proof.InclusionProof.KeyValue()
+	log.Printf("value is %x", v)
 	resp = &GetProofResponse{
 		Version: CurrentVersion,
 		Proof:   *proof,
@@ -2283,7 +2285,7 @@ func (s *Service) trySyncAll() {
 		req := &skipchain.GetSingleBlockByIndex{Genesis: sb.SkipChainID(), Index: index}
 		lksb, err := s.skService().GetSingleBlockByIndex(req)
 		if lksb != nil {
-			log.Lvlf2("Start creating state changes for skipchain %x", sb.SkipChainID())
+			log.Lvlf2("Starting to create state changes for skipchain %x", sb.SkipChainID())
 			_, err = s.buildStateChanges(lksb.SkipBlock.Hash, sst, []Coin{})
 			if err != nil {
 				log.Error(s.ServerIdentity(), err)
