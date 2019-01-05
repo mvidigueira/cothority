@@ -130,12 +130,14 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 		}
 		var atts Attendees
 		err = protobuf.DecodeWithConstructors(attBuf, &atts, network.DefaultConstructors(cothority.Suite))
+		log.Lvl2("Adding attendees:", atts.Keys)
 
 		alreadySigned := false
 		orgSigner := inst.Signatures[0].Signer.String()
 		for _, f := range c.Finalizations {
 			if f == orgSigner {
 				alreadySigned = true
+				log.Print("this organizer already sent a finalization - resetting list of attendees")
 				break
 			}
 		}
@@ -145,17 +147,22 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 			// organizer submits again
 			c.Attendees = atts
 			c.Finalizations = []string{orgSigner}
+			log.Print("resetting list of attendees")
 		} else {
 			// Check if it is the same set of attendees or not
-			same := true
-			for i, att := range c.Attendees.Keys {
-				if !att.Equal(atts.Keys[i]) {
-					same = false
+			same := len(c.Attendees.Keys) == len(atts.Keys)
+			if same {
+				for i, att := range c.Attendees.Keys {
+					if !att.Equal(atts.Keys[i]) {
+						same = false
+					}
 				}
 			}
 			if same {
+				log.Print("one more finalization")
 				c.Finalizations = append(c.Finalizations, orgSigner)
 			} else {
+				log.Print("not the same list of attendees - resetting")
 				c.Attendees = atts
 				c.Finalizations = []string{orgSigner}
 			}
@@ -248,7 +255,6 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 		return nil, nil, errors.New("couldn't marshal PopPartyStruct: " + err.Error())
 	}
 
-	log.Printf("Storing new pop-party: %x", ppiBuf)
 	// Update existing party structure
 	scs = append(scs, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID, ContractPopParty, ppiBuf, darcID))
 

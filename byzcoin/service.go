@@ -353,8 +353,7 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 		return nil, errors.New("version mismatch")
 	}
 
-	log.Printf("Returning proof for %x from chain '%x'",
-		req.Key, req.ID)
+	log.Lvlf2("Returning proof for %x from chain '%x'", req.Key, req.ID)
 
 	sb := s.db().GetByID(req.ID)
 	if sb == nil {
@@ -377,7 +376,7 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 	}
 
 	_, v := proof.InclusionProof.KeyValue()
-	log.Printf("value is %x", v)
+	log.Lvlf3("value is %x", v)
 	resp = &GetProofResponse{
 		Version: CurrentVersion,
 		Proof:   *proof,
@@ -621,7 +620,6 @@ type leafNode struct {
 
 func (s *Service) Debug(req *DebugRequest) (resp *DebugResponse, err error) {
 	resp = &DebugResponse{}
-	log.Printf("%+v", req)
 	if len(req.ByzCoinID) != 32 {
 		rep, err := s.skService().GetAllSkipChainIDs(nil)
 		if err != nil {
@@ -673,7 +671,6 @@ func (s *Service) Debug(req *DebugRequest) (resp *DebugResponse, err error) {
 }
 
 func (s *Service) DebugRemove(req *DebugRemoveRequest) (*DebugResponse, error) {
-	log.Printf("Asked to remove %x", req.ByzCoinID)
 	if err := schnorr.Verify(cothority.Suite, s.ServerIdentity().Public, req.ByzCoinID, req.Signature); err != nil {
 		log.Error("Signature failure:", err)
 		return nil, err
@@ -997,7 +994,7 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		s.catchingUp = false
 		s.updateCollectionLock.Unlock()
 	}()
-	log.Printf("Catching up %x / %d", sb.SkipChainID(), sb.Index)
+	log.LLvlf2("Catching up %x / %d", sb.SkipChainID(), sb.Index)
 
 	// Load the trie.
 	st, err := s.getStateTrie(sb.SkipChainID())
@@ -1151,6 +1148,9 @@ func (s *Service) updateTrieCallback(sbID skipchain.SkipBlockID) error {
 
 	log.Lvlf2("%s Updating transactions for %x on index %v", s.ServerIdentity(), sb.SkipChainID(), sb.Index)
 	_, _, scs, _ := s.createStateChanges(st.MakeStagingStateTrie(), sb.SkipChainID(), body.TxResults, noTimeout)
+	s.stateChangeCache.Lock()
+	delete(s.stateChangeCache.cache, string(sb.SkipChainID()))
+	s.stateChangeCache.Unlock()
 
 	log.Lvlf3("%s Storing index %d with %d state changes %v", s.ServerIdentity(), sb.Index, len(scs), scs.ShortStrings())
 	// Update our global state using all state changes.
@@ -1710,7 +1710,7 @@ func (s *Service) createStateChanges(sst *stagingStateTrie, scID skipchain.SkipB
 	var err error
 	merkleRoot, txOut, states, err = s.stateChangeCache.get(scID, txIn.Hash())
 	if err == nil {
-		log.Lvl3(s.ServerIdentity(), "loaded state changes from cache")
+		log.Lvlf3("%s: loaded state changes %x from cache", s.ServerIdentity(), scID)
 		return
 	}
 	log.Lvl3(s.ServerIdentity(), "state changes from cache: MISS")
