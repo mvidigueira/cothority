@@ -1,7 +1,6 @@
 package personhood
 
 import (
-	"crypto/sha256"
 	"errors"
 
 	"github.com/dedis/cothority/byzcoin"
@@ -38,11 +37,11 @@ func (c *contractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 
 	// Spawn creates a new coin account as a separate instance.
 	ca := inst.DeriveID("")
-	log.Lvlf3("Spawning Personhood to %x", ca.Slice())
+	log.Lvlf3("Spawning Credential to %x", ca.Slice())
 	var ciBuf []byte
 	ciBuf, err = protobuf.Encode(&c.CredentialStruct)
 	if err != nil {
-		return nil, nil, errors.New("couldn't encode PersonhoodInstance: " + err.Error())
+		return nil, nil, errors.New("couldn't encode CredentialInstance: " + err.Error())
 	}
 	sc = []byzcoin.StateChange{
 		byzcoin.NewStateChange(byzcoin.Create, ca, ContractCredentialID, ciBuf, darcID),
@@ -60,30 +59,20 @@ func (c *contractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 	}
 
 	switch inst.Invoke.Command {
-	case "transfer":
-		// transfer sends a given amount of coins to another account.
-		target := inst.Invoke.Args.Search("destination")
-		var cid string
-		_, _, cid, _, err = rst.GetValues(target)
-		if err == nil && cid != ContractCredentialID {
-			err = errors.New("destination is not a coin contract")
-		}
-		if err != nil {
-			return
+	case "update":
+		// update overwrites the credential information
+		credBuf := inst.Invoke.Args.Search("credential")
+		err = protobuf.Decode(credBuf, &c.CredentialStruct)
+		if err != nil{
+			return nil, nil, errors.New("got wrong credential data: " + err.Error())
 		}
 
-		// sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, byzcoin.NewInstanceID(target),
-		// ContractCredentialID, targetBuf, did))
+		sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID,
+			ContractCredentialID, credBuf, darcID))
 	default:
-		err = errors.New("Personhood contract can only")
+		err = errors.New("credential contract can only 'update'")
 		return
 	}
-
-	// Finally update the coin value.
-	var ciBuf []byte
-	ciBuf, err = protobuf.Encode(&c.CredentialStruct)
-	sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID,
-		ContractCredentialID, ciBuf, darcID))
 	return
 }
 
@@ -100,14 +89,4 @@ func (c *contractCredential) Delete(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 		byzcoin.NewStateChange(byzcoin.Remove, inst.InstanceID, ContractCredentialID, nil, darcID),
 	}
 	return
-}
-
-// iid uses sha256(in) in order to manufacture an InstanceID from in
-// thereby handling the case where len(in) != 32.
-//
-// TODO: Find a nicer way to make well-known instance IDs.
-func iid(in string) byzcoin.InstanceID {
-	h := sha256.New()
-	h.Write([]byte(in))
-	return byzcoin.NewInstanceID(h.Sum(nil))
 }

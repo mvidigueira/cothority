@@ -20329,7 +20329,7 @@ public final class Personhood {
      * nil for the first party.
      * </pre>
      *
-     * <code>required bytes previous = 8;</code>
+     * <code>optional bytes previous = 8;</code>
      */
     boolean hasPrevious();
     /**
@@ -20338,7 +20338,7 @@ public final class Personhood {
      * nil for the first party.
      * </pre>
      *
-     * <code>required bytes previous = 8;</code>
+     * <code>optional bytes previous = 8;</code>
      */
     com.google.protobuf.ByteString getPrevious();
 
@@ -20348,7 +20348,7 @@ public final class Personhood {
      * nil if there is no next party.
      * </pre>
      *
-     * <code>required bytes next = 9;</code>
+     * <code>optional bytes next = 9;</code>
      */
     boolean hasNext();
     /**
@@ -20357,7 +20357,7 @@ public final class Personhood {
      * nil if there is no next party.
      * </pre>
      *
-     * <code>required bytes next = 9;</code>
+     * <code>optional bytes next = 9;</code>
      */
     com.google.protobuf.ByteString getNext();
   }
@@ -20780,7 +20780,7 @@ public final class Personhood {
      * nil for the first party.
      * </pre>
      *
-     * <code>required bytes previous = 8;</code>
+     * <code>optional bytes previous = 8;</code>
      */
     public boolean hasPrevious() {
       return ((bitField0_ & 0x00000020) == 0x00000020);
@@ -20791,7 +20791,7 @@ public final class Personhood {
      * nil for the first party.
      * </pre>
      *
-     * <code>required bytes previous = 8;</code>
+     * <code>optional bytes previous = 8;</code>
      */
     public com.google.protobuf.ByteString getPrevious() {
       return previous_;
@@ -20805,7 +20805,7 @@ public final class Personhood {
      * nil if there is no next party.
      * </pre>
      *
-     * <code>required bytes next = 9;</code>
+     * <code>optional bytes next = 9;</code>
      */
     public boolean hasNext() {
       return ((bitField0_ & 0x00000040) == 0x00000040);
@@ -20816,7 +20816,7 @@ public final class Personhood {
      * nil if there is no next party.
      * </pre>
      *
-     * <code>required bytes next = 9;</code>
+     * <code>optional bytes next = 9;</code>
      */
     public com.google.protobuf.ByteString getNext() {
       return next_;
@@ -20846,14 +20846,6 @@ public final class Personhood {
         return false;
       }
       if (!hasMiningreward()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasPrevious()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasNext()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -21427,12 +21419,6 @@ public final class Personhood {
           return false;
         }
         if (!hasMiningreward()) {
-          return false;
-        }
-        if (!hasPrevious()) {
-          return false;
-        }
-        if (!hasNext()) {
           return false;
         }
         if (!getDescription().isInitialized()) {
@@ -22414,7 +22400,7 @@ public final class Personhood {
        * nil for the first party.
        * </pre>
        *
-       * <code>required bytes previous = 8;</code>
+       * <code>optional bytes previous = 8;</code>
        */
       public boolean hasPrevious() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
@@ -22425,7 +22411,7 @@ public final class Personhood {
        * nil for the first party.
        * </pre>
        *
-       * <code>required bytes previous = 8;</code>
+       * <code>optional bytes previous = 8;</code>
        */
       public com.google.protobuf.ByteString getPrevious() {
         return previous_;
@@ -22436,7 +22422,7 @@ public final class Personhood {
        * nil for the first party.
        * </pre>
        *
-       * <code>required bytes previous = 8;</code>
+       * <code>optional bytes previous = 8;</code>
        */
       public Builder setPrevious(com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -22453,7 +22439,7 @@ public final class Personhood {
        * nil for the first party.
        * </pre>
        *
-       * <code>required bytes previous = 8;</code>
+       * <code>optional bytes previous = 8;</code>
        */
       public Builder clearPrevious() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -22469,7 +22455,7 @@ public final class Personhood {
        * nil if there is no next party.
        * </pre>
        *
-       * <code>required bytes next = 9;</code>
+       * <code>optional bytes next = 9;</code>
        */
       public boolean hasNext() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
@@ -22480,7 +22466,7 @@ public final class Personhood {
        * nil if there is no next party.
        * </pre>
        *
-       * <code>required bytes next = 9;</code>
+       * <code>optional bytes next = 9;</code>
        */
       public com.google.protobuf.ByteString getNext() {
         return next_;
@@ -22491,7 +22477,7 @@ public final class Personhood {
        * nil if there is no next party.
        * </pre>
        *
-       * <code>required bytes next = 9;</code>
+       * <code>optional bytes next = 9;</code>
        */
       public Builder setNext(com.google.protobuf.ByteString value) {
         if (value == null) {
@@ -22508,7 +22494,7 @@ public final class Personhood {
        * nil if there is no next party.
        * </pre>
        *
-       * <code>required bytes next = 9;</code>
+       * <code>optional bytes next = 9;</code>
        */
       public Builder clearNext() {
         bitField0_ = (bitField0_ & ~0x00000100);
@@ -26038,7 +26024,7 @@ public final class Personhood {
       "on\030\004 \002(\0132\023.personhood.PopDesc\022(\n\tattende" +
       "es\030\005 \002(\0132\025.personhood.Attendees\022\"\n\006miner" +
       "s\030\006 \003(\0132\022.personhood.LRSTag\022\024\n\014miningrew" +
-      "ard\030\007 \002(\004\022\020\n\010previous\030\010 \002(\014\022\014\n\004next\030\t \002(" +
+      "ard\030\007 \002(\004\022\020\n\010previous\030\010 \001(\014\022\014\n\004next\030\t \001(" +
       "\014\"L\n\007PopDesc\022\014\n\004name\030\001 \002(\t\022\017\n\007purpose\030\002 " +
       "\002(\t\022\020\n\010datetime\030\003 \002(\004\022\020\n\010location\030\004 \002(\t\"" +
       "]\n\016FinalStatement\022!\n\004desc\030\001 \001(\0132\023.person" +

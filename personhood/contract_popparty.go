@@ -42,7 +42,7 @@ func contractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
 }
 
 func (c contractPopParty) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
-	if inst.GetType() == byzcoin.InvokeType && inst.Invoke.Command == "mine"{
+	if inst.GetType() == byzcoin.InvokeType && inst.Invoke.Command == "mine" {
 		log.Lvl2("not verifying darc for mining")
 		return nil
 	}
@@ -79,7 +79,7 @@ func (c contractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	c.Organizers = len(strings.Split(string(expr), "|"))
 
 	miningRewardBuf := inst.Spawn.Args.Search("miningReward")
-	if miningRewardBuf == nil{
+	if miningRewardBuf == nil {
 		return nil, nil, errors.New("no miningReward argument")
 	}
 	c.MiningReward = binary.LittleEndian.Uint64(miningRewardBuf)
@@ -95,7 +95,7 @@ func (c contractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	return
 }
 
-type suite_blake2s struct{
+type suite_blake2s struct {
 	edwards25519.SuiteEd25519
 }
 
@@ -187,11 +187,11 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 			return nil, nil, errors.New("need lrs argument")
 		}
 		tag, err := anon.Verify(&suite_blake2s{}, []byte("mine"), c.Attendees.Keys, inst.InstanceID[:], lrs)
-		if err != nil{
+		if err != nil {
 			return nil, nil, errors.New("error while verifying signature: " + err.Error())
 		}
-		for _, t := range c.Miners{
-			if bytes.Compare(t.Tag, tag) == 0{
+		for _, t := range c.Miners {
+			if bytes.Compare(t.Tag, tag) == 0 {
 				return nil, nil, errors.New("this attendee already mined")
 			}
 		}
@@ -207,7 +207,7 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 				return nil, nil, errors.New("need either coinIID or newDarc argument")
 			}
 			newDarc, err := darc.NewFromProtobuf(newDarcBuf)
-			if err != nil{
+			if err != nil {
 				return nil, nil, errors.New("couldn't unmarshal darc: " + err.Error())
 			}
 			// Creating new darc for new user
@@ -238,7 +238,7 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 			return nil, nil, errors.New("couldn't add mining reward: " + err.Error())
 		}
 		coinBuf, err := protobuf.Encode(&coin)
-		if err != nil{
+		if err != nil {
 			return nil, nil, errors.New("couldn't encode coin: " + err.Error())
 		}
 		scs = append(scs, byzcoin.NewStateChange(coinAction,

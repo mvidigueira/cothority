@@ -259,10 +259,10 @@ type PopPartyStruct struct {
 	MiningReward uint64
 	// Previous is the link to the instanceID of the previous party, it can be
 	// nil for the first party.
-	Previous byzcoin.InstanceID
+	Previous byzcoin.InstanceID `protobuf:"opt"`
 	// Next is a link to the instanceID of the next party. It can be
 	// nil if there is no next party.
-	Next byzcoin.InstanceID
+	Next byzcoin.InstanceID `protobuf:"opt"`
 }
 
 // PopDesc holds the name, date and a roster of all involved conodes.

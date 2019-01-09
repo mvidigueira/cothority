@@ -246,10 +246,10 @@ message PopPartyStruct {
   required uint64 miningreward = 7;
   // Previous is the link to the instanceID of the previous party, it can be
   // nil for the first party.
-  required bytes previous = 8;
+  optional bytes previous = 8;
   // Next is a link to the instanceID of the next party. It can be
   // nil if there is no next party.
-  required bytes next = 9;
+  optional bytes next = 9;
 }
 
 // PopDesc holds the name, date and a roster of all involved conodes.
