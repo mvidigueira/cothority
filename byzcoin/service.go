@@ -1739,7 +1739,9 @@ clientTransactions:
 		for _, instr := range tx.ClientTransaction.Instructions {
 			scs, cout, err := s.executeInstruction(sstTempC, cin, instr, h)
 			if err != nil {
-				log.Errorf("%s Instruction %s returned error: %s", s.ServerIdentity(), instr, err)
+				_, _, cid, _, err := sstTempC.GetValues(instr.InstanceID.Slice())
+				log.Errorf("%s Contract %s got Instruction %s and returned error: %s", s.ServerIdentity(),
+					cid, instr, err)
 				tx.Accepted = false
 				txOut = append(txOut, tx)
 				continue clientTransactions

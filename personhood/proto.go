@@ -2,7 +2,6 @@ package personhood
 
 import (
 	"github.com/dedis/cothority/byzcoin"
-	"github.com/dedis/cothority/darc"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber"
 	"github.com/dedis/onet"
@@ -21,12 +20,6 @@ import (
 // option java_package = "ch.epfl.dedis.lib.proto";
 // option java_outer_classname = "Personhood";
 
-// LinkPoP stores a link to a pop-party to accept this configuration. It will
-// try to create an account to receive payments from clients.
-type LinkPoP struct {
-	Party Party
-}
-
 // Party represents everything necessary to find a party in the ledger.
 type Party struct {
 	// Roster is the list of nodes responsible for the byzcoin instance
@@ -35,8 +28,6 @@ type Party struct {
 	ByzCoinID skipchain.SkipBlockID
 	// InstanceID is where to find the party in the ledger.
 	InstanceID byzcoin.InstanceID
-	// Signer can call Invoke on the PartyInstance.
-	Signer darc.Signer
 }
 
 // StringReply can be used by all calls that need a string to be returned
@@ -116,7 +107,7 @@ type TopupQuestionnaire struct {
 }
 
 //
-// * Popper
+// * Sybil Resistant Messaging
 //
 
 // Message represents a message that will be sent to the system.
