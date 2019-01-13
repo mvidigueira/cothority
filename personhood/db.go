@@ -53,6 +53,7 @@ type storage1 struct {
 	Questionnaires map[string]*Questionnaire
 	Replies        map[string]*Reply
 	Parties        map[string]*Party
+	Ts             TestStore
 
 	sync.Mutex
 }

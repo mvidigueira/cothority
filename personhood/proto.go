@@ -2,6 +2,7 @@ package personhood
 
 import (
 	"github.com/dedis/cothority/byzcoin"
+	"github.com/dedis/cothority/darc"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber"
 	"github.com/dedis/onet"
@@ -20,6 +21,18 @@ import (
 // option java_package = "ch.epfl.dedis.lib.proto";
 // option java_outer_classname = "Personhood";
 
+// PartyList can either store a new party in the list, or just return the list of
+// available parties.
+type PartyList struct{
+	NewParty *Party
+}
+
+// PartyListResponse holds a list of all known parties so far. Only parties in PreBarrier
+// state are listed.
+type PartyListResponse struct{
+	Parties []Party
+}
+
 // Party represents everything necessary to find a party in the ledger.
 type Party struct {
 	// Roster is the list of nodes responsible for the byzcoin instance
@@ -28,6 +41,8 @@ type Party struct {
 	ByzCoinID skipchain.SkipBlockID
 	// InstanceID is where to find the party in the ledger.
 	InstanceID byzcoin.InstanceID
+	// TODO: remove signer
+	Signer darc.Signer `protobuf:"opt"`
 }
 
 // StringReply can be used by all calls that need a string to be returned

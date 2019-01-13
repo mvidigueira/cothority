@@ -1739,7 +1739,10 @@ clientTransactions:
 		for _, instr := range tx.ClientTransaction.Instructions {
 			scs, cout, err := s.executeInstruction(sstTempC, cin, instr, h)
 			if err != nil {
-				_, _, cid, _, err := sstTempC.GetValues(instr.InstanceID.Slice())
+				_, _, cid, _, err2 := sstTempC.GetValues(instr.InstanceID.Slice())
+				if err2 != nil{
+					err = fmt.Errorf("%s - while getting value: %s", err, err2)
+				}
 				log.Errorf("%s Contract %s got Instruction %s and returned error: %s", s.ServerIdentity(),
 					cid, instr, err)
 				tx.Accepted = false

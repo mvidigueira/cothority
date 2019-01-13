@@ -211,7 +211,7 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 				return nil, nil, errors.New("couldn't unmarshal darc: " + err.Error())
 			}
 			// Creating new darc for new user
-			log.Lvl2("Creating new darc for user")
+			log.Lvlf2("Creating new darc %x for user", newDarc.GetBaseID())
 			scs = append(scs, byzcoin.NewStateChange(byzcoin.Create,
 				byzcoin.NewInstanceID(newDarc.GetBaseID()), byzcoin.ContractDarcID,
 				newDarcBuf, darcID))
@@ -220,6 +220,8 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 			h.Write([]byte("coin"))
 			h.Write(newDarc.GetBaseID())
 			coinIID = h.Sum(nil)
+			coinDarc = newDarc.GetBaseID()
+			log.Lvlf2("Creating new coin %x for user", coinIID)
 			coin.Name = byzcoin.NewInstanceID([]byte("SpawnerCoin"))
 		} else {
 			var cid string

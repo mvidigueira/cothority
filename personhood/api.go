@@ -6,7 +6,6 @@ package personhood
 import (
 	"github.com/dedis/cothority"
 	"github.com/dedis/onet"
-	"github.com/dedis/onet/network"
 )
 
 // Client is a structure to communicate with the personhood
@@ -18,14 +17,4 @@ type Client struct {
 // NewClient instantiates a new personhood.Client
 func NewClient() *Client {
 	return &Client{Client: onet.NewClient(cothority.Suite, ServiceName)}
-}
-
-// LinkPoP sends a party description to the message server for further
-// reference in messages.
-func (c *Client) LinkPoP(si *network.ServerIdentity, p Party) error {
-	err := c.SendProtobuf(si, &LinkPoP{p}, nil)
-	if err != nil {
-		return err
-	}
-	return nil
 }

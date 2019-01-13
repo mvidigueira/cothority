@@ -35,19 +35,55 @@ type Service struct {
 	// are correctly handled.
 	*onet.ServiceProcessor
 
-	ts TestStore
-
 	storage *storage1
 }
 
-// LinkPoP stores a link to a pop-party to accept this configuration. It will
-// try to create an account to receive payments from clients.
-func (s *Service) LinkPoP(lp *LinkPoP) (*StringReply, error) {
-	log.Lvlf2("%s: Linking pop: %+v", s.ServerIdentity(), lp)
-	s.storage.Parties[string(lp.Party.InstanceID.Slice())] = &lp.Party
-	s.save()
-	log.Lvlf2("%s: parties: %+v", s.ServerIdentity(), s.storage.Parties)
-	return &StringReply{}, nil
+// PartyList can either store a new party in the list, or just return the list of
+// available parties. It removes finalized parties, as they should not be picked up
+// by new clients.
+func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
+	log.Printf("PartyList: %+v", rq)
+	if rq.NewParty != nil {
+		party, err := getParty(rq.NewParty)
+		if err != nil {
+			return nil, err
+		}
+		if party.State != 1 {
+			return nil, errors.New("can only list parties in preBarrier state")
+		}
+		s.storage.Parties[string(rq.NewParty.InstanceID.Slice())] = rq.NewParty
+	}
+	var parties []Party
+	for pid, p := range s.storage.Parties {
+		party, err := getParty(p)
+		log.Print(party, err)
+		// Remove finalized parties
+		if err != nil || party.State == 3 {
+			delete(s.storage.Parties, pid)
+		} else {
+			parties = append(parties, *p)
+		}
+	}
+	log.Printf("Parties are: %+v", parties)
+	return &PartyListResponse{Parties: parties}, nil
+}
+
+func getParty(p *Party) (cpp *contractPopParty, err error) {
+	cl := byzcoin.NewClient(p.ByzCoinID, p.Roster)
+	pr, err := cl.GetProof(p.InstanceID.Slice())
+	if err != nil {
+		return
+	}
+	buf, cid, _, err := pr.Proof.Get(p.InstanceID.Slice())
+	if err != nil {
+		return
+	}
+	if cid != ContractPopParty {
+		err = errors.New("didn't get a party instance")
+		return
+	}
+	cbc, err := contractPopPartyFromBytes(buf)
+	return cbc.(*contractPopParty), err
 }
 
 // RegisterQuestionnaire creates a questionnaire with a number of questions to
@@ -271,28 +307,22 @@ func (s *Service) TopupMessage(tm *TopupMessage) (*StringReply, error) {
 func (s *Service) TestStore(ts *TestStore) (*TestStore, error) {
 	if ts.ByzCoinID != nil && len(ts.ByzCoinID) == 32 {
 		log.Lvlf1("Storing TestStore %x / %x", ts.ByzCoinID, ts.SpawnerIID)
-		s.ts.ByzCoinID = ts.ByzCoinID
-		s.ts.SpawnerIID = ts.SpawnerIID
+		s.storage.Ts.ByzCoinID = ts.ByzCoinID
+		s.storage.Ts.SpawnerIID = ts.SpawnerIID
 	} else {
-		log.Lvlf1("Retrieving TestStore %x / %x", s.ts.ByzCoinID[:], s.ts.SpawnerIID[:])
+		log.Lvlf1("Retrieving TestStore %x / %x", s.storage.Ts.ByzCoinID[:], s.storage.Ts.SpawnerIID[:])
 	}
-	return &s.ts, nil
+	return &s.storage.Ts, nil
 }
 
 func newService(c *onet.Context) (onet.Service, error) {
-	bid, _ := hex.DecodeString("9a812404dd8306bcae1cf419a643c21041731a8972b1ddbe3295614706c9183c")
-	sid, _ := hex.DecodeString("8898f2dd77ec045cd1ec67302f029e513ced173ab8ccf2c8ee4c9a306bd39091")
 	s := &Service{
 		ServiceProcessor: onet.NewServiceProcessor(c),
-		ts: TestStore{
-			ByzCoinID: bid,
-			SpawnerIID: byzcoin.NewInstanceID(sid),
-		},
 	}
-	if err := s.RegisterHandlers(s.AnswerQuestionnaire, s.LinkPoP, s.ListMessages,
+	if err := s.RegisterHandlers(s.PartyList, s.AnswerQuestionnaire, s.ListMessages,
 		s.ListQuestionnaires, s.ReadMessage, s.RegisterQuestionnaire, s.SendMessage,
 		s.TopupQuestionnaire, s.TopupMessage, s.TestStore); err != nil {
-		return nil, errors.New("Couldn't register messages")
+		return nil, errors.New("couldn't register messages")
 	}
 	byzcoin.RegisterContract(c, ContractPopParty, contractPopPartyFromBytes)
 	byzcoin.RegisterContract(c, ContractSpawnerID, contractSpawnerFromBytes)
@@ -302,13 +332,19 @@ func newService(c *onet.Context) (onet.Service, error) {
 		log.Error(err)
 		return nil, err
 	}
+	bid, _ := hex.DecodeString("9a812404dd8306bcae1cf419a643c21041731a8972b1ddbe3295614706c9183c")
+	sid, _ := hex.DecodeString("8898f2dd77ec045cd1ec67302f029e513ced173ab8ccf2c8ee4c9a306bd39091")
+	s.storage.Ts = TestStore{
+		ByzCoinID:  bid,
+		SpawnerIID: byzcoin.NewInstanceID(sid),
+	}
 	if len(s.storage.Messages) == 0 {
 		s.storage.Messages = make(map[string]*Message)
 	}
 	if len(s.storage.Questionnaires) == 0 {
 		s.storage.Questionnaires = make(map[string]*Questionnaire)
 	}
-	if len(s.storage.Parties) == 0 {
+	if len(s.storage.Parties) == 0 || true {
 		s.storage.Parties = make(map[string]*Party)
 	}
 	if len(s.storage.Replies) == 0 {

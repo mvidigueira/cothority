@@ -8,10 +8,16 @@ import "onet.proto";
 option java_package = "ch.epfl.dedis.lib.proto";
 option java_outer_classname = "Personhood";
 
-// LinkPoP stores a link to a pop-party to accept this configuration. It will
-// try to create an account to receive payments from clients.
-message LinkPoP {
-  required Party party = 1;
+// PartyList can either store a new party in the list, or just return the list of
+// available parties.
+message PartyList {
+  optional Party newparty = 1;
+}
+
+// PartyListResponse holds a list of all known parties so far. Only parties in PreBarrier
+// state are listed.
+message PartyListResponse {
+  repeated Party parties = 1;
 }
 
 // Party represents everything necessary to find a party in the ledger.
@@ -22,8 +28,8 @@ message Party {
   required bytes byzcoinid = 2;
   // InstanceID is where to find the party in the ledger.
   required bytes instanceid = 3;
-  // Signer can call Invoke on the PartyInstance.
-  required darc.Signer signer = 4;
+  // TODO: remove signer
+  optional darc.Signer signer = 4;
 }
 
 // StringReply can be used by all calls that need a string to be returned
@@ -103,7 +109,7 @@ message TopupQuestionnaire {
 }
 
 //
-// * Popper
+// * Sybil Resistant Messaging
 //
 
 // Message represents a message that will be sent to the system.
