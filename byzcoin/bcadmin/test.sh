@@ -11,9 +11,9 @@ NBR_SERVERS_GROUP=3
 
 main(){
     startTest
-    buildConode github.com/dedis/cothority/byzcoin
-#    run testCoin
-#    run testRoster
+    buildConode github.com/dedis/cothority/byzcoin github.com/dedis/cothority/byzcoin/contracts
+    run testCoin
+    run testRoster
     run testCreateStoreRead
     run testAddDarc
     run testRuleDarc

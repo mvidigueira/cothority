@@ -44,7 +44,7 @@ var cmds = cli.Commands{
 		Name:    "create",
 		Usage:   "create a ledger",
 		Aliases: []string{"c"},
-		ArgsUsage: "roster.toml",
+		ArgsUsage: "[roster.toml]",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "roster, r",
@@ -62,6 +62,7 @@ var cmds = cli.Commands{
 		Name:    "show",
 		Usage:   "show the config, contact ByzCoin to get Genesis Darc ID",
 		Aliases: []string{"s"},
+		ArgsUsage: "[bc.cfg]",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:   "bc",
@@ -330,7 +331,10 @@ func create(c *cli.Context) error {
 func show(c *cli.Context) error {
 	bcArg := c.String("bc")
 	if bcArg == "" {
-		return errors.New("--bc flag is required")
+		bcArg = c.Args().First()
+		if bcArg == "" {
+			return errors.New("--bc flag is required")
+		}
 	}
 
 	cfg, cl, err := lib.LoadConfig(bcArg)
@@ -340,18 +344,24 @@ func show(c *cli.Context) error {
 
 	fmt.Fprintln(c.App.Writer, "ByzCoinID:", fmt.Sprintf("%x", cfg.ByzCoinID))
 	fmt.Fprintln(c.App.Writer, "Genesis Darc:")
-	var roster []string
-	for _, s := range cfg.Roster.List {
-		roster = append(roster, string(s.Address))
-	}
-	fmt.Fprintln(c.App.Writer, "Roster:", strings.Join(roster, ", "))
 
 	gd, err := cl.GetGenDarc()
-	if err == nil {
-		fmt.Fprintln(c.App.Writer, gd)
-	} else {
-		fmt.Fprintln(c.App.ErrWriter, "could not fetch darc:", err)
+	if err != nil {
+		return err
 	}
+	fmt.Fprintln(c.App.Writer, gd, "\n")
+
+	p, err := cl.GetProof(byzcoin.ConfigInstanceID.Slice())
+	if err != nil {
+		return err
+	}
+	sb := p.Proof.Latest
+	var roster []string
+	for _, s := range sb.Roster.List {
+		roster = append(roster, string(s.Address))
+	}
+	fmt.Fprintf(c.App.Writer, "Last block:\n\tIndex: %d\n\tBlockMaxHeight: %d\n\tBackLinks: %d\n\tRoster: %s\n\n",
+		sb.Index, sb.Height, len(sb.BackLinkIDs), strings.Join(roster, ", "))
 
 	return err
 }

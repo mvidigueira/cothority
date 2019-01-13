@@ -58,6 +58,12 @@ func (c *contractCoin) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruc
 
 	// Spawn creates a new coin account as a separate instance.
 	ca := inst.DeriveID("")
+	if pub := inst.Spawn.Args.Search("public"); pub != nil {
+		h := sha256.New()
+		h.Write([]byte(ContractCoinID))
+		h.Write(pub)
+		ca = byzcoin.NewInstanceID(h.Sum(nil))
+	}
 	log.Lvlf2("Spawning coin to %x", ca.Slice())
 	if t := inst.Spawn.Args.Search("type"); t != nil {
 		if len(t) != len(byzcoin.InstanceID{}) {
@@ -114,6 +120,10 @@ func (c *contractCoin) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instru
 			cid string
 			did darc.ID
 		)
+		if inst.InstanceID.Equal(byzcoin.NewInstanceID(target)){
+			err = errors.New("cannot send coins to ourselves")
+			return
+		}
 		v, _, cid, did, err = rst.GetValues(target)
 		if err == nil && cid != ContractCoinID {
 			err = errors.New("destination is not a coin contract")
