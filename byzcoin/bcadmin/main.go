@@ -2,10 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/dedis/cothority/byzcoin/contracts"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber/suites"
 	"github.com/dedis/kyber/util/encoding"
@@ -13,6 +16,7 @@ import (
 	"io"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -36,6 +40,37 @@ func init() {
 }
 
 var cmds = cli.Commands{
+	{
+		Name:    "create",
+		Usage:   "create a ledger",
+		Aliases: []string{"c"},
+		ArgsUsage: "roster.toml",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "roster, r",
+				Usage: "the roster of the cothority that will host the ledger",
+			},
+			cli.DurationFlag{
+				Name:  "interval, i",
+				Usage: "the block interval for this ledger",
+				Value: 5 * time.Second,
+			},
+		},
+		Action: create,
+	},
+	{
+		Name:    "show",
+		Usage:   "show the config, contact ByzCoin to get Genesis Darc ID",
+		Aliases: []string{"s"},
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:   "bc",
+				EnvVar: "BC",
+				Usage:  "the ByzCoin config to use",
+			},
+		},
+		Action: show,
+	},
 	{
 		Name:    "debug",
 		Usage:   "interact with byzcoin for debugging",
@@ -62,34 +97,51 @@ var cmds = cli.Commands{
 		},
 	},
 	{
-		Name:    "create",
-		Usage:   "create a ledger",
-		Aliases: []string{"c"},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "roster, r",
-				Usage: "the roster of the cothority that will host the ledger",
-			},
-			cli.DurationFlag{
-				Name:  "interval, i",
-				Usage: "the block interval for this ledger",
-				Value: 5 * time.Second,
-			},
-		},
-		Action: create,
+		Name:      "mint",
+		Usage:     "mint coins on account",
+		ArgsUsage: "bc-xxx.cfg key-xxx.cfg public-key",
+		Action:    mint,
 	},
 	{
-		Name:    "show",
-		Usage:   "show the config, contact ByzCoin to get Genesis Darc ID",
-		Aliases: []string{"s"},
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:   "bc",
-				EnvVar: "BC",
-				Usage:  "the ByzCoin config to use",
+		Name:    "roster",
+		Usage:   "change the roster of the ByzCoin",
+		Aliases: []string{"r"},
+		Subcommands: cli.Commands{
+			{
+				Name:      "add",
+				ArgsUsage: "bc-xxx.cfg key-xxx.cfg public.toml",
+				Usage:     "Add a new node to the roster",
+				Action:    rosterAdd,
+			},
+			{
+				Name:      "del",
+				ArgsUsage: "bc-xxx.cfg key-xxx.cfg public.toml",
+				Usage:     "Remove a node from the roster",
+				Action:    rosterDel,
+			},
+			{
+				Name:      "leader",
+				ArgsUsage: "bc-xxx.cfg key-xxx.cfg public.toml",
+				Usage:     "Set a specific node to be the leader",
+				Action:    rosterLeader,
 			},
 		},
-		Action: show,
+	},
+	{
+		Name:      "config",
+		Usage:     "update the config",
+		ArgsUsage: "bc-xxx.cfg key-xxx.cfg",
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "interval",
+				Usage: "change the interval",
+			},
+			cli.IntFlag{
+				Name:  "blockSize",
+				Usage: "adjust the maximum block size",
+			},
+		},
+		Action: config,
 	},
 	{
 		Name:    "add",
@@ -222,7 +274,10 @@ func main() {
 func create(c *cli.Context) error {
 	fn := c.String("roster")
 	if fn == "" {
-		return errors.New("--roster flag is required")
+		fn = c.Args().First()
+		if fn == "" {
+			return errors.New("roster argument or --roster flag is required")
+		}
 	}
 	r, err := lib.ReadRoster(fn)
 	if err != nil {
@@ -301,6 +356,344 @@ func show(c *cli.Context) error {
 	return err
 }
 
+func getBcKey(c *cli.Context) (cfg lib.Config, cl *byzcoin.Client, signer *darc.Signer,
+	proof byzcoin.Proof, chainCfg byzcoin.ChainConfig, err error) {
+	if c.NArg() < 2 {
+		err = errors.New("please give the following arguments: bc-xxx.cfg key-xxx.cfg")
+		return
+	}
+	cfg, cl, err = lib.LoadConfig(c.Args().First())
+	if err != nil {
+		err = errors.New("couldn't load config file: " + err.Error())
+		return
+	}
+	signer, err = lib.LoadSigner(c.Args().Get(1))
+	if err != nil {
+		err = errors.New("couldn't load key-xxx.cfg: " + err.Error())
+		return
+	}
+
+	log.Lvl2("Getting latest chainConfig")
+	pr, err := cl.GetProof(byzcoin.ConfigInstanceID.Slice())
+	if err != nil {
+		err = errors.New("couldn't get proof for chainConfig: " + err.Error())
+		return
+	}
+	proof = pr.Proof
+
+	_, value, _, _, err := proof.KeyValue()
+	if err != nil {
+		err = errors.New("couldn't get value out of proof: " + err.Error())
+		return
+	}
+	err = protobuf.DecodeWithConstructors(value, &chainCfg, network.DefaultConstructors(cothority.Suite))
+	if err != nil {
+		err = errors.New("couldn't decode chainConfig: " + err.Error())
+		return
+	}
+	return
+}
+
+func getBcKeyPub(c *cli.Context) (cfg lib.Config, cl *byzcoin.Client, signer *darc.Signer,
+	proof byzcoin.Proof, chainCfg byzcoin.ChainConfig, pub *network.ServerIdentity, err error) {
+	cfg, cl, signer, proof, chainCfg, err = getBcKey(c)
+	if err != nil {
+		return
+	}
+
+	grf, err := os.Open(c.Args().Get(2))
+	if err != nil {
+		err = errors.New("couldn't open public.toml: " + err.Error())
+		return
+	}
+	defer grf.Close()
+	gr, err := app.ReadGroupDescToml(grf)
+	if err != nil {
+		err = errors.New("couldn't load public.toml: " + err.Error())
+		return
+	}
+	pub = gr.Roster.List[0]
+
+	return
+}
+
+func updateConfig(cl *byzcoin.Client, signer *darc.Signer, chainConfig byzcoin.ChainConfig) error {
+	counters, err := cl.GetSignerCounters(signer.Identity().String())
+	if err != nil {
+		return errors.New("couldn't get counters: " + err.Error())
+	}
+	counters.Counters[0]++
+	ccBuf, err := protobuf.Encode(&chainConfig)
+	if err != nil {
+		return errors.New("couldn't encode chainConfig: " + err.Error())
+	}
+	ctx := byzcoin.ClientTransaction{
+		Instructions: byzcoin.Instructions{{
+			InstanceID: byzcoin.ConfigInstanceID,
+			Invoke: &byzcoin.Invoke{
+				Command: "update_config",
+				Args:    byzcoin.Arguments{{Name: "config", Value: ccBuf}},
+			},
+			SignerCounter: counters.Counters,
+		}},
+	}
+
+	err = ctx.SignWith(*signer)
+	if err != nil {
+		return errors.New("couldn't sign the clientTransaction: " + err.Error())
+	}
+
+	log.Lvl1("Sending new roster to byzcoin")
+	_, err = cl.AddTransactionAndWait(ctx, 10)
+	if err != nil {
+		return errors.New("client transaction wasn't accepted: " + err.Error())
+	}
+	return nil
+}
+
+func config(c *cli.Context) error {
+	_, cl, signer, _, chainConfig, err := getBcKey(c)
+	if err != nil {
+		return err
+	}
+
+	if interval := c.String("interval"); interval != "" {
+		dur, err := time.ParseDuration(interval)
+		if err != nil {
+			return errors.New("couldn't parse interval: " + err.Error())
+		}
+		chainConfig.BlockInterval = dur
+	}
+	if blockSize := c.Int("blockSize"); blockSize > 0 {
+		if blockSize < 16000 && blockSize > 8e6 {
+			return errors.New("new blocksize out of bounds: must be between 16e3 and 8e6")
+		}
+		chainConfig.MaxBlockSize = blockSize
+	}
+
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+
+	log.Lvl1("Updated configuration")
+
+	return nil
+}
+
+func mint(c *cli.Context) error {
+	if c.NArg() < 4 {
+		return errors.New("Please give the following arguments: bc-xxx.cfg key-xxx.cfg pubkey coins")
+	}
+	cfg, cl, signer, _, _, err := getBcKey(c)
+	if err != nil {
+		return err
+	}
+
+	pubBuf, err := hex.DecodeString(c.Args().Get(2))
+	if err != nil {
+		return err
+	}
+
+	h := sha256.New()
+	h.Write([]byte(contracts.ContractCoinID))
+	h.Write(pubBuf)
+	account := byzcoin.NewInstanceID(h.Sum(nil))
+
+	coins, err := strconv.ParseUint(c.Args().Get(3), 10, 64)
+	if err != nil {
+		return err
+	}
+	coinsBuf := make([]byte, 8)
+	binary.LittleEndian.PutUint64(coinsBuf, coins)
+
+	pub := cothority.Suite.Point()
+	err = pub.UnmarshalBinary(pubBuf)
+	if err != nil {
+		return err
+	}
+	pubI := darc.NewIdentityEd25519(pub)
+	rules := darc.NewRules()
+	rules.AddRule(darc.Action("spawn:coin"), expression.Expr(signer.Identity().String()))
+	rules.AddRule(darc.Action("invoke:transfer"), expression.Expr(pubI.String()))
+	rules.AddRule(darc.Action("invoke:mint"), expression.Expr(signer.Identity().String()))
+	d := darc.NewDarc(rules, []byte("new coin for mba"))
+	dBuf, err := d.ToProto()
+	if err != nil {
+		return err
+	}
+
+	cReply, err := cl.GetSignerCounters(signer.Identity().String())
+	if err != nil {
+		return err
+	}
+	counters := cReply.Counters
+	counters[0]++
+
+	log.Info("Creating darc for coin")
+	ctx := byzcoin.ClientTransaction{
+		Instructions: byzcoin.Instructions{{
+			InstanceID: byzcoin.NewInstanceID(cfg.GenesisDarc.GetBaseID()),
+			Spawn: &byzcoin.Spawn{
+				ContractID: byzcoin.ContractDarcID,
+				Args: byzcoin.Arguments{{
+					Name:  "darc",
+					Value: dBuf,
+				}},
+			},
+			SignerCounter: counters,
+		}},
+	}
+	ctx.SignWith(*signer)
+	_, err = cl.AddTransactionAndWait(ctx, 10)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Spawning coin")
+	counters[0]++
+	ctx = byzcoin.ClientTransaction{
+		Instructions: byzcoin.Instructions{{
+			InstanceID: byzcoin.NewInstanceID(d.GetBaseID()),
+			Spawn: &byzcoin.Spawn{
+				ContractID: contracts.ContractCoinID,
+				Args: byzcoin.Arguments{
+					{
+						Name:  "type",
+						Value: contracts.CoinName.Slice(),
+					},
+					{
+						Name:  "public",
+						Value: pubBuf,
+					},
+				},
+			},
+			SignerCounter: counters,
+		}},
+	}
+	ctx.SignWith(*signer)
+	_, err = cl.AddTransactionAndWait(ctx, 10)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Minting coin")
+	counters[0]++
+	ctx = byzcoin.ClientTransaction{
+		Instructions: byzcoin.Instructions{{
+			InstanceID: account,
+			Invoke: &byzcoin.Invoke{
+				Command: "mint",
+				Args: byzcoin.Arguments{{
+					Name:  "coins",
+					Value: coinsBuf,
+				}},
+			},
+			SignerCounter: counters,
+		}},
+	}
+	ctx.SignWith(*signer)
+	_, err = cl.AddTransactionAndWait(ctx, 10)
+	if err != nil {
+		return err
+	}
+
+	log.Info("Account created and filled with coins")
+	return nil
+}
+
+func rosterAdd(c *cli.Context) error {
+	_, cl, signer, _, chainConfig, pub, err := getBcKeyPub(c)
+	if err != nil {
+		return err
+	}
+
+	old := chainConfig.Roster
+	if i, _ := old.Search(pub.ID); i >= 0 {
+		return errors.New("new node is already in roster")
+	}
+	log.Lvl2("Old roster is:", old.List)
+	chainConfig.Roster = *old.Concat(pub)
+	log.Lvl2("New roster is:", chainConfig.Roster.List)
+
+	// Do it twice to make sure the new roster is active - there is an issue ;)
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	log.Lvl1("New roster is now active")
+	return nil
+}
+
+func rosterDel(c *cli.Context) error {
+	_, cl, signer, _, chainConfig, pub, err := getBcKeyPub(c)
+	if err != nil {
+		return err
+	}
+
+	old := chainConfig.Roster
+	i, _ := old.Search(pub.ID)
+	switch {
+	case i < 0:
+		return errors.New("node to delete is not in roster")
+	case i == 0:
+		return errors.New("cannot delete leader from roster")
+	}
+	log.Lvl2("Old roster is:", old.List)
+	list := append(old.List[0:i], old.List[i+1:]...)
+	chainConfig.Roster = *onet.NewRoster(list)
+	log.Lvl2("New roster is:", chainConfig.Roster.List)
+
+	// Do it twice to make sure the new roster is active - there is an issue ;)
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	log.Lvl1("New roster is now active")
+	return nil
+}
+
+func rosterLeader(c *cli.Context) error {
+	_, cl, signer, _, chainConfig, pub, err := getBcKeyPub(c)
+	if err != nil {
+		return err
+	}
+
+	old := chainConfig.Roster
+	i, _ := old.Search(pub.ID)
+	switch {
+	case i < 0:
+		return errors.New("new leader is not in roster")
+	case i == 0:
+		return errors.New("new node is already leader")
+	}
+	log.Lvl2("Old roster is:", old.List)
+	list := []*network.ServerIdentity(old.List)
+	list[0], list[i] = list[i], list[0]
+	chainConfig.Roster = *onet.NewRoster(list)
+	log.Lvl2("New roster is:", chainConfig.Roster.List)
+
+	// Do it twice to make sure the new roster is active - there is an issue ;)
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	err = updateConfig(cl, signer, chainConfig)
+	if err != nil {
+		return err
+	}
+	log.Lvl1("New roster is now active")
+	return nil
+}
+
 func add(c *cli.Context) error {
 	bcArg := c.String("bc")
 	if bcArg == "" {
@@ -371,21 +764,17 @@ func add(c *cli.Context) error {
 
 	invoke := byzcoin.Invoke{
 		Command: "evolve",
-		Args: []byzcoin.Argument{
-			byzcoin.Argument{
-				Name:  "darc",
-				Value: d2Buf,
-			},
-		},
+		Args: []byzcoin.Argument{{
+			Name:  "darc",
+			Value: d2Buf,
+		}},
 	}
 	ctx := byzcoin.ClientTransaction{
 		Instructions: []byzcoin.Instruction{
 			{
-				InstanceID: byzcoin.NewInstanceID(d2.GetBaseID()),
-				Invoke:     &invoke,
-				Signatures: []darc.Signature{
-					darc.Signature{Signer: signer.Identity()},
-				},
+				InstanceID:    byzcoin.NewInstanceID(d2.GetBaseID()),
+				Invoke:        &invoke,
+				Signatures:    []darc.Signature{{Signer: signer.Identity()}},
 				SignerCounter: []uint64{signatureCtr.Counters[0] + 1},
 			},
 		},
@@ -479,15 +868,15 @@ func debugList(c *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	sort.SliceStable(resp.Byzcoins, func(i, j int)bool{
+	sort.SliceStable(resp.Byzcoins, func(i, j int) bool {
 		var iData byzcoin.DataHeader
 		var jData byzcoin.DataHeader
 		err := protobuf.Decode(resp.Byzcoins[i].Genesis.Data, &iData)
-		if err != nil{
+		if err != nil {
 			return false
 		}
 		err = protobuf.Decode(resp.Byzcoins[j].Genesis.Data, &jData)
-		if err != nil{
+		if err != nil {
 			return false
 		}
 		return iData.Timestamp > jData.Timestamp
@@ -506,8 +895,8 @@ func debugList(c *cli.Context) error {
 		}
 		log.Infof("\tBlocks: %d\n\tFrom %s to %s\n",
 			rb.Latest.Index,
-			time.Unix(headerGenesis.Timestamp / 1e9, 0),
-			time.Unix(headerLatest.Timestamp / 1e9, 0))
+			time.Unix(headerGenesis.Timestamp/1e9, 0),
+			time.Unix(headerLatest.Timestamp/1e9, 0))
 	}
 	return nil
 }
@@ -528,18 +917,18 @@ func debugDump(c *cli.Context) error {
 		log.Error(err)
 		return err
 	}
-	sort.SliceStable(resp.Dump, func(i, j int)bool{
+	sort.SliceStable(resp.Dump, func(i, j int) bool {
 		return bytes.Compare(resp.Dump[i].Key, resp.Dump[j].Key) < 0
 	})
-	for _, inst := range resp.Dump{
+	for _, inst := range resp.Dump {
 		log.Infof("%x / %d: %s", inst.Key, inst.State.Version, string(inst.State.ContractID))
 	}
 
 	return nil
 }
 
-func debugRemove(c *cli.Context) error{
-	if c.NArg() < 2{
+func debugRemove(c *cli.Context) error {
+	if c.NArg() < 2 {
 		return errors.New("please give the following arguments: private.toml byzcoin-id")
 	}
 
@@ -577,7 +966,7 @@ func debugRemove(c *cli.Context) error{
 	}
 	bcid := skipchain.SkipBlockID(bcidBuf)
 	err = byzcoin.DebugRemove(si.Address, si.GetPrivate(), bcid)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 	log.Infof("Successfully removed ByzCoinID %x from %s", bcid, si.Address)
