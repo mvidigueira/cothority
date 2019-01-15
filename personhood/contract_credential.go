@@ -12,8 +12,8 @@ import (
 // ContractCredentialID denotes a contract that can spawn new identities.
 var ContractCredentialID = "credential"
 
-func contractCredentialFromBytes(in []byte) (byzcoin.Contract, error) {
-	c := &contractCredential{}
+func ContractCredentialFromBytes(in []byte) (byzcoin.Contract, error) {
+	c := &ContractCredential{}
 	err := protobuf.Decode(in, &c.CredentialStruct)
 	if err != nil {
 		return nil, errors.New("couldn't unmarshal instance data: " + err.Error())
@@ -21,12 +21,12 @@ func contractCredentialFromBytes(in []byte) (byzcoin.Contract, error) {
 	return c, nil
 }
 
-type contractCredential struct {
+type ContractCredential struct {
 	byzcoin.BasicContract
 	CredentialStruct
 }
 
-func (c *contractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -35,13 +35,21 @@ func (c *contractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 		return
 	}
 
-	// Spawn creates a new coin account as a separate instance.
+	// Spawn creates a new credential as a separate instance.
 	ca := inst.DeriveID("")
+	if caBuf := inst.Spawn.Args.Search("instID"); caBuf != nil{
+		ca = byzcoin.NewInstanceID(caBuf)
+	}
+	if darcIDBuf := inst.Spawn.Args.Search("darcIDBuf"); darcIDBuf != nil{
+		darcID = darc.ID(darcIDBuf)
+	}
 	log.Lvlf3("Spawning Credential to %x", ca.Slice())
 	var ciBuf []byte
-	ciBuf, err = protobuf.Encode(&c.CredentialStruct)
-	if err != nil {
-		return nil, nil, errors.New("couldn't encode CredentialInstance: " + err.Error())
+	if ciBuf = inst.Spawn.Args.Search("credential"); ciBuf == nil {
+		ciBuf, err = protobuf.Encode(&c.CredentialStruct)
+		if err != nil {
+			return nil, nil, errors.New("couldn't encode CredentialInstance: " + err.Error())
+		}
 	}
 	sc = []byzcoin.StateChange{
 		byzcoin.NewStateChange(byzcoin.Create, ca, ContractCredentialID, ciBuf, darcID),
@@ -49,7 +57,7 @@ func (c *contractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 	return
 }
 
-func (c *contractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -76,7 +84,7 @@ func (c *contractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 	return
 }
 
-func (c *contractCredential) Delete(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractCredential) Delete(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID

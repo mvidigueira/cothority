@@ -237,6 +237,7 @@ func (instr Instruction) Verify(st ReadOnlyStateTrie, msg []byte) error {
 		return errors.New("no signatures - nothing to verify")
 	}
 
+	log.Printf("%+v", d.Rules)
 	// check the action
 	if !d.Rules.Contains(darc.Action(instr.Action())) {
 		return fmt.Errorf("action '%v' does not exist", instr.Action())

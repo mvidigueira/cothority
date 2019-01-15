@@ -41,9 +41,9 @@ func init() {
 
 var cmds = cli.Commands{
 	{
-		Name:    "create",
-		Usage:   "create a ledger",
-		Aliases: []string{"c"},
+		Name:      "create",
+		Usage:     "create a ledger",
+		Aliases:   []string{"c"},
 		ArgsUsage: "[roster.toml]",
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -59,9 +59,9 @@ var cmds = cli.Commands{
 		Action: create,
 	},
 	{
-		Name:    "show",
-		Usage:   "show the config, contact ByzCoin to get Genesis Darc ID",
-		Aliases: []string{"s"},
+		Name:      "show",
+		Usage:     "show the config, contact ByzCoin to get Genesis Darc ID",
+		Aliases:   []string{"s"},
 		ArgsUsage: "[bc.cfg]",
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -493,7 +493,7 @@ func config(c *cli.Context) error {
 
 func mint(c *cli.Context) error {
 	if c.NArg() < 4 {
-		return errors.New("Please give the following arguments: bc-xxx.cfg key-xxx.cfg pubkey coins")
+		return errors.New("please give the following arguments: bc-xxx.cfg key-xxx.cfg pubkey coins")
 	}
 	cfg, cl, signer, _, _, err := getBcKey(c)
 	if err != nil {
@@ -517,79 +517,86 @@ func mint(c *cli.Context) error {
 	coinsBuf := make([]byte, 8)
 	binary.LittleEndian.PutUint64(coinsBuf, coins)
 
-	pub := cothority.Suite.Point()
-	err = pub.UnmarshalBinary(pubBuf)
-	if err != nil {
-		return err
-	}
-	pubI := darc.NewIdentityEd25519(pub)
-	rules := darc.NewRules()
-	rules.AddRule(darc.Action("spawn:coin"), expression.Expr(signer.Identity().String()))
-	rules.AddRule(darc.Action("invoke:transfer"), expression.Expr(pubI.String()))
-	rules.AddRule(darc.Action("invoke:mint"), expression.Expr(signer.Identity().String()))
-	d := darc.NewDarc(rules, []byte("new coin for mba"))
-	dBuf, err := d.ToProto()
-	if err != nil {
-		return err
-	}
-
 	cReply, err := cl.GetSignerCounters(signer.Identity().String())
 	if err != nil {
 		return err
 	}
 	counters := cReply.Counters
-	counters[0]++
 
-	log.Info("Creating darc for coin")
-	ctx := byzcoin.ClientTransaction{
-		Instructions: byzcoin.Instructions{{
-			InstanceID: byzcoin.NewInstanceID(cfg.GenesisDarc.GetBaseID()),
-			Spawn: &byzcoin.Spawn{
-				ContractID: byzcoin.ContractDarcID,
-				Args: byzcoin.Arguments{{
-					Name:  "darc",
-					Value: dBuf,
-				}},
-			},
-			SignerCounter: counters,
-		}},
-	}
-	ctx.SignWith(*signer)
-	_, err = cl.AddTransactionAndWait(ctx, 10)
+	p, err := cl.GetProof(account.Slice())
 	if err != nil {
 		return err
 	}
+	if !p.Proof.InclusionProof.Match(account.Slice()) {
+		log.Info("Creating darc and coin")
+		pub := cothority.Suite.Point()
+		err = pub.UnmarshalBinary(pubBuf)
+		if err != nil {
+			return err
+		}
+		pubI := darc.NewIdentityEd25519(pub)
+		rules := darc.NewRules()
+		rules.AddRule(darc.Action("spawn:coin"), expression.Expr(signer.Identity().String()))
+		rules.AddRule(darc.Action("invoke:transfer"), expression.Expr(pubI.String()))
+		rules.AddRule(darc.Action("invoke:mint"), expression.Expr(signer.Identity().String()))
+		d := darc.NewDarc(rules, []byte("new coin for mba"))
+		dBuf, err := d.ToProto()
+		if err != nil {
+			return err
+		}
 
-	log.Info("Spawning coin")
-	counters[0]++
-	ctx = byzcoin.ClientTransaction{
-		Instructions: byzcoin.Instructions{{
-			InstanceID: byzcoin.NewInstanceID(d.GetBaseID()),
-			Spawn: &byzcoin.Spawn{
-				ContractID: contracts.ContractCoinID,
-				Args: byzcoin.Arguments{
-					{
-						Name:  "type",
-						Value: contracts.CoinName.Slice(),
-					},
-					{
-						Name:  "public",
-						Value: pubBuf,
+		log.Info("Creating darc for coin")
+		counters[0]++
+		ctx := byzcoin.ClientTransaction{
+			Instructions: byzcoin.Instructions{{
+				InstanceID: byzcoin.NewInstanceID(cfg.GenesisDarc.GetBaseID()),
+				Spawn: &byzcoin.Spawn{
+					ContractID: byzcoin.ContractDarcID,
+					Args: byzcoin.Arguments{{
+						Name:  "darc",
+						Value: dBuf,
+					}},
+				},
+				SignerCounter: counters,
+			}},
+		}
+		ctx.SignWith(*signer)
+		_, err = cl.AddTransactionAndWait(ctx, 10)
+		if err != nil {
+			return err
+		}
+
+		log.Info("Spawning coin")
+		counters[0]++
+		ctx = byzcoin.ClientTransaction{
+			Instructions: byzcoin.Instructions{{
+				InstanceID: byzcoin.NewInstanceID(d.GetBaseID()),
+				Spawn: &byzcoin.Spawn{
+					ContractID: contracts.ContractCoinID,
+					Args: byzcoin.Arguments{
+						{
+							Name:  "type",
+							Value: contracts.CoinName.Slice(),
+						},
+						{
+							Name:  "public",
+							Value: pubBuf,
+						},
 					},
 				},
-			},
-			SignerCounter: counters,
-		}},
-	}
-	ctx.SignWith(*signer)
-	_, err = cl.AddTransactionAndWait(ctx, 10)
-	if err != nil {
-		return err
+				SignerCounter: counters,
+			}},
+		}
+		ctx.SignWith(*signer)
+		_, err = cl.AddTransactionAndWait(ctx, 10)
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Info("Minting coin")
 	counters[0]++
-	ctx = byzcoin.ClientTransaction{
+	ctx := byzcoin.ClientTransaction{
 		Instructions: byzcoin.Instructions{{
 			InstanceID: account,
 			Invoke: &byzcoin.Invoke{

@@ -139,7 +139,7 @@ func show(c *cli.Context) error {
 		return err
 	}
 
-	iid, err := coinHash(cfg.KeyPair.Public)
+	iid, err := coinHashPub(cfg.KeyPair.Public)
 	if err != nil {
 		return err
 	}
@@ -177,18 +177,18 @@ func transfer(c *cli.Context) error {
 		return err
 	}
 
-	targetPub, err := encoding.StringHexToPoint(cothority.Suite, c.Args().Get(1))
+	targetBuf, err := hex.DecodeString(c.Args().Get(1))
 	if err != nil {
 		return err
 	}
-	target, err := coinHash(targetPub)
+	target, err := coinHash(targetBuf)
 
 	cfg, cl, err := loadConfig()
 	if err != nil {
 		return err
 	}
 
-	iid, err := coinHash(cfg.KeyPair.Public)
+	iid, err := coinHashPub(cfg.KeyPair.Public)
 	if err != nil {
 		return err
 	}
@@ -263,13 +263,17 @@ func transfer(c *cli.Context) error {
 	return nil
 }
 
-func coinHash(pub kyber.Point) (iid byzcoin.InstanceID, err error) {
-	h := sha256.New()
-	h.Write([]byte(contracts.ContractCoinID))
+func coinHashPub(pub kyber.Point) (iid byzcoin.InstanceID, err error) {
 	buf, err := pub.MarshalBinary()
 	if err != nil {
 		return
 	}
+	return coinHash(buf)
+}
+
+func coinHash(buf []byte) (iid byzcoin.InstanceID, err error) {
+	h := sha256.New()
+	h.Write([]byte(contracts.ContractCoinID))
 	h.Write(buf)
 	iid = byzcoin.NewInstanceID(h.Sum(nil))
 	return

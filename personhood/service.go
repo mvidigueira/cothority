@@ -43,6 +43,10 @@ type Service struct {
 // by new clients.
 func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
 	log.Printf("PartyList: %+v", rq)
+	if rq.WipeParties != nil && *rq.WipeParties{
+		log.Lvl2(s.ServerIdentity(), "Wiping party cache")
+		s.storage.Parties = map[string]*Party{}
+	}
 	if rq.NewParty != nil {
 		party, err := getParty(rq.NewParty)
 		if err != nil {
@@ -306,7 +310,7 @@ func (s *Service) TopupMessage(tm *TopupMessage) (*StringReply, error) {
 // where current testing data can be stored.
 func (s *Service) TestStore(ts *TestStore) (*TestStore, error) {
 	if ts.ByzCoinID != nil && len(ts.ByzCoinID) == 32 {
-		log.Lvlf1("Storing TestStore %x / %x", ts.ByzCoinID, ts.SpawnerIID)
+		log.Lvlf1("Storing TestStore %x / %x", ts.ByzCoinID, ts.SpawnerIID.Slice())
 		s.storage.Ts.ByzCoinID = ts.ByzCoinID
 		s.storage.Ts.SpawnerIID = ts.SpawnerIID
 	} else {
@@ -326,7 +330,7 @@ func newService(c *onet.Context) (onet.Service, error) {
 	}
 	byzcoin.RegisterContract(c, ContractPopParty, contractPopPartyFromBytes)
 	byzcoin.RegisterContract(c, ContractSpawnerID, contractSpawnerFromBytes)
-	byzcoin.RegisterContract(c, ContractCredentialID, contractCredentialFromBytes)
+	byzcoin.RegisterContract(c, ContractCredentialID, ContractCredentialFromBytes)
 
 	if err := s.tryLoad(); err != nil {
 		log.Error(err)

@@ -14,6 +14,8 @@ import (
 // ContractSpawnerID denotes a contract that can spawn new instances.
 var ContractSpawnerID = "spawner"
 
+var SpawnerCoin = byzcoin.NewInstanceID([]byte("SpawnerCoin"))
+
 func contractSpawnerFromBytes(in []byte) (byzcoin.Contract, error) {
 	c := &contractSpawner{}
 	err := protobuf.Decode(in, &c.SpawnerStruct)
@@ -47,6 +49,7 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	}
 
 	// Spawn creates a new coin account as a separate instance.
+	log.Printf("%+v", inst)
 	ca := inst.DeriveID("")
 	var instBuf []byte
 	cID := inst.Spawn.ContractID
@@ -210,9 +213,9 @@ func (ss *SpawnerStruct) ParseArgs(args byzcoin.Arguments) error {
 				return err
 			}
 		} else {
-			log.Print("Setting cost of", cost.name, "to", cost.cost)
 			cost.cost = &byzcoin.Coin{contracts.CoinName, 100}
 		}
+		log.Lvl2("Setting cost of", cost.name, "to", cost.cost.Value)
 	}
 	return nil
 }

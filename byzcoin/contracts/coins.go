@@ -64,6 +64,9 @@ func (c *contractCoin) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruc
 		h.Write(pub)
 		ca = byzcoin.NewInstanceID(h.Sum(nil))
 	}
+	if did := inst.Spawn.Args.Search("darcID"); did != nil{
+		darcID = darc.ID(did)
+	}
 	log.Lvlf2("Spawning coin to %x", ca.Slice())
 	if t := inst.Spawn.Args.Search("type"); t != nil {
 		if len(t) != len(byzcoin.InstanceID{}) {

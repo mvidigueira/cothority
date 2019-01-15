@@ -24,7 +24,8 @@ import (
 // PartyList can either store a new party in the list, or just return the list of
 // available parties.
 type PartyList struct{
-	NewParty *Party
+	NewParty    *Party
+	WipeParties *bool
 }
 
 // PartyListResponse holds a list of all known parties so far. Only parties in PreBarrier
