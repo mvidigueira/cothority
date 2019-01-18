@@ -308,7 +308,8 @@ func newS(t *testing.T) (s *sStruct) {
 	s.signer = darc.NewSignerEd25519(nil, nil)
 	var err error
 	s.gMsg, err = byzcoin.DefaultGenesisMsg(byzcoin.CurrentVersion, s.roster,
-		[]string{"spawn:dummy", "spawn:popParty", "invoke:Finalize"}, s.signer.Identity())
+		[]string{"spawn:dummy", "spawn:popParty", "invoke:Finalize",
+			"spawn:ropasci", "invoke:second", "invoke:confirm"}, s.signer.Identity())
 	require.Nil(t, err)
 	s.gMsg.BlockInterval = 500 * time.Millisecond
 
@@ -335,9 +336,8 @@ func (s *sStruct) createParty(t *testing.T, orgs, attendees int) {
 	s.party = FinalStatement{
 		Desc: &PopDesc{
 			Name:     "test-party",
-			DateTime: "2018-08-28 08:08",
+			DateTime: uint64(time.Now().Unix()),
 			Location: "BC208",
-			Roster:   s.roster,
 		},
 	}
 
@@ -383,16 +383,16 @@ func (s *sStruct) createParty(t *testing.T, orgs, attendees int) {
 	// Store the finalized party in the ledger
 	s.invokePoPFinalize(t)
 
-	_, err := s.phs[0].LinkPoP(&LinkPoP{
-		Party: Party{
-			ByzCoinID:      s.olID,
-			InstanceID:     s.popI,
-			FinalStatement: s.party,
-			Darc:           *s.serDarc,
-			Signer:         s.serSig,
-		},
-	})
-	require.Nil(t, err)
+	//_, err := s.phs[0].LinkPoP(&LinkPoP{
+	//	Party: Party{
+	//		ByzCoinID:      s.olID,
+	//		InstanceID:     s.popI,
+	//		FinalStatement: s.party,
+	//		Darc:           *s.serDarc,
+	//		Signer:         s.serSig,
+	//	},
+	//})
+	//require.Nil(t, err)
 }
 
 func (s *sStruct) createPoPSpawn(t *testing.T) {

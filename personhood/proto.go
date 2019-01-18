@@ -23,14 +23,14 @@ import (
 
 // PartyList can either store a new party in the list, or just return the list of
 // available parties.
-type PartyList struct{
+type PartyList struct {
 	NewParty    *Party
 	WipeParties *bool
 }
 
 // PartyListResponse holds a list of all known parties so far. Only parties in PreBarrier
 // state are listed.
-type PartyListResponse struct{
+type PartyListResponse struct {
 	Parties []Party
 }
 
@@ -213,6 +213,15 @@ type TopupMessage struct {
 type TestStore struct {
 	ByzCoinID  skipchain.SkipBlockID `protobuf:"opt"`
 	SpawnerIID byzcoin.InstanceID    `protobuf:"opt"`
+}
+
+// RoPaSciStruct holds one Rock Paper Scissors event
+type RoPaSciStruct struct {
+	Stake               byzcoin.Coin
+	FirstPlayerHash     []byte
+	FirstPlayer         int
+	SecondPlayer        int
+	SecondPlayerAccount byzcoin.InstanceID
 }
 
 // CredentialStruct holds a slice of credentials.
