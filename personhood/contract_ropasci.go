@@ -30,13 +30,18 @@ type ContractRoPaSci struct {
 }
 
 func (c *ContractRoPaSci) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
-	if c.FirstPlayer >= 0{
+	if c.FirstPlayer >= 0 {
 		return errors.New("this instance has already finished")
+	}
+	if inst.Invoke != nil {
+		if inst.Invoke.Command == "second" && c.SecondPlayer >= 0 {
+			return errors.New("second player already set his bet")
+		}
 	}
 	return nil
 }
 
-func (c *ContractRoPaSci) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c ContractRoPaSci) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -64,8 +69,10 @@ func (c *ContractRoPaSci) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 		return nil, nil, errors.New("ropasci needs some coins as input")
 	}
 	c.Stake = coins[0]
+	c.SecondPlayer = -1
+	c.FirstPlayer = -1
 	cout[0].Value = 0
-	rpsBuf, err = protobuf.Encode(c.RoPaSciStruct)
+	rpsBuf, err = protobuf.Encode(&c.RoPaSciStruct)
 	if err != nil {
 		return
 	}
@@ -91,22 +98,28 @@ func (c *ContractRoPaSci) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Ins
 			return nil, nil, errors.New("need a valid account")
 		}
 		val, _, cid, _, err := rst.GetValues(account)
-		if err != nil{
-			return
+		if err != nil {
+			return nil, nil, err
 		}
-		if cid != contracts.ContractCoinID{
+		if cid != contracts.ContractCoinID {
 			return nil, nil, errors.New("account is not of coin type")
 		}
 		var coin2 byzcoin.Coin
 		err = protobuf.Decode(val, &coin2)
-		if err != nil{
+		if err != nil {
 			return nil, nil, errors.New("couldn't decode coin: " + err.Error())
 		}
-		if !coin2.Name.Equal(c.Stake.Name){
+		if !coin2.Name.Equal(c.Stake.Name) {
 			return nil, nil, errors.New("not same type of coin")
 		}
-		if coin2.Value != c.Stake.Value{
-			return nil, nil, errors.New("coin-value of player 2 doesn't match player 1")
+		if len(coins) == 0 {
+			return nil, nil, errors.New("didn't get any coins as input")
+		}
+		if !coins[0].Name.Equal(c.Stake.Name) {
+			return nil, nil, errors.New("input is not of same type as player 1's coins")
+		}
+		if coins[0].Value != c.Stake.Value {
+			return nil, nil, errors.New("input coin-value doesn't match player 1")
 		}
 		choice := inst.Invoke.Args.Search("choice")
 		if len(choice) != 1 {
@@ -120,56 +133,64 @@ func (c *ContractRoPaSci) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Ins
 		if len(preHash) != 32 {
 			return nil, nil, errors.New("prehash needs to be of length 32")
 		}
-		if bytes.Compare(c.FirstPlayerHash, sha256.Sum256(preHash)[:]) != 0 {
+		fph := sha256.Sum256(preHash)
+		if bytes.Compare(c.FirstPlayerHash, fph[:]) != 0 {
 			return nil, nil, errors.New("wrong prehash for first player")
 		}
-		winnerBuf := inst.Invoke.Args.Search("account")
-		if len(winnerBuf) != 32 {
+		firstAccountBuf := inst.Invoke.Args.Search("account")
+		if len(firstAccountBuf) != 32 {
 			return nil, nil, errors.New("wrong account for player 1")
 		}
-		_, _, cid, _, err := rst.GetValues(winnerBuf)
-		if err != nil{
+		var cid string
+		_, _, cid, _, err = rst.GetValues(firstAccountBuf)
+		if err != nil {
 			return
 		}
-		if cid != contracts.ContractCoinID{
+		if cid != contracts.ContractCoinID {
 			return nil, nil, errors.New("account is not of coin type")
 		}
-		winner := byzcoin.NewInstanceID(winnerBuf)
+		var winner []byte
 		c.FirstPlayer = int(preHash[0]) % 3
-		switch (3 + c.FirstPlayer - c.SecondPlayer) % 3{
+		switch (3 + c.FirstPlayer - c.SecondPlayer) % 3 {
 		case 0:
-			log.Lvl2("tie - no winner")
+			log.Lvl2("draw - no winner")
 		case 1:
 			log.Lvl2("player 1 wins")
+			winner = firstAccountBuf
 		case 2:
 			log.Lvl2("player 2 wins")
-			winner = c.SecondPlayerAccount
+			winner = c.SecondPlayerAccount.Slice()
 		}
-		val, _, _, _, err := rst.GetValues(winnerBuf)
-		if err != nil{
-			return
+		if winner != nil {
+			var val []byte
+			var winnerDarc darc.ID
+			val, _, _, winnerDarc, err = rst.GetValues(winner)
+			if err != nil {
+				return
+			}
+			var coin byzcoin.Coin
+			err = protobuf.Decode(val, &coin)
+			if err != nil {
+				return
+			}
+			coin.Value += c.Stake.Value * 2
+			if coin.Value < c.Stake.Value {
+				return nil, nil, errors.New("coin overflow")
+			}
+			var coinBuf []byte
+			coinBuf, err = protobuf.Encode(&coin)
+			if err != nil {
+				return
+			}
+			sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, byzcoin.NewInstanceID(winner),
+				contracts.ContractCoinID, coinBuf, winnerDarc))
 		}
-		var coin byzcoin.Coin
-		err = protobuf.Decode(val, &coin)
-		if err != nil{
-			return
-		}
-		coin.Value += c.Stake.Value
-		if coin.Value < c.Stake.Value{
-			return nil, nil, errors.New("coin overflow")
-		}
-		coinBuf, err := protobuf.Encode(coin)
-		if err != nil{
-			return
-		}
-		sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, winner, contracts.ContractCoinID,
-			coinBuf, nil))
 	default:
 		err = errors.New("rps contract can only 'second' or 'confirm'")
 		return
 	}
 
-	buf, err := protobuf.Encode(c.RoPaSciStruct)
+	buf, err := protobuf.Encode(&c.RoPaSciStruct)
 	if err != nil {
 		return
 	}

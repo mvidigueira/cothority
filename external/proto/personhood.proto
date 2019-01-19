@@ -12,6 +12,7 @@ option java_outer_classname = "Personhood";
 // available parties.
 message PartyList {
   optional Party newparty = 1;
+  optional bool wipeparties = 2;
 }
 
 // PartyListResponse holds a list of all known parties so far. Only parties in PreBarrier
@@ -201,6 +202,15 @@ message TestStore {
   optional bytes spawneriid = 2;
 }
 
+// RoPaSciStruct holds one Rock Paper Scissors event
+message RoPaSciStruct {
+  required byzcoin.Coin stake = 1;
+  required bytes firstplayerhash = 2;
+  optional sint32 firstplayer = 3;
+  optional sint32 secondplayer = 4;
+  optional bytes secondplayeraccount = 5;
+}
+
 // CredentialStruct holds a slice of credentials.
 message CredentialStruct {
   repeated Credential credentials = 1;
@@ -225,7 +235,9 @@ message SpawnerStruct {
   required byzcoin.Coin costcoin = 2;
   required byzcoin.Coin costcredential = 3;
   required byzcoin.Coin costparty = 4;
-  required bytes beneficiary = 5;
+  required byzcoin.Coin costropasci = 5;
+  required byzcoin.Coin costpoll = 6;
+  required bytes beneficiary = 7;
 }
 
 // PopPartyStruct is the data that is stored in a pop-party instance.

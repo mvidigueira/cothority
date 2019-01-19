@@ -115,11 +115,16 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 		h.Write([]byte("credential"))
 		h.Write(darcID)
 		ca = byzcoin.NewInstanceID(h.Sum(nil))
-	case ContractPopParty:
+	case ContractPopPartyID:
 		if err = c.getCoins(cout, c.CostParty); err != nil {
 			return
 		}
 		return contractPopParty{}.Spawn(rst, inst, cout)
+	case ContractRoPaSciID:
+		if err = c.getCoins(cout, c.CostRoPaSci); err != nil {
+			return
+		}
+		return ContractRoPaSci{}.Spawn(rst, inst, cout)
 	default:
 		log.Print("Unknown contract", cID)
 		return nil, nil, errors.New("don't know how to spawn this type of contract")
@@ -206,6 +211,8 @@ func (ss *SpawnerStruct) ParseArgs(args byzcoin.Arguments) error {
 		{"costCoin", &ss.CostCoin},
 		{"costCredential", &ss.CostCredential},
 		{"costParty", &ss.CostParty},
+		{"costRoPaSci", &ss.CostRoPaSci},
+		{"costPoll", &ss.CostPoll},
 	} {
 		if arg := args.Search(cost.name); arg != nil {
 			err := protobuf.Decode(arg, cost.cost)

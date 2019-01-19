@@ -82,7 +82,7 @@ func getParty(p *Party) (cpp *contractPopParty, err error) {
 	if err != nil {
 		return
 	}
-	if cid != ContractPopParty {
+	if cid != ContractPopPartyID {
 		err = errors.New("didn't get a party instance")
 		return
 	}
@@ -328,9 +328,10 @@ func newService(c *onet.Context) (onet.Service, error) {
 		s.TopupQuestionnaire, s.TopupMessage, s.TestStore); err != nil {
 		return nil, errors.New("couldn't register messages")
 	}
-	byzcoin.RegisterContract(c, ContractPopParty, contractPopPartyFromBytes)
+	byzcoin.RegisterContract(c, ContractPopPartyID, contractPopPartyFromBytes)
 	byzcoin.RegisterContract(c, ContractSpawnerID, contractSpawnerFromBytes)
 	byzcoin.RegisterContract(c, ContractCredentialID, ContractCredentialFromBytes)
+	byzcoin.RegisterContract(c, ContractRoPaSciID, ContractRoPaSciFromBytes)
 
 	if err := s.tryLoad(); err != nil {
 		log.Error(err)

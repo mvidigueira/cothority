@@ -412,7 +412,7 @@ func (s *sStruct) createPoPSpawn(t *testing.T) {
 		Instructions: byzcoin.Instructions{byzcoin.Instruction{
 			InstanceID: byzcoin.NewInstanceID(dID),
 			Spawn: &byzcoin.Spawn{
-				ContractID: ContractPopParty,
+				ContractID: ContractPopPartyID,
 				Args: byzcoin.Arguments{{
 					Name:  "FinalStatement",
 					Value: fsBuf,

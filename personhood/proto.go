@@ -219,9 +219,9 @@ type TestStore struct {
 type RoPaSciStruct struct {
 	Stake               byzcoin.Coin
 	FirstPlayerHash     []byte
-	FirstPlayer         int
-	SecondPlayer        int
-	SecondPlayerAccount byzcoin.InstanceID
+	FirstPlayer         int `protobuf:"opt"`
+	SecondPlayer        int `protobuf:"opt"`
+	SecondPlayerAccount byzcoin.InstanceID `protobuf:"opt"`
 }
 
 // CredentialStruct holds a slice of credentials.
@@ -248,6 +248,8 @@ type SpawnerStruct struct {
 	CostCoin       byzcoin.Coin
 	CostCredential byzcoin.Coin
 	CostParty      byzcoin.Coin
+	CostRoPaSci    byzcoin.Coin
+	CostPoll       byzcoin.Coin
 	Beneficiary    byzcoin.InstanceID
 }
 

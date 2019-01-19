@@ -30,6 +30,15 @@ public final class Personhood {
      * <code>optional .personhood.Party newparty = 1;</code>
      */
     ch.epfl.dedis.lib.proto.Personhood.PartyOrBuilder getNewpartyOrBuilder();
+
+    /**
+     * <code>optional bool wipeparties = 2;</code>
+     */
+    boolean hasWipeparties();
+    /**
+     * <code>optional bool wipeparties = 2;</code>
+     */
+    boolean getWipeparties();
   }
   /**
    * <pre>
@@ -49,6 +58,7 @@ public final class Personhood {
       super(builder);
     }
     private PartyList() {
+      wipeparties_ = false;
     }
 
     @java.lang.Override
@@ -86,6 +96,11 @@ public final class Personhood {
                 newparty_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000001;
+              break;
+            }
+            case 16: {
+              bitField0_ |= 0x00000002;
+              wipeparties_ = input.readBool();
               break;
             }
             default: {
@@ -142,6 +157,21 @@ public final class Personhood {
       return newparty_ == null ? ch.epfl.dedis.lib.proto.Personhood.Party.getDefaultInstance() : newparty_;
     }
 
+    public static final int WIPEPARTIES_FIELD_NUMBER = 2;
+    private boolean wipeparties_;
+    /**
+     * <code>optional bool wipeparties = 2;</code>
+     */
+    public boolean hasWipeparties() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bool wipeparties = 2;</code>
+     */
+    public boolean getWipeparties() {
+      return wipeparties_;
+    }
+
     private byte memoizedIsInitialized = -1;
     @java.lang.Override
     public final boolean isInitialized() {
@@ -165,6 +195,9 @@ public final class Personhood {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeMessage(1, getNewparty());
       }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBool(2, wipeparties_);
+      }
       unknownFields.writeTo(output);
     }
 
@@ -177,6 +210,10 @@ public final class Personhood {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(1, getNewparty());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(2, wipeparties_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -199,6 +236,11 @@ public final class Personhood {
         result = result && getNewparty()
             .equals(other.getNewparty());
       }
+      result = result && (hasWipeparties() == other.hasWipeparties());
+      if (hasWipeparties()) {
+        result = result && (getWipeparties()
+            == other.getWipeparties());
+      }
       result = result && unknownFields.equals(other.unknownFields);
       return result;
     }
@@ -213,6 +255,11 @@ public final class Personhood {
       if (hasNewparty()) {
         hash = (37 * hash) + NEWPARTY_FIELD_NUMBER;
         hash = (53 * hash) + getNewparty().hashCode();
+      }
+      if (hasWipeparties()) {
+        hash = (37 * hash) + WIPEPARTIES_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashBoolean(
+            getWipeparties());
       }
       hash = (29 * hash) + unknownFields.hashCode();
       memoizedHashCode = hash;
@@ -359,6 +406,8 @@ public final class Personhood {
           newpartyBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
+        wipeparties_ = false;
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -395,6 +444,10 @@ public final class Personhood {
         } else {
           result.newparty_ = newpartyBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.wipeparties_ = wipeparties_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -446,6 +499,9 @@ public final class Personhood {
         if (other == ch.epfl.dedis.lib.proto.Personhood.PartyList.getDefaultInstance()) return this;
         if (other.hasNewparty()) {
           mergeNewparty(other.getNewparty());
+        }
+        if (other.hasWipeparties()) {
+          setWipeparties(other.getWipeparties());
         }
         this.mergeUnknownFields(other.unknownFields);
         onChanged();
@@ -598,6 +654,38 @@ public final class Personhood {
           newparty_ = null;
         }
         return newpartyBuilder_;
+      }
+
+      private boolean wipeparties_ ;
+      /**
+       * <code>optional bool wipeparties = 2;</code>
+       */
+      public boolean hasWipeparties() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bool wipeparties = 2;</code>
+       */
+      public boolean getWipeparties() {
+        return wipeparties_;
+      }
+      /**
+       * <code>optional bool wipeparties = 2;</code>
+       */
+      public Builder setWipeparties(boolean value) {
+        bitField0_ |= 0x00000002;
+        wipeparties_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool wipeparties = 2;</code>
+       */
+      public Builder clearWipeparties() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        wipeparties_ = false;
+        onChanged();
+        return this;
       }
       @java.lang.Override
       public final Builder setUnknownFields(
@@ -17069,6 +17157,1006 @@ public final class Personhood {
 
   }
 
+  public interface RoPaSciStructOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:personhood.RoPaSciStruct)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    boolean hasStake();
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getStake();
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getStakeOrBuilder();
+
+    /**
+     * <code>required bytes firstplayerhash = 2;</code>
+     */
+    boolean hasFirstplayerhash();
+    /**
+     * <code>required bytes firstplayerhash = 2;</code>
+     */
+    com.google.protobuf.ByteString getFirstplayerhash();
+
+    /**
+     * <code>optional sint32 firstplayer = 3;</code>
+     */
+    boolean hasFirstplayer();
+    /**
+     * <code>optional sint32 firstplayer = 3;</code>
+     */
+    int getFirstplayer();
+
+    /**
+     * <code>optional sint32 secondplayer = 4;</code>
+     */
+    boolean hasSecondplayer();
+    /**
+     * <code>optional sint32 secondplayer = 4;</code>
+     */
+    int getSecondplayer();
+
+    /**
+     * <code>optional bytes secondplayeraccount = 5;</code>
+     */
+    boolean hasSecondplayeraccount();
+    /**
+     * <code>optional bytes secondplayeraccount = 5;</code>
+     */
+    com.google.protobuf.ByteString getSecondplayeraccount();
+  }
+  /**
+   * <pre>
+   * RoPaSciStruct holds one Rock Paper Scissors event
+   * </pre>
+   *
+   * Protobuf type {@code personhood.RoPaSciStruct}
+   */
+  public  static final class RoPaSciStruct extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:personhood.RoPaSciStruct)
+      RoPaSciStructOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use RoPaSciStruct.newBuilder() to construct.
+    private RoPaSciStruct(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private RoPaSciStruct() {
+      firstplayerhash_ = com.google.protobuf.ByteString.EMPTY;
+      firstplayer_ = 0;
+      secondplayer_ = 0;
+      secondplayeraccount_ = com.google.protobuf.ByteString.EMPTY;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private RoPaSciStruct(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000001) == 0x00000001)) {
+                subBuilder = stake_.toBuilder();
+              }
+              stake_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(stake_);
+                stake_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000001;
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              firstplayerhash_ = input.readBytes();
+              break;
+            }
+            case 24: {
+              bitField0_ |= 0x00000004;
+              firstplayer_ = input.readSInt32();
+              break;
+            }
+            case 32: {
+              bitField0_ |= 0x00000008;
+              secondplayer_ = input.readSInt32();
+              break;
+            }
+            case 42: {
+              bitField0_ |= 0x00000010;
+              secondplayeraccount_ = input.readBytes();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_RoPaSciStruct_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_RoPaSciStruct_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.class, ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int STAKE_FIELD_NUMBER = 1;
+    private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin stake_;
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    public boolean hasStake() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getStake() {
+      return stake_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : stake_;
+    }
+    /**
+     * <code>required .byzcoin.Coin stake = 1;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getStakeOrBuilder() {
+      return stake_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : stake_;
+    }
+
+    public static final int FIRSTPLAYERHASH_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString firstplayerhash_;
+    /**
+     * <code>required bytes firstplayerhash = 2;</code>
+     */
+    public boolean hasFirstplayerhash() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>required bytes firstplayerhash = 2;</code>
+     */
+    public com.google.protobuf.ByteString getFirstplayerhash() {
+      return firstplayerhash_;
+    }
+
+    public static final int FIRSTPLAYER_FIELD_NUMBER = 3;
+    private int firstplayer_;
+    /**
+     * <code>optional sint32 firstplayer = 3;</code>
+     */
+    public boolean hasFirstplayer() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional sint32 firstplayer = 3;</code>
+     */
+    public int getFirstplayer() {
+      return firstplayer_;
+    }
+
+    public static final int SECONDPLAYER_FIELD_NUMBER = 4;
+    private int secondplayer_;
+    /**
+     * <code>optional sint32 secondplayer = 4;</code>
+     */
+    public boolean hasSecondplayer() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional sint32 secondplayer = 4;</code>
+     */
+    public int getSecondplayer() {
+      return secondplayer_;
+    }
+
+    public static final int SECONDPLAYERACCOUNT_FIELD_NUMBER = 5;
+    private com.google.protobuf.ByteString secondplayeraccount_;
+    /**
+     * <code>optional bytes secondplayeraccount = 5;</code>
+     */
+    public boolean hasSecondplayeraccount() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional bytes secondplayeraccount = 5;</code>
+     */
+    public com.google.protobuf.ByteString getSecondplayeraccount() {
+      return secondplayeraccount_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasStake()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasFirstplayerhash()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getStake().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeMessage(1, getStake());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, firstplayerhash_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeSInt32(3, firstplayer_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeSInt32(4, secondplayer_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeBytes(5, secondplayeraccount_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(1, getStake());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, firstplayerhash_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(3, firstplayer_);
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt32Size(4, secondplayer_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(5, secondplayeraccount_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct)) {
+        return super.equals(obj);
+      }
+      ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct other = (ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct) obj;
+
+      boolean result = true;
+      result = result && (hasStake() == other.hasStake());
+      if (hasStake()) {
+        result = result && getStake()
+            .equals(other.getStake());
+      }
+      result = result && (hasFirstplayerhash() == other.hasFirstplayerhash());
+      if (hasFirstplayerhash()) {
+        result = result && getFirstplayerhash()
+            .equals(other.getFirstplayerhash());
+      }
+      result = result && (hasFirstplayer() == other.hasFirstplayer());
+      if (hasFirstplayer()) {
+        result = result && (getFirstplayer()
+            == other.getFirstplayer());
+      }
+      result = result && (hasSecondplayer() == other.hasSecondplayer());
+      if (hasSecondplayer()) {
+        result = result && (getSecondplayer()
+            == other.getSecondplayer());
+      }
+      result = result && (hasSecondplayeraccount() == other.hasSecondplayeraccount());
+      if (hasSecondplayeraccount()) {
+        result = result && getSecondplayeraccount()
+            .equals(other.getSecondplayeraccount());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasStake()) {
+        hash = (37 * hash) + STAKE_FIELD_NUMBER;
+        hash = (53 * hash) + getStake().hashCode();
+      }
+      if (hasFirstplayerhash()) {
+        hash = (37 * hash) + FIRSTPLAYERHASH_FIELD_NUMBER;
+        hash = (53 * hash) + getFirstplayerhash().hashCode();
+      }
+      if (hasFirstplayer()) {
+        hash = (37 * hash) + FIRSTPLAYER_FIELD_NUMBER;
+        hash = (53 * hash) + getFirstplayer();
+      }
+      if (hasSecondplayer()) {
+        hash = (37 * hash) + SECONDPLAYER_FIELD_NUMBER;
+        hash = (53 * hash) + getSecondplayer();
+      }
+      if (hasSecondplayeraccount()) {
+        hash = (37 * hash) + SECONDPLAYERACCOUNT_FIELD_NUMBER;
+        hash = (53 * hash) + getSecondplayeraccount().hashCode();
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * RoPaSciStruct holds one Rock Paper Scissors event
+     * </pre>
+     *
+     * Protobuf type {@code personhood.RoPaSciStruct}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:personhood.RoPaSciStruct)
+        ch.epfl.dedis.lib.proto.Personhood.RoPaSciStructOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_RoPaSciStruct_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_RoPaSciStruct_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.class, ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.Builder.class);
+      }
+
+      // Construct using ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getStakeFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        if (stakeBuilder_ == null) {
+          stake_ = null;
+        } else {
+          stakeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        firstplayerhash_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        firstplayer_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000004);
+        secondplayer_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000008);
+        secondplayeraccount_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_RoPaSciStruct_descriptor;
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct getDefaultInstanceForType() {
+        return ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct build() {
+        ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct buildPartial() {
+        ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct result = new ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        if (stakeBuilder_ == null) {
+          result.stake_ = stake_;
+        } else {
+          result.stake_ = stakeBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.firstplayerhash_ = firstplayerhash_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        result.firstplayer_ = firstplayer_;
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.secondplayer_ = secondplayer_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.secondplayeraccount_ = secondplayeraccount_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct) {
+          return mergeFrom((ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct other) {
+        if (other == ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct.getDefaultInstance()) return this;
+        if (other.hasStake()) {
+          mergeStake(other.getStake());
+        }
+        if (other.hasFirstplayerhash()) {
+          setFirstplayerhash(other.getFirstplayerhash());
+        }
+        if (other.hasFirstplayer()) {
+          setFirstplayer(other.getFirstplayer());
+        }
+        if (other.hasSecondplayer()) {
+          setSecondplayer(other.getSecondplayer());
+        }
+        if (other.hasSecondplayeraccount()) {
+          setSecondplayeraccount(other.getSecondplayeraccount());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        if (!hasStake()) {
+          return false;
+        }
+        if (!hasFirstplayerhash()) {
+          return false;
+        }
+        if (!getStake().isInitialized()) {
+          return false;
+        }
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin stake_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> stakeBuilder_;
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public boolean hasStake() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getStake() {
+        if (stakeBuilder_ == null) {
+          return stake_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : stake_;
+        } else {
+          return stakeBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public Builder setStake(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (stakeBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          stake_ = value;
+          onChanged();
+        } else {
+          stakeBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public Builder setStake(
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
+        if (stakeBuilder_ == null) {
+          stake_ = builderForValue.build();
+          onChanged();
+        } else {
+          stakeBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public Builder mergeStake(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (stakeBuilder_ == null) {
+          if (((bitField0_ & 0x00000001) == 0x00000001) &&
+              stake_ != null &&
+              stake_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
+            stake_ =
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.newBuilder(stake_).mergeFrom(value).buildPartial();
+          } else {
+            stake_ = value;
+          }
+          onChanged();
+        } else {
+          stakeBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000001;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public Builder clearStake() {
+        if (stakeBuilder_ == null) {
+          stake_ = null;
+          onChanged();
+        } else {
+          stakeBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000001);
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getStakeBuilder() {
+        bitField0_ |= 0x00000001;
+        onChanged();
+        return getStakeFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getStakeOrBuilder() {
+        if (stakeBuilder_ != null) {
+          return stakeBuilder_.getMessageOrBuilder();
+        } else {
+          return stake_ == null ?
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : stake_;
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin stake = 1;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
+          getStakeFieldBuilder() {
+        if (stakeBuilder_ == null) {
+          stakeBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder>(
+                  getStake(),
+                  getParentForChildren(),
+                  isClean());
+          stake_ = null;
+        }
+        return stakeBuilder_;
+      }
+
+      private com.google.protobuf.ByteString firstplayerhash_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>required bytes firstplayerhash = 2;</code>
+       */
+      public boolean hasFirstplayerhash() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>required bytes firstplayerhash = 2;</code>
+       */
+      public com.google.protobuf.ByteString getFirstplayerhash() {
+        return firstplayerhash_;
+      }
+      /**
+       * <code>required bytes firstplayerhash = 2;</code>
+       */
+      public Builder setFirstplayerhash(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        firstplayerhash_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required bytes firstplayerhash = 2;</code>
+       */
+      public Builder clearFirstplayerhash() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        firstplayerhash_ = getDefaultInstance().getFirstplayerhash();
+        onChanged();
+        return this;
+      }
+
+      private int firstplayer_ ;
+      /**
+       * <code>optional sint32 firstplayer = 3;</code>
+       */
+      public boolean hasFirstplayer() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional sint32 firstplayer = 3;</code>
+       */
+      public int getFirstplayer() {
+        return firstplayer_;
+      }
+      /**
+       * <code>optional sint32 firstplayer = 3;</code>
+       */
+      public Builder setFirstplayer(int value) {
+        bitField0_ |= 0x00000004;
+        firstplayer_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional sint32 firstplayer = 3;</code>
+       */
+      public Builder clearFirstplayer() {
+        bitField0_ = (bitField0_ & ~0x00000004);
+        firstplayer_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int secondplayer_ ;
+      /**
+       * <code>optional sint32 secondplayer = 4;</code>
+       */
+      public boolean hasSecondplayer() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional sint32 secondplayer = 4;</code>
+       */
+      public int getSecondplayer() {
+        return secondplayer_;
+      }
+      /**
+       * <code>optional sint32 secondplayer = 4;</code>
+       */
+      public Builder setSecondplayer(int value) {
+        bitField0_ |= 0x00000008;
+        secondplayer_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional sint32 secondplayer = 4;</code>
+       */
+      public Builder clearSecondplayer() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        secondplayer_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString secondplayeraccount_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes secondplayeraccount = 5;</code>
+       */
+      public boolean hasSecondplayeraccount() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bytes secondplayeraccount = 5;</code>
+       */
+      public com.google.protobuf.ByteString getSecondplayeraccount() {
+        return secondplayeraccount_;
+      }
+      /**
+       * <code>optional bytes secondplayeraccount = 5;</code>
+       */
+      public Builder setSecondplayeraccount(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000010;
+        secondplayeraccount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes secondplayeraccount = 5;</code>
+       */
+      public Builder clearSecondplayeraccount() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        secondplayeraccount_ = getDefaultInstance().getSecondplayeraccount();
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:personhood.RoPaSciStruct)
+    }
+
+    // @@protoc_insertion_point(class_scope:personhood.RoPaSciStruct)
+    private static final ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct();
+    }
+
+    public static ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<RoPaSciStruct>
+        PARSER = new com.google.protobuf.AbstractParser<RoPaSciStruct>() {
+      @java.lang.Override
+      public RoPaSciStruct parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new RoPaSciStruct(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<RoPaSciStruct> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<RoPaSciStruct> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public ch.epfl.dedis.lib.proto.Personhood.RoPaSciStruct getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
   public interface CredentialStructOrBuilder extends
       // @@protoc_insertion_point(interface_extends:personhood.CredentialStruct)
       com.google.protobuf.MessageOrBuilder {
@@ -19598,11 +20686,37 @@ public final class Personhood {
     ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostpartyOrBuilder();
 
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
+     */
+    boolean hasCostropasci();
+    /**
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci();
+    /**
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder();
+
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    boolean hasCostpoll();
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostpoll();
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostpollOrBuilder();
+
+    /**
+     * <code>required bytes beneficiary = 7;</code>
      */
     boolean hasBeneficiary();
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required bytes beneficiary = 7;</code>
      */
     com.google.protobuf.ByteString getBeneficiary();
   }
@@ -19704,7 +20818,33 @@ public final class Personhood {
               break;
             }
             case 42: {
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000010) == 0x00000010)) {
+                subBuilder = costropasci_.toBuilder();
+              }
+              costropasci_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(costropasci_);
+                costropasci_ = subBuilder.buildPartial();
+              }
               bitField0_ |= 0x00000010;
+              break;
+            }
+            case 50: {
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000020) == 0x00000020)) {
+                subBuilder = costpoll_.toBuilder();
+              }
+              costpoll_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(costpoll_);
+                costpoll_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000020;
+              break;
+            }
+            case 58: {
+              bitField0_ |= 0x00000040;
               beneficiary_ = input.readBytes();
               break;
             }
@@ -19825,16 +20965,58 @@ public final class Personhood {
       return costparty_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costparty_;
     }
 
-    public static final int BENEFICIARY_FIELD_NUMBER = 5;
-    private com.google.protobuf.ByteString beneficiary_;
+    public static final int COSTROPASCI_FIELD_NUMBER = 5;
+    private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costropasci_;
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
      */
-    public boolean hasBeneficiary() {
+    public boolean hasCostropasci() {
       return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci() {
+      return costropasci_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
+    }
+    /**
+     * <code>required .byzcoin.Coin costropasci = 5;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder() {
+      return costropasci_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
+    }
+
+    public static final int COSTPOLL_FIELD_NUMBER = 6;
+    private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costpoll_;
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    public boolean hasCostpoll() {
+      return ((bitField0_ & 0x00000020) == 0x00000020);
+    }
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostpoll() {
+      return costpoll_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costpoll_;
+    }
+    /**
+     * <code>required .byzcoin.Coin costpoll = 6;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostpollOrBuilder() {
+      return costpoll_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costpoll_;
+    }
+
+    public static final int BENEFICIARY_FIELD_NUMBER = 7;
+    private com.google.protobuf.ByteString beneficiary_;
+    /**
+     * <code>required bytes beneficiary = 7;</code>
+     */
+    public boolean hasBeneficiary() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    /**
+     * <code>required bytes beneficiary = 7;</code>
      */
     public com.google.protobuf.ByteString getBeneficiary() {
       return beneficiary_;
@@ -19863,6 +21045,14 @@ public final class Personhood {
         memoizedIsInitialized = 0;
         return false;
       }
+      if (!hasCostropasci()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasCostpoll()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
       if (!hasBeneficiary()) {
         memoizedIsInitialized = 0;
         return false;
@@ -19880,6 +21070,14 @@ public final class Personhood {
         return false;
       }
       if (!getCostparty().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getCostropasci().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getCostpoll().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -19903,7 +21101,13 @@ public final class Personhood {
         output.writeMessage(4, getCostparty());
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
-        output.writeBytes(5, beneficiary_);
+        output.writeMessage(5, getCostropasci());
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        output.writeMessage(6, getCostpoll());
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        output.writeBytes(7, beneficiary_);
       }
       unknownFields.writeTo(output);
     }
@@ -19932,7 +21136,15 @@ public final class Personhood {
       }
       if (((bitField0_ & 0x00000010) == 0x00000010)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, beneficiary_);
+          .computeMessageSize(5, getCostropasci());
+      }
+      if (((bitField0_ & 0x00000020) == 0x00000020)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(6, getCostpoll());
+      }
+      if (((bitField0_ & 0x00000040) == 0x00000040)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(7, beneficiary_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -19970,6 +21182,16 @@ public final class Personhood {
         result = result && getCostparty()
             .equals(other.getCostparty());
       }
+      result = result && (hasCostropasci() == other.hasCostropasci());
+      if (hasCostropasci()) {
+        result = result && getCostropasci()
+            .equals(other.getCostropasci());
+      }
+      result = result && (hasCostpoll() == other.hasCostpoll());
+      if (hasCostpoll()) {
+        result = result && getCostpoll()
+            .equals(other.getCostpoll());
+      }
       result = result && (hasBeneficiary() == other.hasBeneficiary());
       if (hasBeneficiary()) {
         result = result && getBeneficiary()
@@ -20001,6 +21223,14 @@ public final class Personhood {
       if (hasCostparty()) {
         hash = (37 * hash) + COSTPARTY_FIELD_NUMBER;
         hash = (53 * hash) + getCostparty().hashCode();
+      }
+      if (hasCostropasci()) {
+        hash = (37 * hash) + COSTROPASCI_FIELD_NUMBER;
+        hash = (53 * hash) + getCostropasci().hashCode();
+      }
+      if (hasCostpoll()) {
+        hash = (37 * hash) + COSTPOLL_FIELD_NUMBER;
+        hash = (53 * hash) + getCostpoll().hashCode();
       }
       if (hasBeneficiary()) {
         hash = (37 * hash) + BENEFICIARY_FIELD_NUMBER;
@@ -20143,6 +21373,8 @@ public final class Personhood {
           getCostcoinFieldBuilder();
           getCostcredentialFieldBuilder();
           getCostpartyFieldBuilder();
+          getCostropasciFieldBuilder();
+          getCostpollFieldBuilder();
         }
       }
       @java.lang.Override
@@ -20172,8 +21404,20 @@ public final class Personhood {
           costpartyBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000008);
-        beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+        if (costropasciBuilder_ == null) {
+          costropasci_ = null;
+        } else {
+          costropasciBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000010);
+        if (costpollBuilder_ == null) {
+          costpoll_ = null;
+        } else {
+          costpollBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
 
@@ -20237,6 +21481,22 @@ public final class Personhood {
         if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000010;
         }
+        if (costropasciBuilder_ == null) {
+          result.costropasci_ = costropasci_;
+        } else {
+          result.costropasci_ = costropasciBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
+          to_bitField0_ |= 0x00000020;
+        }
+        if (costpollBuilder_ == null) {
+          result.costpoll_ = costpoll_;
+        } else {
+          result.costpoll_ = costpollBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000040;
+        }
         result.beneficiary_ = beneficiary_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -20299,6 +21559,12 @@ public final class Personhood {
         if (other.hasCostparty()) {
           mergeCostparty(other.getCostparty());
         }
+        if (other.hasCostropasci()) {
+          mergeCostropasci(other.getCostropasci());
+        }
+        if (other.hasCostpoll()) {
+          mergeCostpoll(other.getCostpoll());
+        }
         if (other.hasBeneficiary()) {
           setBeneficiary(other.getBeneficiary());
         }
@@ -20321,6 +21587,12 @@ public final class Personhood {
         if (!hasCostparty()) {
           return false;
         }
+        if (!hasCostropasci()) {
+          return false;
+        }
+        if (!hasCostpoll()) {
+          return false;
+        }
         if (!hasBeneficiary()) {
           return false;
         }
@@ -20334,6 +21606,12 @@ public final class Personhood {
           return false;
         }
         if (!getCostparty().isInitialized()) {
+          return false;
+        }
+        if (!getCostropasci().isInitialized()) {
+          return false;
+        }
+        if (!getCostpoll().isInitialized()) {
           return false;
         }
         return true;
@@ -20831,36 +22109,272 @@ public final class Personhood {
         return costpartyBuilder_;
       }
 
-      private com.google.protobuf.ByteString beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+      private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costropasci_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> costropasciBuilder_;
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
        */
-      public boolean hasBeneficiary() {
+      public boolean hasCostropasci() {
         return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci() {
+        if (costropasciBuilder_ == null) {
+          return costropasci_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
+        } else {
+          return costropasciBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public Builder setCostropasci(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costropasciBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          costropasci_ = value;
+          onChanged();
+        } else {
+          costropasciBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public Builder setCostropasci(
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
+        if (costropasciBuilder_ == null) {
+          costropasci_ = builderForValue.build();
+          onChanged();
+        } else {
+          costropasciBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public Builder mergeCostropasci(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costropasciBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) == 0x00000010) &&
+              costropasci_ != null &&
+              costropasci_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
+            costropasci_ =
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.newBuilder(costropasci_).mergeFrom(value).buildPartial();
+          } else {
+            costropasci_ = value;
+          }
+          onChanged();
+        } else {
+          costropasciBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public Builder clearCostropasci() {
+        if (costropasciBuilder_ == null) {
+          costropasci_ = null;
+          onChanged();
+        } else {
+          costropasciBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostropasciBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return getCostropasciFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder() {
+        if (costropasciBuilder_ != null) {
+          return costropasciBuilder_.getMessageOrBuilder();
+        } else {
+          return costropasci_ == null ?
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costropasci = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
+          getCostropasciFieldBuilder() {
+        if (costropasciBuilder_ == null) {
+          costropasciBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder>(
+                  getCostropasci(),
+                  getParentForChildren(),
+                  isClean());
+          costropasci_ = null;
+        }
+        return costropasciBuilder_;
+      }
+
+      private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costpoll_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> costpollBuilder_;
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public boolean hasCostpoll() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostpoll() {
+        if (costpollBuilder_ == null) {
+          return costpoll_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costpoll_;
+        } else {
+          return costpollBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public Builder setCostpoll(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costpollBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          costpoll_ = value;
+          onChanged();
+        } else {
+          costpollBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public Builder setCostpoll(
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
+        if (costpollBuilder_ == null) {
+          costpoll_ = builderForValue.build();
+          onChanged();
+        } else {
+          costpollBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public Builder mergeCostpoll(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costpollBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+              costpoll_ != null &&
+              costpoll_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
+            costpoll_ =
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.newBuilder(costpoll_).mergeFrom(value).buildPartial();
+          } else {
+            costpoll_ = value;
+          }
+          onChanged();
+        } else {
+          costpollBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public Builder clearCostpoll() {
+        if (costpollBuilder_ == null) {
+          costpoll_ = null;
+          onChanged();
+        } else {
+          costpollBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostpollBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return getCostpollFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostpollOrBuilder() {
+        if (costpollBuilder_ != null) {
+          return costpollBuilder_.getMessageOrBuilder();
+        } else {
+          return costpoll_ == null ?
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costpoll_;
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costpoll = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
+          getCostpollFieldBuilder() {
+        if (costpollBuilder_ == null) {
+          costpollBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder>(
+                  getCostpoll(),
+                  getParentForChildren(),
+                  isClean());
+          costpoll_ = null;
+        }
+        return costpollBuilder_;
+      }
+
+      private com.google.protobuf.ByteString beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>required bytes beneficiary = 7;</code>
+       */
+      public boolean hasBeneficiary() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      /**
+       * <code>required bytes beneficiary = 7;</code>
        */
       public com.google.protobuf.ByteString getBeneficiary() {
         return beneficiary_;
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required bytes beneficiary = 7;</code>
        */
       public Builder setBeneficiary(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000040;
         beneficiary_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required bytes beneficiary = 7;</code>
        */
       public Builder clearBeneficiary() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000040);
         beneficiary_ = getDefaultInstance().getBeneficiary();
         onChanged();
         return this;
@@ -26725,6 +28239,11 @@ public final class Personhood {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_personhood_TestStore_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_personhood_RoPaSciStruct_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_personhood_RoPaSciStruct_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_personhood_CredentialStruct_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -26779,63 +28298,68 @@ public final class Personhood {
   static {
     java.lang.String[] descriptorData = {
       "\n\020personhood.proto\022\npersonhood\032\ndarc.pro" +
-      "to\032\rbyzcoin.proto\032\nonet.proto\"0\n\tPartyLi" +
-      "st\022#\n\010newparty\030\001 \001(\0132\021.personhood.Party\"" +
-      "7\n\021PartyListResponse\022\"\n\007parties\030\001 \003(\0132\021." +
-      "personhood.Party\"j\n\005Party\022\034\n\006roster\030\001 \002(" +
-      "\0132\014.onet.Roster\022\021\n\tbyzcoinid\030\002 \002(\014\022\022\n\nin" +
-      "stanceid\030\003 \002(\014\022\034\n\006signer\030\004 \001(\0132\014.darc.Si" +
-      "gner\"\034\n\013StringReply\022\r\n\005reply\030\001 \002(\t\"o\n\rQu" +
-      "estionnaire\022\r\n\005title\030\001 \002(\t\022\021\n\tquestions\030" +
-      "\002 \003(\t\022\017\n\007replies\030\003 \002(\021\022\017\n\007balance\030\004 \002(\004\022" +
-      "\016\n\006reward\030\005 \002(\004\022\n\n\002id\030\006 \002(\014\"\'\n\005Reply\022\017\n\003" +
-      "sum\030\001 \003(\021B\002\020\001\022\r\n\005users\030\002 \003(\014\"I\n\025Register" +
-      "Questionnaire\0220\n\rquestionnaire\030\001 \002(\0132\031.p" +
-      "ersonhood.Questionnaire\"3\n\022ListQuestionn" +
-      "aires\022\r\n\005start\030\001 \002(\021\022\016\n\006number\030\002 \002(\021\"L\n\027" +
-      "ListQuestionnairesReply\0221\n\016questionnaire" +
-      "s\030\001 \003(\0132\031.personhood.Questionnaire\"L\n\023An" +
-      "swerQuestionnaire\022\017\n\007questid\030\001 \002(\014\022\023\n\007re" +
-      "plies\030\002 \003(\021B\002\020\001\022\017\n\007account\030\003 \002(\014\"4\n\022Topu" +
-      "pQuestionnaire\022\017\n\007questid\030\001 \002(\014\022\r\n\005topup" +
-      "\030\002 \002(\004\"\205\001\n\007Message\022\017\n\007subject\030\001 \002(\t\022\014\n\004d" +
-      "ate\030\002 \002(\004\022\014\n\004text\030\003 \002(\t\022\016\n\006author\030\004 \002(\014\022" +
-      "\017\n\007balance\030\005 \002(\004\022\016\n\006reward\030\006 \002(\004\022\n\n\002id\030\007" +
-      " \002(\014\022\020\n\010partyiid\030\010 \002(\014\"3\n\013SendMessage\022$\n" +
-      "\007message\030\001 \002(\0132\023.personhood.Message\"?\n\014L" +
-      "istMessages\022\r\n\005start\030\001 \002(\021\022\016\n\006number\030\002 \002" +
-      "(\021\022\020\n\010readerid\030\003 \002(\014\"s\n\021ListMessagesRepl" +
-      "y\022\020\n\010subjects\030\001 \003(\t\022\016\n\006msgids\030\002 \003(\014\022\024\n\010b" +
-      "alances\030\003 \003(\004B\002\020\001\022\023\n\007rewards\030\004 \003(\004B\002\020\001\022\021" +
-      "\n\tpartyiids\030\005 \003(\014\">\n\013ReadMessage\022\r\n\005msgi" +
-      "d\030\001 \002(\014\022\020\n\010partyiid\030\002 \002(\014\022\016\n\006reader\030\003 \002(" +
-      "\014\"J\n\020ReadMessageReply\022$\n\007message\030\001 \002(\0132\023" +
-      ".personhood.Message\022\020\n\010rewarded\030\002 \002(\010\"-\n" +
-      "\014TopupMessage\022\r\n\005msgid\030\001 \002(\014\022\016\n\006amount\030\002" +
-      " \002(\004\"2\n\tTestStore\022\021\n\tbyzcoinid\030\001 \001(\014\022\022\n\n" +
-      "spawneriid\030\002 \001(\014\"?\n\020CredentialStruct\022+\n\013" +
-      "credentials\030\001 \003(\0132\026.personhood.Credentia" +
-      "l\"E\n\nCredential\022\014\n\004name\030\001 \002(\t\022)\n\nattribu" +
-      "tes\030\002 \003(\0132\025.personhood.Attribute\"(\n\tAttr" +
-      "ibute\022\014\n\004name\030\001 \002(\t\022\r\n\005value\030\002 \002(\014\"\257\001\n\rS" +
-      "pawnerStruct\022\037\n\010costdarc\030\001 \002(\0132\r.byzcoin" +
-      ".Coin\022\037\n\010costcoin\030\002 \002(\0132\r.byzcoin.Coin\022%" +
-      "\n\016costcredential\030\003 \002(\0132\r.byzcoin.Coin\022 \n" +
-      "\tcostparty\030\004 \002(\0132\r.byzcoin.Coin\022\023\n\013benef" +
-      "iciary\030\005 \002(\014\"\370\001\n\016PopPartyStruct\022\r\n\005state" +
-      "\030\001 \002(\021\022\022\n\norganizers\030\002 \002(\021\022\025\n\rfinalizati" +
-      "ons\030\003 \003(\t\022(\n\013description\030\004 \002(\0132\023.personh" +
-      "ood.PopDesc\022(\n\tattendees\030\005 \002(\0132\025.personh" +
-      "ood.Attendees\022\"\n\006miners\030\006 \003(\0132\022.personho" +
-      "od.LRSTag\022\024\n\014miningreward\030\007 \002(\004\022\020\n\010previ" +
-      "ous\030\010 \001(\014\022\014\n\004next\030\t \001(\014\"L\n\007PopDesc\022\014\n\004na" +
-      "me\030\001 \002(\t\022\017\n\007purpose\030\002 \002(\t\022\020\n\010datetime\030\003 " +
-      "\002(\004\022\020\n\010location\030\004 \002(\t\"]\n\016FinalStatement\022" +
-      "!\n\004desc\030\001 \001(\0132\023.personhood.PopDesc\022(\n\tat" +
-      "tendees\030\002 \002(\0132\025.personhood.Attendees\"\031\n\t" +
-      "Attendees\022\014\n\004keys\030\001 \003(\014\"\025\n\006LRSTag\022\013\n\003tag" +
-      "\030\001 \002(\014B%\n\027ch.epfl.dedis.lib.protoB\nPerso" +
-      "nhood"
+      "to\032\rbyzcoin.proto\032\nonet.proto\"E\n\tPartyLi" +
+      "st\022#\n\010newparty\030\001 \001(\0132\021.personhood.Party\022" +
+      "\023\n\013wipeparties\030\002 \001(\010\"7\n\021PartyListRespons" +
+      "e\022\"\n\007parties\030\001 \003(\0132\021.personhood.Party\"j\n" +
+      "\005Party\022\034\n\006roster\030\001 \002(\0132\014.onet.Roster\022\021\n\t" +
+      "byzcoinid\030\002 \002(\014\022\022\n\ninstanceid\030\003 \002(\014\022\034\n\006s" +
+      "igner\030\004 \001(\0132\014.darc.Signer\"\034\n\013StringReply" +
+      "\022\r\n\005reply\030\001 \002(\t\"o\n\rQuestionnaire\022\r\n\005titl" +
+      "e\030\001 \002(\t\022\021\n\tquestions\030\002 \003(\t\022\017\n\007replies\030\003 " +
+      "\002(\021\022\017\n\007balance\030\004 \002(\004\022\016\n\006reward\030\005 \002(\004\022\n\n\002" +
+      "id\030\006 \002(\014\"\'\n\005Reply\022\017\n\003sum\030\001 \003(\021B\002\020\001\022\r\n\005us" +
+      "ers\030\002 \003(\014\"I\n\025RegisterQuestionnaire\0220\n\rqu" +
+      "estionnaire\030\001 \002(\0132\031.personhood.Questionn" +
+      "aire\"3\n\022ListQuestionnaires\022\r\n\005start\030\001 \002(" +
+      "\021\022\016\n\006number\030\002 \002(\021\"L\n\027ListQuestionnairesR" +
+      "eply\0221\n\016questionnaires\030\001 \003(\0132\031.personhoo" +
+      "d.Questionnaire\"L\n\023AnswerQuestionnaire\022\017" +
+      "\n\007questid\030\001 \002(\014\022\023\n\007replies\030\002 \003(\021B\002\020\001\022\017\n\007" +
+      "account\030\003 \002(\014\"4\n\022TopupQuestionnaire\022\017\n\007q" +
+      "uestid\030\001 \002(\014\022\r\n\005topup\030\002 \002(\004\"\205\001\n\007Message\022" +
+      "\017\n\007subject\030\001 \002(\t\022\014\n\004date\030\002 \002(\004\022\014\n\004text\030\003" +
+      " \002(\t\022\016\n\006author\030\004 \002(\014\022\017\n\007balance\030\005 \002(\004\022\016\n" +
+      "\006reward\030\006 \002(\004\022\n\n\002id\030\007 \002(\014\022\020\n\010partyiid\030\010 " +
+      "\002(\014\"3\n\013SendMessage\022$\n\007message\030\001 \002(\0132\023.pe" +
+      "rsonhood.Message\"?\n\014ListMessages\022\r\n\005star" +
+      "t\030\001 \002(\021\022\016\n\006number\030\002 \002(\021\022\020\n\010readerid\030\003 \002(" +
+      "\014\"s\n\021ListMessagesReply\022\020\n\010subjects\030\001 \003(\t" +
+      "\022\016\n\006msgids\030\002 \003(\014\022\024\n\010balances\030\003 \003(\004B\002\020\001\022\023" +
+      "\n\007rewards\030\004 \003(\004B\002\020\001\022\021\n\tpartyiids\030\005 \003(\014\">" +
+      "\n\013ReadMessage\022\r\n\005msgid\030\001 \002(\014\022\020\n\010partyiid" +
+      "\030\002 \002(\014\022\016\n\006reader\030\003 \002(\014\"J\n\020ReadMessageRep" +
+      "ly\022$\n\007message\030\001 \002(\0132\023.personhood.Message" +
+      "\022\020\n\010rewarded\030\002 \002(\010\"-\n\014TopupMessage\022\r\n\005ms" +
+      "gid\030\001 \002(\014\022\016\n\006amount\030\002 \002(\004\"2\n\tTestStore\022\021" +
+      "\n\tbyzcoinid\030\001 \001(\014\022\022\n\nspawneriid\030\002 \001(\014\"\216\001" +
+      "\n\rRoPaSciStruct\022\034\n\005stake\030\001 \002(\0132\r.byzcoin" +
+      ".Coin\022\027\n\017firstplayerhash\030\002 \002(\014\022\023\n\013firstp" +
+      "layer\030\003 \001(\021\022\024\n\014secondplayer\030\004 \001(\021\022\033\n\023sec" +
+      "ondplayeraccount\030\005 \001(\014\"?\n\020CredentialStru" +
+      "ct\022+\n\013credentials\030\001 \003(\0132\026.personhood.Cre" +
+      "dential\"E\n\nCredential\022\014\n\004name\030\001 \002(\t\022)\n\na" +
+      "ttributes\030\002 \003(\0132\025.personhood.Attribute\"(" +
+      "\n\tAttribute\022\014\n\004name\030\001 \002(\t\022\r\n\005value\030\002 \002(\014" +
+      "\"\364\001\n\rSpawnerStruct\022\037\n\010costdarc\030\001 \002(\0132\r.b" +
+      "yzcoin.Coin\022\037\n\010costcoin\030\002 \002(\0132\r.byzcoin." +
+      "Coin\022%\n\016costcredential\030\003 \002(\0132\r.byzcoin.C" +
+      "oin\022 \n\tcostparty\030\004 \002(\0132\r.byzcoin.Coin\022\"\n" +
+      "\013costropasci\030\005 \002(\0132\r.byzcoin.Coin\022\037\n\010cos" +
+      "tpoll\030\006 \002(\0132\r.byzcoin.Coin\022\023\n\013beneficiar" +
+      "y\030\007 \002(\014\"\370\001\n\016PopPartyStruct\022\r\n\005state\030\001 \002(" +
+      "\021\022\022\n\norganizers\030\002 \002(\021\022\025\n\rfinalizations\030\003" +
+      " \003(\t\022(\n\013description\030\004 \002(\0132\023.personhood.P" +
+      "opDesc\022(\n\tattendees\030\005 \002(\0132\025.personhood.A" +
+      "ttendees\022\"\n\006miners\030\006 \003(\0132\022.personhood.LR" +
+      "STag\022\024\n\014miningreward\030\007 \002(\004\022\020\n\010previous\030\010" +
+      " \001(\014\022\014\n\004next\030\t \001(\014\"L\n\007PopDesc\022\014\n\004name\030\001 " +
+      "\002(\t\022\017\n\007purpose\030\002 \002(\t\022\020\n\010datetime\030\003 \002(\004\022\020" +
+      "\n\010location\030\004 \002(\t\"]\n\016FinalStatement\022!\n\004de" +
+      "sc\030\001 \001(\0132\023.personhood.PopDesc\022(\n\tattende" +
+      "es\030\002 \002(\0132\025.personhood.Attendees\"\031\n\tAtten" +
+      "dees\022\014\n\004keys\030\001 \003(\014\"\025\n\006LRSTag\022\013\n\003tag\030\001 \002(" +
+      "\014B%\n\027ch.epfl.dedis.lib.protoB\nPersonhood"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -26857,7 +28381,7 @@ public final class Personhood {
     internal_static_personhood_PartyList_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_PartyList_descriptor,
-        new java.lang.String[] { "Newparty", });
+        new java.lang.String[] { "Newparty", "Wipeparties", });
     internal_static_personhood_PartyListResponse_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_personhood_PartyListResponse_fieldAccessorTable = new
@@ -26966,56 +28490,62 @@ public final class Personhood {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_TestStore_descriptor,
         new java.lang.String[] { "Byzcoinid", "Spawneriid", });
-    internal_static_personhood_CredentialStruct_descriptor =
+    internal_static_personhood_RoPaSciStruct_descriptor =
       getDescriptor().getMessageTypes().get(19);
+    internal_static_personhood_RoPaSciStruct_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_personhood_RoPaSciStruct_descriptor,
+        new java.lang.String[] { "Stake", "Firstplayerhash", "Firstplayer", "Secondplayer", "Secondplayeraccount", });
+    internal_static_personhood_CredentialStruct_descriptor =
+      getDescriptor().getMessageTypes().get(20);
     internal_static_personhood_CredentialStruct_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_CredentialStruct_descriptor,
         new java.lang.String[] { "Credentials", });
     internal_static_personhood_Credential_descriptor =
-      getDescriptor().getMessageTypes().get(20);
+      getDescriptor().getMessageTypes().get(21);
     internal_static_personhood_Credential_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_Credential_descriptor,
         new java.lang.String[] { "Name", "Attributes", });
     internal_static_personhood_Attribute_descriptor =
-      getDescriptor().getMessageTypes().get(21);
+      getDescriptor().getMessageTypes().get(22);
     internal_static_personhood_Attribute_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_Attribute_descriptor,
         new java.lang.String[] { "Name", "Value", });
     internal_static_personhood_SpawnerStruct_descriptor =
-      getDescriptor().getMessageTypes().get(22);
+      getDescriptor().getMessageTypes().get(23);
     internal_static_personhood_SpawnerStruct_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_SpawnerStruct_descriptor,
-        new java.lang.String[] { "Costdarc", "Costcoin", "Costcredential", "Costparty", "Beneficiary", });
+        new java.lang.String[] { "Costdarc", "Costcoin", "Costcredential", "Costparty", "Costropasci", "Costpoll", "Beneficiary", });
     internal_static_personhood_PopPartyStruct_descriptor =
-      getDescriptor().getMessageTypes().get(23);
+      getDescriptor().getMessageTypes().get(24);
     internal_static_personhood_PopPartyStruct_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_PopPartyStruct_descriptor,
         new java.lang.String[] { "State", "Organizers", "Finalizations", "Description", "Attendees", "Miners", "Miningreward", "Previous", "Next", });
     internal_static_personhood_PopDesc_descriptor =
-      getDescriptor().getMessageTypes().get(24);
+      getDescriptor().getMessageTypes().get(25);
     internal_static_personhood_PopDesc_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_PopDesc_descriptor,
         new java.lang.String[] { "Name", "Purpose", "Datetime", "Location", });
     internal_static_personhood_FinalStatement_descriptor =
-      getDescriptor().getMessageTypes().get(25);
+      getDescriptor().getMessageTypes().get(26);
     internal_static_personhood_FinalStatement_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_FinalStatement_descriptor,
         new java.lang.String[] { "Desc", "Attendees", });
     internal_static_personhood_Attendees_descriptor =
-      getDescriptor().getMessageTypes().get(26);
+      getDescriptor().getMessageTypes().get(27);
     internal_static_personhood_Attendees_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_Attendees_descriptor,
         new java.lang.String[] { "Keys", });
     internal_static_personhood_LRSTag_descriptor =
-      getDescriptor().getMessageTypes().get(27);
+      getDescriptor().getMessageTypes().get(28);
     internal_static_personhood_LRSTag_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_LRSTag_descriptor,

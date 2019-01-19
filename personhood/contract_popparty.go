@@ -21,11 +21,11 @@ import (
 	"github.com/dedis/protobuf"
 )
 
-// ContractPopParty represents a pop-party that can be in one of three states:
+// ContractPopPartyID represents a pop-party that can be in one of three states:
 //   1 - configuration
 //   2 - scanning
 //   3 - finalized
-var ContractPopParty = "popParty"
+var ContractPopPartyID = "popParty"
 
 type contractPopParty struct {
 	byzcoin.BasicContract
@@ -90,7 +90,7 @@ func (c contractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	}
 
 	scs = byzcoin.StateChanges{
-		byzcoin.NewStateChange(byzcoin.Create, inst.DeriveID(""), ContractPopParty, ppiBuf, darcID),
+		byzcoin.NewStateChange(byzcoin.Create, inst.DeriveID(""), ContractPopPartyID, ppiBuf, darcID),
 	}
 	return
 }
@@ -258,7 +258,7 @@ func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.In
 	}
 
 	// Update existing party structure
-	scs = append(scs, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID, ContractPopParty, ppiBuf, darcID))
+	scs = append(scs, byzcoin.NewStateChange(byzcoin.Update, inst.InstanceID, ContractPopPartyID, ppiBuf, darcID))
 
 	return scs, coins, nil
 }
