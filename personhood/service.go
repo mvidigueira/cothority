@@ -37,6 +37,11 @@ type Service struct {
 	storage *storage1
 }
 
+// Poll handles anonymous, troll-resistant polling.
+func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
+	return nil, nil
+}
+
 // RoPaSciList can either store a new rock-paper-scissors in the list, or just return the list of
 // available RoPaScis. It removes finalized RoPaScis, as they should not be picked up
 // by new clients.

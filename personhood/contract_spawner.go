@@ -160,22 +160,14 @@ func (c *contractSpawner) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Ins
 	}
 
 	switch inst.Invoke.Command {
-	case "transfer":
-		// transfer sends a given amount of coins to another account.
-		target := inst.Invoke.Args.Search("destination")
-		var cid string
-		_, _, cid, _, err = rst.GetValues(target)
-		if err == nil && cid != ContractSpawnerID {
-			err = errors.New("destination is not a coin contract")
-		}
-		if err != nil {
+	case "update":
+		// updates the values of the contract
+		err = c.SpawnerStruct.ParseArgs(inst.Invoke.Args)
+		if err != nil{
 			return
 		}
-
-		// sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, byzcoin.NewInstanceID(target),
-		// ContractSpawnerID, targetBuf, did))
 	default:
-		err = errors.New("Personhood contract can only")
+		err = errors.New("personhood contract can only update")
 		return
 	}
 
@@ -212,7 +204,6 @@ func (ss *SpawnerStruct) ParseArgs(args byzcoin.Arguments) error {
 		{"costCredential", &ss.CostCredential},
 		{"costParty", &ss.CostParty},
 		{"costRoPaSci", &ss.CostRoPaSci},
-		{"costPoll", &ss.CostPoll},
 	} {
 		if arg := args.Search(cost.name); arg != nil {
 			err := protobuf.Decode(arg, cost.cost)

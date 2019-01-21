@@ -255,9 +255,8 @@ message SpawnerStruct {
   required byzcoin.Coin costcoin = 2;
   required byzcoin.Coin costcredential = 3;
   required byzcoin.Coin costparty = 4;
-  required byzcoin.Coin costropasci = 5;
-  required byzcoin.Coin costpoll = 6;
-  required bytes beneficiary = 7;
+  required bytes beneficiary = 5;
+  optional byzcoin.Coin costropasci = 6;
 }
 
 // PopPartyStruct is the data that is stored in a pop-party instance.
@@ -319,4 +318,48 @@ message Attendees {
 // LRSTag is the tag of the linkable ring signature sent in by a user.
 message LRSTag {
   required bytes tag = 1;
+}
+
+// Poll allows for adding, listing, and answering to polls
+message Poll {
+  required bytes byzcoinid = 1;
+  optional PollStruct newpoll = 2;
+  optional PollList list = 3;
+  optional PollAnswer answer = 4;
+}
+
+// PollList returns all known polls for this byzcoinID
+message PollList {
+  repeated PollStruct polls = 1;
+}
+
+// PollAnswer stores one answer for a poll. It needs to be signed with a Linkable Ring Signature
+// to proof that the choice is unique. The context for the LRS must be
+//   'Poll' + ByzCoinID + PollID
+// And the message must be
+//   'Choice' + byte(Choice)
+message PollAnswer {
+  required bytes pollid = 1;
+  required sint32 choice = 2;
+  required bytes lrs = 3;
+}
+
+// PollStruct represents one poll with answers.
+message PollStruct {
+  required bytes pollid = 1;
+  required string title = 2;
+  required string description = 3;
+  required byzcoin.Coin reward = 4;
+  repeated string choices = 5;
+  repeated PollChoice chosen = 6;
+}
+
+// PollChoice represents one choice of one participant.
+message PollChoice {
+  required sint32 choice = 1;
+  required bytes lrstag = 2;
+}
+
+// PollResponse is sent back to the client.
+message PollResponse {
 }

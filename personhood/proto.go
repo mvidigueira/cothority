@@ -268,9 +268,8 @@ type SpawnerStruct struct {
 	CostCoin       byzcoin.Coin
 	CostCredential byzcoin.Coin
 	CostParty      byzcoin.Coin
-	CostRoPaSci    byzcoin.Coin
-	CostPoll       byzcoin.Coin
 	Beneficiary    byzcoin.InstanceID
+	CostRoPaSci    byzcoin.Coin `protobuf:"opt"`
 }
 
 // PopPartyStruct is the data that is stored in a pop-party instance.
@@ -372,4 +371,9 @@ type PollStruct struct {
 type PollChoice struct {
 	Choice int
 	LRSTag []byte
+}
+
+// PollResponse is sent back to the client.
+type PollResponse struct{
+
 }

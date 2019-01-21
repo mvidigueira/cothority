@@ -27,6 +27,34 @@ func init() {
 	network.RegisterMessages(&darc.Darc{}, &darc.Identity{}, &darc.Signer{})
 }
 
+var spawnerFlags = cli.FlagsByName{
+	cli.Uint64Flag{
+		Name:  "darc",
+		Usage: "number of coins needed to spawn a darc",
+		Value: 100,
+	},
+	cli.Uint64Flag{
+		Name:  "coin",
+		Usage: "number of coins needed to spawn a coin",
+		Value: 100,
+	},
+	cli.Uint64Flag{
+		Name:  "credential",
+		Usage: "number of coins needed to spawn a credential",
+		Value: 100,
+	},
+	cli.Uint64Flag{
+		Name:  "party",
+		Usage: "number of coins needed to spawn a party",
+		Value: 1e7,
+	},
+	cli.Uint64Flag{
+		Name:  "rps",
+		Usage: "number of coins needed to spawn a rock-paper-scissors game",
+		Value: 0,
+	},
+}
+
 var cmds = cli.Commands{
 	{
 		Name:      "spawner",
@@ -34,28 +62,15 @@ var cmds = cli.Commands{
 		Aliases:   []string{"sp"},
 		ArgsUsage: "bc-xxx.cfg key-xxx.cfg",
 		Action:    spawner,
-		Flags: cli.FlagsByName{
-			cli.Uint64Flag{
-				Name:  "darc",
-				Usage: "number of coins needed to spawn a darc",
-				Value: 100,
-			},
-			cli.Uint64Flag{
-				Name:  "coin",
-				Usage: "number of coins needed to spawn a coin",
-				Value: 100,
-			},
-			cli.Uint64Flag{
-				Name:  "credential",
-				Usage: "number of coins needed to spawn a credential",
-				Value: 100,
-			},
-			cli.Uint64Flag{
-				Name:  "party",
-				Usage: "number of coins needed to spawn a party",
-				Value: 1e7,
-			},
-		},
+		Flags: spawnerFlags,
+	},
+	{
+		Name:      "spawnerUpdate",
+		Usage:     "update an existing spawner-instance",
+		Aliases:   []string{"su"},
+		ArgsUsage: "bc-xxx.cfg key-xxx.cfg spawnIID",
+		Action:    spawnerUpdate,
+		Flags: spawnerFlags,
 	},
 	{
 		Name:      "wipeParties",
@@ -112,6 +127,61 @@ func init() {
 
 func main() {
 	log.ErrFatal(cliApp.Run(os.Args))
+}
+
+func spawnerUpdate(c *cli.Context) error {
+	if c.NArg() != 3 {
+		return errors.New("please give the following arguments: bc-xxx.cfg key-xxx.cfg spawnIID")
+	}
+
+	cfg, cl, err := lib.LoadConfig(c.Args().First())
+	if err != nil {
+		return err
+	}
+	signer, err := lib.LoadSigner(c.Args().Get(1))
+	if err != nil {
+		return err
+	}
+	err = verifyGenesisDarc(cl, cfg, *signer)
+	if err != nil {
+		return err
+	}
+	spIIDBuf, err := hex.DecodeString(c.Args().Get(2))
+	if err != nil{
+		return err
+	}
+
+	var args byzcoin.Arguments
+	for _, cn := range []string{"Darc", "Coin", "Credential", "Party", "RoPaSci"} {
+		coin := &byzcoin.Coin{
+			Name:  personhood.SpawnerCoin,
+			Value: c.Uint64(strings.ToLower(cn)),
+		}
+		buf, err := protobuf.Encode(coin)
+		if err != nil {
+			return err
+		}
+		args = append(args, byzcoin.Argument{
+			Name:  "cost" + cn,
+			Value: buf,
+		})
+	}
+	ctx, err := combineInstrsAndSign(cl, *signer, byzcoin.Instruction{
+		InstanceID: byzcoin.NewInstanceID(spIIDBuf),
+		Invoke: &byzcoin.Invoke{
+			Command: "update",
+			Args:       args,
+		},
+	})
+	if err != nil {
+		return err
+	}
+	log.Infof("Updating Spawner instance: %x", spIIDBuf)
+	_, err = cl.AddTransactionAndWait(ctx, 5)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func spawner(c *cli.Context) error {
@@ -472,22 +542,33 @@ func verifyGenesisDarc(cl *byzcoin.Client, cfg lib.Config, signer darc.Signer) e
 	}
 	found := 0
 	spawners := []string{"credential", "coin", "spawner"}
+	invokes := []string{"update"}
 	actions := regexp.MustCompile("(spawn:" +
-		strings.Join(spawners, "|spawn:") + ")")
-	log.Print(actions)
+		strings.Join(spawners, "|spawn:") +
+		"|invoke:" + strings.Join(invokes, "|invoke:") + ")")
 	for _, r := range gdarc.Rules.List {
 		if actions.Match([]byte(r.Action)) {
 			found++
 		}
 	}
-	if found < len(spawners) {
+	if found < len(spawners) + len(invokes){
 		log.Info("Adding spawners and invokes to genesis darc")
 		gDarcNew := gdarc.Copy()
 		gDarcNew.EvolveFrom(gdarc)
 		for _, s := range spawners {
-			gDarcNew.Rules.AddRule(darc.Action("spawn:"+s), expression.Expr(signer.Identity().String()))
+			r := darc.Action("spawn:" + s)
+			log.Info("Adding", r)
+			if !gDarcNew.Rules.Contains(r) {
+				gDarcNew.Rules.AddRule(r, expression.Expr(signer.Identity().String()))
+			}
 		}
-		//gDarcNew.Rules.AddRule(darc.Action("invoke:mint"), expression.Expr(signer.Identity().String()))
+		for _, s := range invokes {
+			r := darc.Action("invoke:" + s)
+			log.Info("Adding", r)
+			if !gDarcNew.Rules.Contains(r) {
+				gDarcNew.Rules.AddRule(r, expression.Expr(signer.Identity().String()))
+			}
+		}
 		darcBuf, err := gDarcNew.ToProto()
 		if err != nil {
 			return err
@@ -502,10 +583,12 @@ func verifyGenesisDarc(cl *byzcoin.Client, cfg lib.Config, signer darc.Signer) e
 				}},
 			},
 		})
+		log.Info("Sending evolve-instruction to byzcoin")
 		_, err = cl.AddTransactionAndWait(ctx, 5)
 		if err != nil {
 			return err
 		}
+		log.Info("Successfully updated genesis-darc")
 	}
 	return nil
 }
