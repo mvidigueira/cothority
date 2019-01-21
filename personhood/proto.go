@@ -46,6 +46,25 @@ type Party struct {
 	Signer darc.Signer `protobuf:"opt"`
 }
 
+// RoPaSciList can either store a new RockPaperScissors in the list, or just
+// return the available RoPaScis.
+type RoPaSciList struct {
+	NewRoPaSci *RoPaSci
+	Wipe       *bool
+}
+
+// RoPaSciListResponse returns a list of all known, unfinished RockPaperScissors
+// games.
+type RoPaSciListResponse struct {
+	RoPaScis []RoPaSci
+}
+
+// RoPaSci represents one rock-paper-scissors game.
+type RoPaSci struct {
+	ByzcoinID skipchain.SkipBlockID
+	RoPaSciID byzcoin.InstanceID
+}
+
 // StringReply can be used by all calls that need a string to be returned
 // to the caller.
 type StringReply struct {
@@ -217,10 +236,11 @@ type TestStore struct {
 
 // RoPaSciStruct holds one Rock Paper Scissors event
 type RoPaSciStruct struct {
+	Description         string
 	Stake               byzcoin.Coin
 	FirstPlayerHash     []byte
-	FirstPlayer         int `protobuf:"opt"`
-	SecondPlayer        int `protobuf:"opt"`
+	FirstPlayer         int                `protobuf:"opt"`
+	SecondPlayer        int                `protobuf:"opt"`
 	SecondPlayerAccount byzcoin.InstanceID `protobuf:"opt"`
 }
 
@@ -312,4 +332,44 @@ type Attendees struct {
 // LRSTag is the tag of the linkable ring signature sent in by a user.
 type LRSTag struct {
 	Tag []byte
+}
+
+// Poll allows for adding, listing, and answering to polls
+type Poll struct {
+	ByzCoinID skipchain.SkipBlockID
+	NewPoll   *PollStruct
+	List      *PollList
+	Answer    *PollAnswer
+}
+
+// PollList returns all known polls for this byzcoinID
+type PollList struct {
+	Polls []PollStruct
+}
+
+// PollAnswer stores one answer for a poll. It needs to be signed with a Linkable Ring Signature
+// to proof that the choice is unique. The context for the LRS must be
+//   'Poll' + ByzCoinID + PollID
+// And the message must be
+//   'Choice' + byte(Choice)
+type PollAnswer struct {
+	PollID []byte
+	Choice int
+	LRS    []byte
+}
+
+// PollStruct represents one poll with answers.
+type PollStruct struct {
+	PollID      []byte
+	Title       string
+	Description string
+	Reward      byzcoin.Coin
+	Choices     []string
+	Chosen      []PollChoice
+}
+
+// PollChoice represents one choice of one participant.
+type PollChoice struct {
+	Choice int
+	LRSTag []byte
 }

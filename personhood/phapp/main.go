@@ -58,11 +58,18 @@ var cmds = cli.Commands{
 		},
 	},
 	{
-		Name:      "wipe",
+		Name:      "wipeParties",
 		Usage:     "wipe all cached parties",
-		Aliases:   []string{"sw"},
+		Aliases:   []string{"wp"},
 		ArgsUsage: "bc-xxx.cfg",
-		Action:    wipe,
+		Action:    wipeParties,
+	},
+	{
+		Name:      "wipeRPS",
+		Usage:     "wipe all cached RockPaperScissors games",
+		Aliases:   []string{"wr"},
+		ArgsUsage: "bc-xxx.cfg",
+		Action:    wipeRPS,
 	},
 	{
 		Name:      "register",
@@ -171,7 +178,7 @@ func spawner(c *cli.Context) error {
 	return nil
 }
 
-func wipe(c *cli.Context) error {
+func wipeParties(c *cli.Context) error {
 	if c.NArg() != 1 {
 		return errors.New("please give the following argument: bc-xxx.cfg")
 	}
@@ -181,8 +188,23 @@ func wipe(c *cli.Context) error {
 		return err
 	}
 	cl := personhood.NewClient()
-	log.Info("Swiping all stored parties")
+	log.Info("Wiping all stored parties")
 	errs := cl.WipeParties(cfg.Roster)
+	return errsToErr(errs)
+}
+
+func wipeRPS(c *cli.Context) error {
+	if c.NArg() != 1 {
+		return errors.New("please give the following argument: bc-xxx.cfg")
+	}
+
+	cfg, _, err := lib.LoadConfig(c.Args().First())
+	if err != nil {
+		return err
+	}
+	cl := personhood.NewClient()
+	log.Info("Wiping all stored Rock Paper Scissors games")
+	errs := cl.WipeRoPaScis(cfg.Roster)
 	return errsToErr(errs)
 }
 

@@ -33,6 +33,25 @@ message Party {
   optional darc.Signer signer = 4;
 }
 
+// RoPaSciList can either store a new RockPaperScissors in the list, or just
+// return the available RoPaScis.
+message RoPaSciList {
+  optional RoPaSci newropasci = 1;
+  optional bool wipe = 2;
+}
+
+// RoPaSciListResponse returns a list of all known, unfinished RockPaperScissors
+// games.
+message RoPaSciListResponse {
+  repeated RoPaSci ropascis = 1;
+}
+
+// RoPaSci represents one rock-paper-scissors game.
+message RoPaSci {
+  required bytes byzcoinid = 1;
+  required bytes ropasciid = 2;
+}
+
 // StringReply can be used by all calls that need a string to be returned
 // to the caller.
 message StringReply {
@@ -204,11 +223,12 @@ message TestStore {
 
 // RoPaSciStruct holds one Rock Paper Scissors event
 message RoPaSciStruct {
-  required byzcoin.Coin stake = 1;
-  required bytes firstplayerhash = 2;
-  optional sint32 firstplayer = 3;
-  optional sint32 secondplayer = 4;
-  optional bytes secondplayeraccount = 5;
+  required string description = 1;
+  required byzcoin.Coin stake = 2;
+  required bytes firstplayerhash = 3;
+  optional sint32 firstplayer = 4;
+  optional sint32 secondplayer = 5;
+  optional bytes secondplayeraccount = 6;
 }
 
 // CredentialStruct holds a slice of credentials.

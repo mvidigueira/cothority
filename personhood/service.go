@@ -8,7 +8,6 @@ runs on the node.
 import (
 	"crypto/sha256"
 	"encoding/binary"
-	"encoding/hex"
 	"errors"
 	"sort"
 
@@ -38,12 +37,67 @@ type Service struct {
 	storage *storage1
 }
 
+// RoPaSciList can either store a new rock-paper-scissors in the list, or just return the list of
+// available RoPaScis. It removes finalized RoPaScis, as they should not be picked up
+// by new clients.
+func (s *Service) RoPaSciList(rq *RoPaSciList) (*RoPaSciListResponse, error) {
+	log.Lvl1(s.ServerIdentity(), "RoPaSciList:", rq, s.storage.RoPaSci)
+	if rq.Wipe != nil && *rq.Wipe {
+		log.Lvl2(s.ServerIdentity(), "Wiping all known rock-paper-scissor games")
+		s.storage.RoPaSci = []*RoPaSci{}
+		return nil, nil
+	}
+	if rq.NewRoPaSci != nil {
+		log.Print(s.ServerIdentity(), "Adding new RoPaSci", rq.NewRoPaSci)
+		s.storage.RoPaSci = append(s.storage.RoPaSci, rq.NewRoPaSci)
+	}
+	var roPaScis []RoPaSci
+	for i := 0; i < len(s.storage.RoPaSci); i++ {
+		rps := s.storage.RoPaSci[i]
+		err := func() error {
+			reply, err := s.Service(byzcoin.ServiceName).(*byzcoin.Service).GetProof(&byzcoin.GetProof{
+				Version: byzcoin.CurrentVersion,
+				Key:     rps.RoPaSciID.Slice(),
+				ID:      rps.ByzcoinID,
+			})
+			if err != nil {
+				return err
+			}
+			buf, _, _, err := reply.Proof.Get(rps.RoPaSciID.Slice())
+			if err != nil {
+				return err
+			}
+			cbc, err := ContractRoPaSciFromBytes(buf)
+			if err != nil {
+				return err
+			}
+			if cbc.(*ContractRoPaSci).SecondPlayer >= 0 {
+				return errors.New("finished game")
+			}
+			return nil
+		}()
+		if err != nil {
+			log.Error(s.ServerIdentity(), "Removing RockPaperScissors instance from list:", err)
+			s.storage.RoPaSci = append(s.storage.RoPaSci[0:i], s.storage.RoPaSci[i+1:]...)
+			i--
+			continue
+		}
+		roPaScis = append(roPaScis, *rps)
+	}
+	err := s.save()
+	if err != nil {
+		return nil, err
+	}
+	log.Print(s.ServerIdentity(), "Sending list", roPaScis)
+	return &RoPaSciListResponse{RoPaScis: roPaScis}, nil
+}
+
 // PartyList can either store a new party in the list, or just return the list of
 // available parties. It removes finalized parties, as they should not be picked up
 // by new clients.
 func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
-	log.Printf("PartyList: %+v", rq)
-	if rq.WipeParties != nil && *rq.WipeParties{
+	log.Lvlf2("PartyList: %+v", rq)
+	if rq.WipeParties != nil && *rq.WipeParties {
 		log.Lvl2(s.ServerIdentity(), "Wiping party cache")
 		s.storage.Parties = map[string]*Party{}
 	}
@@ -67,6 +121,10 @@ func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
 		} else {
 			parties = append(parties, *p)
 		}
+	}
+	err := s.save()
+	if err != nil {
+		return nil, err
 	}
 	log.Printf("Parties are: %+v", parties)
 	return &PartyListResponse{Parties: parties}, nil
@@ -323,7 +381,7 @@ func newService(c *onet.Context) (onet.Service, error) {
 	s := &Service{
 		ServiceProcessor: onet.NewServiceProcessor(c),
 	}
-	if err := s.RegisterHandlers(s.PartyList, s.AnswerQuestionnaire, s.ListMessages,
+	if err := s.RegisterHandlers(s.Poll, s.RoPaSciList, s.PartyList, s.AnswerQuestionnaire, s.ListMessages,
 		s.ListQuestionnaires, s.ReadMessage, s.RegisterQuestionnaire, s.SendMessage,
 		s.TopupQuestionnaire, s.TopupMessage, s.TestStore); err != nil {
 		return nil, errors.New("couldn't register messages")
@@ -337,12 +395,13 @@ func newService(c *onet.Context) (onet.Service, error) {
 		log.Error(err)
 		return nil, err
 	}
-	bid, _ := hex.DecodeString("9a812404dd8306bcae1cf419a643c21041731a8972b1ddbe3295614706c9183c")
-	sid, _ := hex.DecodeString("8898f2dd77ec045cd1ec67302f029e513ced173ab8ccf2c8ee4c9a306bd39091")
-	s.storage.Ts = TestStore{
-		ByzCoinID:  bid,
-		SpawnerIID: byzcoin.NewInstanceID(sid),
-	}
+	//bid, _ := hex.DecodeString("9a812404dd8306bcae1cf419a643c21041731a8972b1ddbe3295614706c9183c")
+	//sid, _ := hex.DecodeString("8898f2dd77ec045cd1ec67302f029e513ced173ab8ccf2c8ee4c9a306bd39091")
+	//s.storage.Ts = TestStore{
+	//	ByzCoinID:  bid,
+	//	SpawnerIID: byzcoin.NewInstanceID(sid),
+	//}
+	s.storage.RoPaSci = []*RoPaSci{}
 	if len(s.storage.Messages) == 0 {
 		s.storage.Messages = make(map[string]*Message)
 	}

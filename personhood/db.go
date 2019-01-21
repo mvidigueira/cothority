@@ -48,6 +48,7 @@ func (s *Service) tryLoad() error {
 }
 
 type storage1 struct {
+	RoPaSci        []*RoPaSci
 	Messages       map[string]*Message
 	Read           map[string]*readMsg
 	Questionnaires map[string]*Questionnaire

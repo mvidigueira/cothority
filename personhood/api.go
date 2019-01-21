@@ -49,3 +49,17 @@ func (c *Client) WipeParties(r onet.Roster)(errs []error){
 	}
 	return
 }
+
+func (c *Client) WipeRoPaScis(r onet.Roster)(errs []error){
+	t := true
+	pl := RoPaSciList{
+		Wipe: &t,
+	}
+	for _, si := range r.List{
+		err := c.SendProtobuf(si, &pl, nil)
+		if err != nil{
+			errs = append(errs, fmt.Errorf("error in node %s: %s", si.Address, err))
+		}
+	}
+	return
+}
