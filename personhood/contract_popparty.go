@@ -27,13 +27,13 @@ import (
 //   3 - finalized
 var ContractPopPartyID = "popParty"
 
-type contractPopParty struct {
+type ContractPopParty struct {
 	byzcoin.BasicContract
 	PopPartyStruct
 }
 
-func contractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
-	c := &contractPopParty{}
+func ContractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
+	c := &ContractPopParty{}
 	err := protobuf.DecodeWithConstructors(in, &c.PopPartyStruct, network.DefaultConstructors(cothority.Suite))
 	if err != nil {
 		return nil, errors.New("couldn't unmarshal existing PopPartyStruct: " + err.Error())
@@ -41,7 +41,7 @@ func contractPopPartyFromBytes(in []byte) (byzcoin.Contract, error) {
 	return c, nil
 }
 
-func (c contractPopParty) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
+func (c ContractPopParty) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
 	if inst.GetType() == byzcoin.InvokeType && inst.Invoke.Command == "mine" {
 		log.Lvl2("not verifying darc for mining")
 		return nil
@@ -49,7 +49,7 @@ func (c contractPopParty) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst 
 	return c.BasicContract.VerifyInstruction(rst, inst, ctxHash)
 }
 
-func (c contractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c ContractPopParty) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	descBuf := inst.Spawn.Args.Search("description")
@@ -103,7 +103,7 @@ func (sb suite_blake2s) XOF(key []byte) kyber.XOF {
 	return blake2xs.New(key)
 }
 
-func (c *contractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractPopParty) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (scs []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID

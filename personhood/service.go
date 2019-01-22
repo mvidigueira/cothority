@@ -6,9 +6,14 @@ runs on the node.
 */
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"github.com/dedis/cothority"
+	"github.com/dedis/cothority/skipchain"
+	"github.com/dedis/kyber/sign/anon"
+	"github.com/dedis/kyber/util/random"
 	"sort"
 
 	"github.com/dedis/cothority/byzcoin"
@@ -37,9 +42,113 @@ type Service struct {
 	storage *storage1
 }
 
+// Capabilities returns the version of endpoints this conode offers:
+// The versioning is a 24 bit value, that can be interpreted in hexadecimal
+// as the following:
+//   Version = [3]byte{xx, yy, zz}
+//   - xx - major version - incompatible
+//   - yy - minor version - downwards compatible. A client with a lower number will be able
+//     to interact with this server
+//   - zz - patch version - whatever suits you - higher is better, but no incompatibilities
+func (s *Service) Capabilities(rq *Capabilities)(*CapabilitiesResponse, error){
+	return &CapabilitiesResponse{
+		Capabilities: []Capability{
+			{
+				Endpoint: "poll",
+				Version: [3]byte{0,0,1},
+			},
+			{
+				Endpoint: "ropascilist",
+				Version: [3]byte{0,1,1},
+			},
+			{
+				Endpoint: "partylist",
+				Version: [3]byte{0,1,0},
+			},
+			{
+				Endpoint: "teststore",
+				Version: [3]byte{0,1,0},
+			},
+		},
+	}, nil
+}
+
 // Poll handles anonymous, troll-resistant polling.
 func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
-	return nil, nil
+	polls := s.storage.Polls[string(rq.ByzCoinID)]
+	switch {
+	case rq.NewPoll != nil:
+		np := PollStruct{
+			Title: rq.NewPoll.Title,
+			Description: rq.NewPoll.Description,
+			Choices: rq.NewPoll.Choices,
+			Personhood: rq.NewPoll.Personhood,
+		}
+		_, err := s.getPopContract(rq.ByzCoinID, np.Personhood.Slice())
+		if err != nil{
+			return nil, err
+		}
+		np.PollID = random.Bits(256, true, random.New())
+		polls = append(polls, np)
+		return &PollResponse{Polls: []PollStruct{np}}, s.save()
+	case rq.List != nil:
+		return &PollResponse{Polls: polls}, s.save()
+	case rq.Answer != nil:
+		var poll *PollStruct
+		for _, p := range polls{
+			if bytes.Compare(p.PollID, rq.Answer.PollID) == 0{
+				poll = &p
+				break
+			}
+		}
+		if poll == nil{
+			return nil, errors.New("didn't find that poll")
+		}
+		msg := append([]byte("Choice"), byte(rq.Answer.Choice))
+		scope := append([]byte("Poll"), append(rq.ByzCoinID, poll.PollID...)...)
+		ph, err := s.getPopContract(rq.ByzCoinID, poll.Personhood.Slice())
+		if err != nil{
+			return nil, err
+		}
+		tag, err := anon.Verify(cothority.Suite, msg, ph.Attendees.Keys, scope, rq.Answer.LRS)
+		if err != nil{
+			return nil, err
+		}
+		var update bool
+		for i, c := range poll.Chosen{
+			if bytes.Compare(c.LRSTag, tag) == 0{
+				log.Lvl2("Updating choice", i)
+				poll.Chosen[i].Choice = rq.Answer.Choice
+				update = true
+				break
+			}
+		}
+		if !update{
+			poll.Chosen = append(poll.Chosen, PollChoice{Choice: rq.Answer.Choice, LRSTag: tag})
+		}
+		return &PollResponse{Polls: []PollStruct{*poll}}, s.save()
+	}
+	return nil, errors.New("need one of newpoll, list, answer")
+}
+
+func (s *Service)getPopContract(bcID skipchain.SkipBlockID, phIID []byte)(*ContractPopParty, error){
+	gpr, err := s.Service(byzcoin.ServiceName).(*byzcoin.Service).GetProof(&byzcoin.GetProof{
+		Version: byzcoin.CurrentVersion,
+		Key: phIID,
+		ID: bcID,
+	})
+	if err != nil{
+		return nil, err
+	}
+	val, cid, _, err := gpr.Proof.Get(phIID)
+	if err != nil{
+		return nil, err
+	}
+	if cid != ContractPopPartyID{
+		return nil, errors.New("this is not a personhood contract")
+	}
+	cpop, err := ContractPopPartyFromBytes(val)
+	return cpop.(*ContractPopParty), err
 }
 
 // RoPaSciList can either store a new rock-paper-scissors in the list, or just return the list of
@@ -135,7 +244,7 @@ func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
 	return &PartyListResponse{Parties: parties}, nil
 }
 
-func getParty(p *Party) (cpp *contractPopParty, err error) {
+func getParty(p *Party) (cpp *ContractPopParty, err error) {
 	cl := byzcoin.NewClient(p.ByzCoinID, p.Roster)
 	pr, err := cl.GetProof(p.InstanceID.Slice())
 	if err != nil {
@@ -149,8 +258,8 @@ func getParty(p *Party) (cpp *contractPopParty, err error) {
 		err = errors.New("didn't get a party instance")
 		return
 	}
-	cbc, err := contractPopPartyFromBytes(buf)
-	return cbc.(*contractPopParty), err
+	cbc, err := ContractPopPartyFromBytes(buf)
+	return cbc.(*ContractPopParty), err
 }
 
 // RegisterQuestionnaire creates a questionnaire with a number of questions to
@@ -386,13 +495,12 @@ func newService(c *onet.Context) (onet.Service, error) {
 	s := &Service{
 		ServiceProcessor: onet.NewServiceProcessor(c),
 	}
-	if err := s.RegisterHandlers(s.Poll, s.RoPaSciList, s.PartyList, s.AnswerQuestionnaire, s.ListMessages,
-		s.ListQuestionnaires, s.ReadMessage, s.RegisterQuestionnaire, s.SendMessage,
-		s.TopupQuestionnaire, s.TopupMessage, s.TestStore); err != nil {
+	if err := s.RegisterHandlers(s.Capabilities, s.Poll, s.RoPaSciList, s.PartyList,
+		s.TestStore); err != nil {
 		return nil, errors.New("couldn't register messages")
 	}
-	byzcoin.RegisterContract(c, ContractPopPartyID, contractPopPartyFromBytes)
-	byzcoin.RegisterContract(c, ContractSpawnerID, contractSpawnerFromBytes)
+	byzcoin.RegisterContract(c, ContractPopPartyID, ContractPopPartyFromBytes)
+	byzcoin.RegisterContract(c, ContractSpawnerID, ContractSpawnerFromBytes)
 	byzcoin.RegisterContract(c, ContractCredentialID, ContractCredentialFromBytes)
 	byzcoin.RegisterContract(c, ContractRoPaSciID, ContractRoPaSciFromBytes)
 
@@ -421,6 +529,9 @@ func newService(c *onet.Context) (onet.Service, error) {
 	}
 	if len(s.storage.Read) == 0 {
 		s.storage.Read = make(map[string]*readMsg)
+	}
+	if len(s.storage.Polls) == 0 {
+		s.storage.Polls = make(map[string][]PollStruct)
 	}
 	return s, nil
 }

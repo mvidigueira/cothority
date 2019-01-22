@@ -55,6 +55,7 @@ type storage1 struct {
 	Replies        map[string]*Reply
 	Parties        map[string]*Party
 	Ts             TestStore
+	Polls          map[string][]PollStruct
 
 	sync.Mutex
 }

@@ -343,7 +343,6 @@ type Poll struct {
 
 // PollList returns all known polls for this byzcoinID
 type PollList struct {
-	Polls []PollStruct
 }
 
 // PollAnswer stores one answer for a poll. It needs to be signed with a Linkable Ring Signature
@@ -352,19 +351,19 @@ type PollList struct {
 // And the message must be
 //   'Choice' + byte(Choice)
 type PollAnswer struct {
-	PollID []byte
-	Choice int
-	LRS    []byte
+	PollID  []byte
+	Choice  int
+	LRS     []byte
 }
 
 // PollStruct represents one poll with answers.
 type PollStruct struct {
-	PollID      []byte
+	Personhood  byzcoin.InstanceID
+	PollID      []byte `protobuf:"opt"`
 	Title       string
 	Description string
-	Reward      byzcoin.Coin
 	Choices     []string
-	Chosen      []PollChoice
+	Chosen      []PollChoice `protobuf:"opt"`
 }
 
 // PollChoice represents one choice of one participant.
@@ -373,7 +372,31 @@ type PollChoice struct {
 	LRSTag []byte
 }
 
-// PollResponse is sent back to the client.
-type PollResponse struct{
+// PollResponse is sent back to the client and contains all polls known that
+// still have a reward left. It also returns the coinIID of the pollservice
+// itself.
+type PollResponse struct {
+	Polls []PollStruct
+}
 
+// Capabilities returns what the service is able to do.
+type Capabilities struct {
+}
+
+// CapabilitiesResponse is the response with the endpoints and the version of each
+// endpoint. The versioning is a 24 bit value, that can be interpreted in hexadecimal
+// as the following:
+//   Version = [3]byte{xx, yy, zz}
+//   - xx - major version - incompatible
+//   - yy - minor version - downwards compatible. A client with a lower number will be able
+//     to interact with this server
+//   - zz - patch version - whatever suits you - higher is better, but no incompatibilities
+type CapabilitiesResponse struct {
+	Capabilities []Capability
+}
+
+// Capability is one endpoint / version pair
+type Capability struct {
+	Endpoint string
+	Version  [3]byte
 }

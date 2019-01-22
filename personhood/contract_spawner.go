@@ -16,8 +16,8 @@ var ContractSpawnerID = "spawner"
 
 var SpawnerCoin = byzcoin.NewInstanceID([]byte("SpawnerCoin"))
 
-func contractSpawnerFromBytes(in []byte) (byzcoin.Contract, error) {
-	c := &contractSpawner{}
+func ContractSpawnerFromBytes(in []byte) (byzcoin.Contract, error) {
+	c := &ContractSpawner{}
 	err := protobuf.Decode(in, &c.SpawnerStruct)
 	if err != nil {
 		return nil, errors.New("couldn't unmarshal instance data: " + err.Error())
@@ -25,12 +25,12 @@ func contractSpawnerFromBytes(in []byte) (byzcoin.Contract, error) {
 	return c, nil
 }
 
-type contractSpawner struct {
+type ContractSpawner struct {
 	byzcoin.BasicContract
 	SpawnerStruct
 }
 
-func (c contractSpawner) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
+func (c ContractSpawner) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, ctxHash []byte) error {
 	if inst.GetType() != byzcoin.SpawnType {
 		if err := inst.Verify(rst, ctxHash); err != nil {
 			return err
@@ -39,7 +39,7 @@ func (c contractSpawner) VerifyInstruction(rst byzcoin.ReadOnlyStateTrie, inst b
 	return nil
 }
 
-func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -119,7 +119,7 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 		if err = c.getCoins(cout, c.CostParty); err != nil {
 			return
 		}
-		return contractPopParty{}.Spawn(rst, inst, cout)
+		return ContractPopParty{}.Spawn(rst, inst, cout)
 	case ContractRoPaSciID:
 		if err = c.getCoins(cout, c.CostRoPaSci); err != nil {
 			return
@@ -135,7 +135,7 @@ func (c *contractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	return
 }
 
-func (c contractSpawner) getCoins(coins []byzcoin.Coin, cost byzcoin.Coin) error {
+func (c ContractSpawner) getCoins(coins []byzcoin.Coin, cost byzcoin.Coin) error {
 	if cost.Value == 0 {
 		return nil
 	}
@@ -150,7 +150,7 @@ func (c contractSpawner) getCoins(coins []byzcoin.Coin, cost byzcoin.Coin) error
 	return errors.New("don't have enough coins for spawning")
 }
 
-func (c *contractSpawner) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractSpawner) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -179,7 +179,7 @@ func (c *contractSpawner) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Ins
 	return
 }
 
-func (c *contractSpawner) Delete(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c *ContractSpawner) Delete(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
