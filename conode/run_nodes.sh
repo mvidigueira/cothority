@@ -7,7 +7,7 @@ OPTIND=1         # Reset in case getopts has been used previously in the shell.
 # Initialize our own variables:
 verbose=0
 nbr_nodes=3
-base_port=7000
+base_port=7770
 base_ip=localhost
 data_dir=.
 show_all="true"

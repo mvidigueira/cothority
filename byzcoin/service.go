@@ -1441,8 +1441,10 @@ func (s *Service) startPolling(scID skipchain.SkipBlockID) chan bool {
 
 				latest, err := s.db().GetLatestByID(scID)
 				if err != nil {
-					panic("DB is in bad state and cannot find skipchain anymore: " + err.Error() +
+					log.Errorf("Error while searching for %x", scID[:])
+					log.Error("DB is in bad state and cannot find skipchain anymore: " + err.Error() +
 						" This function should never be called on a skipchain that does not exist.")
+					return
 				}
 
 				log.Lvlf3("%s: Starting new block %d for chain %x", s.ServerIdentity(), latest.Index+1, scID)
