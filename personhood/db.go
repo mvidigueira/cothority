@@ -55,11 +55,15 @@ type storage1 struct {
 	Replies        map[string]*Reply
 	Parties        map[string]*Party
 	Ts             TestStore
-	Polls          map[string][]PollStruct
+	Polls          map[string]*StoragePolls
 
 	sync.Mutex
 }
 
 type readMsg struct {
 	Readers []byzcoin.InstanceID
+}
+
+type StoragePolls struct{
+	Polls []*PollStruct
 }

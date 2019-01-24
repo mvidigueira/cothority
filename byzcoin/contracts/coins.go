@@ -158,7 +158,6 @@ func (c *contractCoin) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instru
 	case "fetch":
 		// fetch removes coins from the account and passes it on to the next
 		// instruction.
-		log.Print("Getting", coinsArg, "coins")
 		err = c.SafeSub(coinsArg)
 		if err != nil {
 			return

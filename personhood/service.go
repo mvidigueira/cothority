@@ -10,10 +10,8 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
-	"github.com/dedis/cothority"
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber/sign/anon"
-	"github.com/dedis/kyber/util/random"
 	"sort"
 
 	"github.com/dedis/cothority/byzcoin"
@@ -50,24 +48,24 @@ type Service struct {
 //   - yy - minor version - downwards compatible. A client with a lower number will be able
 //     to interact with this server
 //   - zz - patch version - whatever suits you - higher is better, but no incompatibilities
-func (s *Service) Capabilities(rq *Capabilities)(*CapabilitiesResponse, error){
+func (s *Service) Capabilities(rq *Capabilities) (*CapabilitiesResponse, error) {
 	return &CapabilitiesResponse{
 		Capabilities: []Capability{
 			{
 				Endpoint: "poll",
-				Version: [3]byte{0,0,1},
+				Version:  [3]byte{0, 0, 1},
 			},
 			{
 				Endpoint: "ropascilist",
-				Version: [3]byte{0,1,1},
+				Version:  [3]byte{0, 1, 1},
 			},
 			{
 				Endpoint: "partylist",
-				Version: [3]byte{0,1,0},
+				Version:  [3]byte{0, 1, 0},
 			},
 			{
 				Endpoint: "teststore",
-				Version: [3]byte{0,1,0},
+				Version:  [3]byte{0, 1, 0},
 			},
 		},
 	}, nil
@@ -75,76 +73,108 @@ func (s *Service) Capabilities(rq *Capabilities)(*CapabilitiesResponse, error){
 
 // Poll handles anonymous, troll-resistant polling.
 func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
-	polls := s.storage.Polls[string(rq.ByzCoinID)]
+	sps := s.storage.Polls[string(rq.ByzCoinID)]
+	if sps == nil{
+		s.storage.Polls[string(rq.ByzCoinID)] = &StoragePolls{}
+		return s.Poll(rq)
+	}
 	switch {
 	case rq.NewPoll != nil:
 		np := PollStruct{
-			Title: rq.NewPoll.Title,
+			Title:       rq.NewPoll.Title,
 			Description: rq.NewPoll.Description,
-			Choices: rq.NewPoll.Choices,
-			Personhood: rq.NewPoll.Personhood,
+			Choices:     rq.NewPoll.Choices,
+			Personhood:  rq.NewPoll.Personhood,
+			PollID:      rq.NewPoll.PollID,
 		}
 		_, err := s.getPopContract(rq.ByzCoinID, np.Personhood.Slice())
-		if err != nil{
+		if err != nil {
 			return nil, err
 		}
-		np.PollID = random.Bits(256, true, random.New())
-		polls = append(polls, np)
+		//np.PollID = random.Bits(256, true, random.New())
+		log.Printf("Storing for bc %x: %+v", rq.ByzCoinID, np)
+		sps.Polls = append(sps.Polls, &np)
+		log.Printf("polls is: %+v", s.storage.Polls[string(rq.ByzCoinID)].Polls)
 		return &PollResponse{Polls: []PollStruct{np}}, s.save()
 	case rq.List != nil:
-		return &PollResponse{Polls: polls}, s.save()
+		log.Printf("Polls for bc %x is: %+v", rq.ByzCoinID, sps.Polls)
+		pr := &PollResponse{Polls: []PollStruct{}}
+		for _, p := range sps.Polls{
+			member := false
+			for _, id := range rq.List.PartyIDs{
+				if id.Equal(p.Personhood){
+					member = true
+					break
+				}
+			}
+			if member {
+				pr.Polls = append(pr.Polls, *p)
+			}
+		}
+		return pr, s.save()
 	case rq.Answer != nil:
 		var poll *PollStruct
-		for _, p := range polls{
-			if bytes.Compare(p.PollID, rq.Answer.PollID) == 0{
-				poll = &p
+		for _, p := range sps.Polls {
+			if bytes.Compare(p.PollID, rq.Answer.PollID) == 0 {
+				poll = p
 				break
 			}
 		}
-		if poll == nil{
+		if poll == nil {
 			return nil, errors.New("didn't find that poll")
 		}
+		if rq.Answer.Choice < 0 ||
+			rq.Answer.Choice >= len(poll.Choices) {
+			return nil, errors.New("this choice doesn't exist")
+		}
+
 		msg := append([]byte("Choice"), byte(rq.Answer.Choice))
 		scope := append([]byte("Poll"), append(rq.ByzCoinID, poll.PollID...)...)
+		scopeHash := sha256.Sum256(scope)
 		ph, err := s.getPopContract(rq.ByzCoinID, poll.Personhood.Slice())
-		if err != nil{
+		if err != nil {
 			return nil, err
 		}
-		tag, err := anon.Verify(cothority.Suite, msg, ph.Attendees.Keys, scope, rq.Answer.LRS)
-		if err != nil{
+		tag, err := anon.Verify(&suite_blake2s{}, msg, ph.Attendees.Keys, scopeHash[:], rq.Answer.LRS)
+		if err != nil {
 			return nil, err
 		}
 		var update bool
-		for i, c := range poll.Chosen{
-			if bytes.Compare(c.LRSTag, tag) == 0{
+		for i, c := range poll.Chosen {
+			if bytes.Compare(c.LRSTag, tag) == 0 {
 				log.Lvl2("Updating choice", i)
 				poll.Chosen[i].Choice = rq.Answer.Choice
 				update = true
 				break
 			}
 		}
-		if !update{
+		if !update {
 			poll.Chosen = append(poll.Chosen, PollChoice{Choice: rq.Answer.Choice, LRSTag: tag})
 		}
+		log.Print("chosen is:", poll.Chosen)
+		log.Printf("polls are: %+v", sps.Polls)
 		return &PollResponse{Polls: []PollStruct{*poll}}, s.save()
+	default:
+		s.storage.Polls[string(rq.ByzCoinID)] = &StoragePolls{Polls: []*PollStruct{}}
+		return &PollResponse{Polls: []PollStruct{}}, s.save()
 	}
 	return nil, errors.New("need one of newpoll, list, answer")
 }
 
-func (s *Service)getPopContract(bcID skipchain.SkipBlockID, phIID []byte)(*ContractPopParty, error){
+func (s *Service) getPopContract(bcID skipchain.SkipBlockID, phIID []byte) (*ContractPopParty, error) {
 	gpr, err := s.Service(byzcoin.ServiceName).(*byzcoin.Service).GetProof(&byzcoin.GetProof{
 		Version: byzcoin.CurrentVersion,
-		Key: phIID,
-		ID: bcID,
+		Key:     phIID,
+		ID:      bcID,
 	})
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	val, cid, _, err := gpr.Proof.Get(phIID)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if cid != ContractPopPartyID{
+	if cid != ContractPopPartyID {
 		return nil, errors.New("this is not a personhood contract")
 	}
 	cpop, err := ContractPopPartyFromBytes(val)
@@ -162,7 +192,6 @@ func (s *Service) RoPaSciList(rq *RoPaSciList) (*RoPaSciListResponse, error) {
 		return nil, nil
 	}
 	if rq.NewRoPaSci != nil {
-		log.Print(s.ServerIdentity(), "Adding new RoPaSci", rq.NewRoPaSci)
 		s.storage.RoPaSci = append(s.storage.RoPaSci, rq.NewRoPaSci)
 	}
 	var roPaScis []RoPaSci
@@ -202,7 +231,6 @@ func (s *Service) RoPaSciList(rq *RoPaSciList) (*RoPaSciListResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Print(s.ServerIdentity(), "Sending list", roPaScis)
 	return &RoPaSciListResponse{RoPaScis: roPaScis}, nil
 }
 
@@ -228,7 +256,6 @@ func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
 	var parties []Party
 	for pid, p := range s.storage.Parties {
 		party, err := getParty(p)
-		log.Print(party, err)
 		// Remove finalized parties
 		if err != nil || party.State == 3 {
 			delete(s.storage.Parties, pid)
@@ -240,7 +267,6 @@ func (s *Service) PartyList(rq *PartyList) (*PartyListResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("Parties are: %+v", parties)
 	return &PartyListResponse{Parties: parties}, nil
 }
 
@@ -531,7 +557,7 @@ func newService(c *onet.Context) (onet.Service, error) {
 		s.storage.Read = make(map[string]*readMsg)
 	}
 	if len(s.storage.Polls) == 0 {
-		s.storage.Polls = make(map[string][]PollStruct)
+		s.storage.Polls = make(map[string]*StoragePolls)
 	}
 	return s, nil
 }

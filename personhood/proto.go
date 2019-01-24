@@ -333,7 +333,7 @@ type LRSTag struct {
 	Tag []byte
 }
 
-// Poll allows for adding, listing, and answering to polls
+// Poll allows for adding, listing, and answering to StoragePolls
 type Poll struct {
 	ByzCoinID skipchain.SkipBlockID
 	NewPoll   *PollStruct
@@ -341,8 +341,9 @@ type Poll struct {
 	Answer    *PollAnswer
 }
 
-// PollList returns all known polls for this byzcoinID
+// PollList returns all known StoragePolls for this byzcoinID
 type PollList struct {
+	PartyIDs []byzcoin.InstanceID
 }
 
 // PollAnswer stores one answer for a poll. It needs to be signed with a Linkable Ring Signature
@@ -351,9 +352,9 @@ type PollList struct {
 // And the message must be
 //   'Choice' + byte(Choice)
 type PollAnswer struct {
-	PollID  []byte
-	Choice  int
-	LRS     []byte
+	PollID []byte
+	Choice int
+	LRS    []byte
 }
 
 // PollStruct represents one poll with answers.
@@ -372,7 +373,7 @@ type PollChoice struct {
 	LRSTag []byte
 }
 
-// PollResponse is sent back to the client and contains all polls known that
+// PollResponse is sent back to the client and contains all StoragePolls known that
 // still have a reward left. It also returns the coinIID of the pollservice
 // itself.
 type PollResponse struct {
