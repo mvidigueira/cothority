@@ -978,7 +978,7 @@ func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) erro
 		return errors.New("got empty skipblock")
 	}
 	for _, sb := range search.Update {
-		log.Lvl2("Update: got block %d", sb.Index)
+		log.Lvlf2("Update: got block %d", sb.Index)
 	}
 	s.catchUp(search.Update[len(search.Update)-1])
 	return nil

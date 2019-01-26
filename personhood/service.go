@@ -92,12 +92,9 @@ func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
 			return nil, err
 		}
 		//np.PollID = random.Bits(256, true, random.New())
-		log.Printf("Storing for bc %x: %+v", rq.ByzCoinID, np)
 		sps.Polls = append(sps.Polls, &np)
-		log.Printf("polls is: %+v", s.storage.Polls[string(rq.ByzCoinID)].Polls)
 		return &PollResponse{Polls: []PollStruct{np}}, s.save()
 	case rq.List != nil:
-		log.Printf("Polls for bc %x is: %+v", rq.ByzCoinID, sps.Polls)
 		pr := &PollResponse{Polls: []PollStruct{}}
 		for _, p := range sps.Polls{
 			member := false
@@ -151,8 +148,6 @@ func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
 		if !update {
 			poll.Chosen = append(poll.Chosen, PollChoice{Choice: rq.Answer.Choice, LRSTag: tag})
 		}
-		log.Print("chosen is:", poll.Chosen)
-		log.Printf("polls are: %+v", sps.Polls)
 		return &PollResponse{Polls: []PollStruct{*poll}}, s.save()
 	default:
 		s.storage.Polls[string(rq.ByzCoinID)] = &StoragePolls{Polls: []*PollStruct{}}
