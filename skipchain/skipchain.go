@@ -451,7 +451,7 @@ func (s *Service) SyncChain(roster *onet.Roster, latest SkipBlockID) error {
 			if latest.Equal(fBlock.SkipChainID()) {
 				return errors.New("synching failed even when trying to start at the genesis block")
 			}
-			log.Lvl3("couldn't store synched block - synching from genesis block")
+			log.Lvl2("couldn't store synched block - synching from genesis block")
 			return s.SyncChain(fBlock.Roster, fBlock.SkipChainID())
 		}
 		allBlocks = append(allBlocks, blocks...)

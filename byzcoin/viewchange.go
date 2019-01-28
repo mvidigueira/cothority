@@ -122,6 +122,8 @@ func (s *Service) sendViewChangeReq(view viewchange.View) error {
 	if err != nil {
 		return err
 	}
+	log.Lvl2("%s: current leader: %s - asking to elect leader: %s", s.ServerIdentity(), latest.Roster.List[0],
+		latest.Roster.List[view.LeaderIndex])
 	req := viewchange.InitReq{
 		SignerID: s.ServerIdentity().ID,
 		View:     view,

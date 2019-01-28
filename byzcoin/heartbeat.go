@@ -72,7 +72,7 @@ func (r *heartbeats) exists(key string) bool {
 }
 
 // updateTimeout stores the new timeout and resets the timer.
-func (r *heartbeats) updateTimeout(key string, timeout time.Duration) {
+func (r *heartbeats) updateTimeout(key string, timeout time.Duration) (changed bool){
 	r.Lock()
 	defer r.Unlock()
 	h, ok := r.heartbeatMap[key]
@@ -81,7 +81,9 @@ func (r *heartbeats) updateTimeout(key string, timeout time.Duration) {
 	}
 	if h.timeout != timeout {
 		h.updateTimeoutChan <- timeout
+		return true
 	}
+	return
 }
 
 func (r *heartbeats) stop(key string) {
