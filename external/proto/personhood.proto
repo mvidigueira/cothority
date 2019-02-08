@@ -388,3 +388,15 @@ message Capability {
   required string endpoint = 1;
   required bytes version = 2;
 }
+
+// Meetup is sent by a user who wants to discover who else is around.
+message Meetup {
+  optional CredentialStruct attributes = 1;
+  optional string location = 2;
+  optional bool wipe = 3;
+}
+
+// MeetupResponse contains all users from the last x minutes.
+message MeetupResponse {
+  repeated CredentialStruct users = 1;
+}
