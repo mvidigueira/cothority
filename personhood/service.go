@@ -10,9 +10,11 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"errors"
+	"sort"
+	"time"
+
 	"github.com/dedis/cothority/skipchain"
 	"github.com/dedis/kyber/sign/anon"
-	"sort"
 
 	"github.com/dedis/cothority/byzcoin"
 	"github.com/dedis/onet"
@@ -37,6 +39,9 @@ type Service struct {
 	// are correctly handled.
 	*onet.ServiceProcessor
 
+	// meetups is a list of last users calling.
+	meetups []meetupUser
+
 	storage *storage1
 }
 
@@ -51,6 +56,10 @@ type Service struct {
 func (s *Service) Capabilities(rq *Capabilities) (*CapabilitiesResponse, error) {
 	return &CapabilitiesResponse{
 		Capabilities: []Capability{
+			{
+				Endpoint: "byzcoin",
+				Version:  [3]byte{2, 2, 0},
+			},
 			{
 				Endpoint: "poll",
 				Version:  [3]byte{0, 0, 1},
@@ -71,10 +80,39 @@ func (s *Service) Capabilities(rq *Capabilities) (*CapabilitiesResponse, error) 
 	}, nil
 }
 
+type meetupUser struct {
+	Meetup
+	Ping time.Time
+}
+
+// Meetup simulates an anonymous user detection. It should work without a service,
+// just locally, perhaps via bluetooth or sound.
+func (s *Service) Meetup(rq *Meetup) (*MeetupResponse, error) {
+	if rq.Attributes != nil {
+		s.meetups = append(s.meetups, meetupUser{Meetup: *rq, Ping: time.Now()})
+		// Prune if list is too long
+		if len(s.meetups) > 20 {
+			s.meetups = append(s.meetups[1:])
+		}
+		// Prune old entries, supposing they're in chronological order
+		for i := len(s.meetups) - 1; i >= 0; i-- {
+			if time.Now().Sub(s.meetups[i].Ping) > time.Minute {
+				s.meetups = append(s.meetups[i+1:])
+				break
+			}
+		}
+	}
+	reply := &MeetupResponse{}
+	for _, m := range s.meetups {
+		reply.Users = append(reply.Users, *m.Meetup.Attributes)
+	}
+	return reply, nil
+}
+
 // Poll handles anonymous, troll-resistant polling.
 func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
 	sps := s.storage.Polls[string(rq.ByzCoinID)]
-	if sps == nil{
+	if sps == nil {
 		s.storage.Polls[string(rq.ByzCoinID)] = &StoragePolls{}
 		return s.Poll(rq)
 	}
@@ -96,10 +134,10 @@ func (s *Service) Poll(rq *Poll) (*PollResponse, error) {
 		return &PollResponse{Polls: []PollStruct{np}}, s.save()
 	case rq.List != nil:
 		pr := &PollResponse{Polls: []PollStruct{}}
-		for _, p := range sps.Polls{
+		for _, p := range sps.Polls {
 			member := false
-			for _, id := range rq.List.PartyIDs{
-				if id.Equal(p.Personhood){
+			for _, id := range rq.List.PartyIDs {
+				if id.Equal(p.Personhood) {
 					member = true
 					break
 				}
