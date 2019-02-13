@@ -40,7 +40,7 @@ type Service struct {
 	*onet.ServiceProcessor
 
 	// meetups is a list of last users calling.
-	meetups []meetupUser
+	meetups []UserLocation
 
 	storage *storage1
 }
@@ -80,31 +80,38 @@ func (s *Service) Capabilities(rq *Capabilities) (*CapabilitiesResponse, error) 
 	}, nil
 }
 
-type meetupUser struct {
-	Meetup
-	Ping time.Time
-}
-
 // Meetup simulates an anonymous user detection. It should work without a service,
 // just locally, perhaps via bluetooth or sound.
 func (s *Service) Meetup(rq *Meetup) (*MeetupResponse, error) {
-	if rq.Attributes != nil {
-		s.meetups = append(s.meetups, meetupUser{Meetup: *rq, Ping: time.Now()})
+	if rq.Wipe != nil && *rq.Wipe {
+		log.Print("Wiping Meetups")
+		s.meetups = []UserLocation{}
+		return &MeetupResponse{}, nil
+	}
+	if rq.UserLocation != nil {
+		rq.UserLocation.Time = time.Now().Unix()
+		// Prune old entries, supposing they're in chronological order
+		for i := len(s.meetups) - 1; i >= 0; i-- {
+			if s.meetups[i].PublicKey.Equal(rq.UserLocation.PublicKey) {
+				log.Print("found same meetup")
+				s.meetups = append(s.meetups[:i], s.meetups[i+1:]...)
+				continue
+			}
+			if time.Now().Unix()-(s.meetups[i].Time) > 60 {
+				log.Print("deleting", i)
+				s.meetups = append(s.meetups[0:i], s.meetups[i+1:]...)
+			}
+		}
+		s.meetups = append(s.meetups, *rq.UserLocation)
 		// Prune if list is too long
 		if len(s.meetups) > 20 {
 			s.meetups = append(s.meetups[1:])
 		}
-		// Prune old entries, supposing they're in chronological order
-		for i := len(s.meetups) - 1; i >= 0; i-- {
-			if time.Now().Sub(s.meetups[i].Ping) > time.Minute {
-				s.meetups = append(s.meetups[i+1:])
-				break
-			}
-		}
 	}
 	reply := &MeetupResponse{}
 	for _, m := range s.meetups {
-		reply.Users = append(reply.Users, *m.Meetup.Attributes)
+		log.Printf("adding %+v", m)
+		reply.Users = append(reply.Users, m)
 	}
 	return reply, nil
 }
@@ -222,7 +229,7 @@ func (s *Service) RoPaSciList(rq *RoPaSciList) (*RoPaSciListResponse, error) {
 	if rq.Wipe != nil && *rq.Wipe {
 		log.Lvl2(s.ServerIdentity(), "Wiping all known rock-paper-scissor games")
 		s.storage.RoPaSci = []*RoPaSci{}
-		return nil, nil
+		return &RoPaSciListResponse{}, nil
 	}
 	if rq.NewRoPaSci != nil {
 		s.storage.RoPaSci = append(s.storage.RoPaSci, rq.NewRoPaSci)

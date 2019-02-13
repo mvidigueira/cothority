@@ -389,14 +389,22 @@ message Capability {
   required bytes version = 2;
 }
 
+// UserLocation is the moment a user has been at a certain location.
+message UserLocation {
+  required bytes publickey = 1;
+  optional bytes credentialiid = 2;
+  optional CredentialStruct credential = 3;
+  optional string location = 4;
+  required sint64 time = 5;
+}
+
 // Meetup is sent by a user who wants to discover who else is around.
 message Meetup {
-  optional CredentialStruct attributes = 1;
-  optional string location = 2;
-  optional bool wipe = 3;
+  optional UserLocation userlocation = 1;
+  optional bool wipe = 2;
 }
 
 // MeetupResponse contains all users from the last x minutes.
 message MeetupResponse {
-  repeated CredentialStruct users = 1;
+  repeated UserLocation users = 1;
 }

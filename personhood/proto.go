@@ -402,14 +402,22 @@ type Capability struct {
 	Version  [3]byte
 }
 
+// UserLocation is the moment a user has been at a certain location.
+type UserLocation struct {
+	PublicKey     kyber.Point
+	CredentialIID *byzcoin.InstanceID
+	Credential    *CredentialStruct
+	Location      *string
+	Time          int64
+}
+
 // Meetup is sent by a user who wants to discover who else is around.
 type Meetup struct {
-	Attributes *CredentialStruct
-	Location   *string
-	Wipe       *bool
+	UserLocation *UserLocation
+	Wipe         *bool
 }
 
 // MeetupResponse contains all users from the last x minutes.
 type MeetupResponse struct {
-	Users []CredentialStruct
+	Users []UserLocation
 }

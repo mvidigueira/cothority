@@ -37564,43 +37564,1112 @@ public final class Personhood {
 
   }
 
-  public interface MeetupOrBuilder extends
-      // @@protoc_insertion_point(interface_extends:personhood.Meetup)
+  public interface UserLocationOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:personhood.UserLocation)
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+     * <code>required bytes publickey = 1;</code>
      */
-    boolean hasAttributes();
+    boolean hasPublickey();
     /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+     * <code>required bytes publickey = 1;</code>
      */
-    ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getAttributes();
-    /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
-     */
-    ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getAttributesOrBuilder();
+    com.google.protobuf.ByteString getPublickey();
 
     /**
-     * <code>optional string location = 2;</code>
+     * <code>optional bytes credentialiid = 2;</code>
+     */
+    boolean hasCredentialiid();
+    /**
+     * <code>optional bytes credentialiid = 2;</code>
+     */
+    com.google.protobuf.ByteString getCredentialiid();
+
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    boolean hasCredential();
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getCredential();
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getCredentialOrBuilder();
+
+    /**
+     * <code>optional string location = 4;</code>
      */
     boolean hasLocation();
     /**
-     * <code>optional string location = 2;</code>
+     * <code>optional string location = 4;</code>
      */
     java.lang.String getLocation();
     /**
-     * <code>optional string location = 2;</code>
+     * <code>optional string location = 4;</code>
      */
     com.google.protobuf.ByteString
         getLocationBytes();
 
     /**
-     * <code>optional bool wipe = 3;</code>
+     * <code>required sint64 time = 5;</code>
+     */
+    boolean hasTime();
+    /**
+     * <code>required sint64 time = 5;</code>
+     */
+    long getTime();
+  }
+  /**
+   * <pre>
+   * UserLocation is the moment a user has been at a certain location.
+   * </pre>
+   *
+   * Protobuf type {@code personhood.UserLocation}
+   */
+  public  static final class UserLocation extends
+      com.google.protobuf.GeneratedMessageV3 implements
+      // @@protoc_insertion_point(message_implements:personhood.UserLocation)
+      UserLocationOrBuilder {
+  private static final long serialVersionUID = 0L;
+    // Use UserLocation.newBuilder() to construct.
+    private UserLocation(com.google.protobuf.GeneratedMessageV3.Builder<?> builder) {
+      super(builder);
+    }
+    private UserLocation() {
+      publickey_ = com.google.protobuf.ByteString.EMPTY;
+      credentialiid_ = com.google.protobuf.ByteString.EMPTY;
+      location_ = "";
+      time_ = 0L;
+    }
+
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+    getUnknownFields() {
+      return this.unknownFields;
+    }
+    private UserLocation(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      this();
+      if (extensionRegistry == null) {
+        throw new java.lang.NullPointerException();
+      }
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            case 10: {
+              bitField0_ |= 0x00000001;
+              publickey_ = input.readBytes();
+              break;
+            }
+            case 18: {
+              bitField0_ |= 0x00000002;
+              credentialiid_ = input.readBytes();
+              break;
+            }
+            case 26: {
+              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000004) == 0x00000004)) {
+                subBuilder = credential_.toBuilder();
+              }
+              credential_ = input.readMessage(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(credential_);
+                credential_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000004;
+              break;
+            }
+            case 34: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000008;
+              location_ = bs;
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              time_ = input.readSInt64();
+              break;
+            }
+            default: {
+              if (!parseUnknownField(
+                  input, unknownFields, extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_UserLocation_descriptor;
+    }
+
+    @java.lang.Override
+    protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_UserLocation_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation.class, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder.class);
+    }
+
+    private int bitField0_;
+    public static final int PUBLICKEY_FIELD_NUMBER = 1;
+    private com.google.protobuf.ByteString publickey_;
+    /**
+     * <code>required bytes publickey = 1;</code>
+     */
+    public boolean hasPublickey() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>required bytes publickey = 1;</code>
+     */
+    public com.google.protobuf.ByteString getPublickey() {
+      return publickey_;
+    }
+
+    public static final int CREDENTIALIID_FIELD_NUMBER = 2;
+    private com.google.protobuf.ByteString credentialiid_;
+    /**
+     * <code>optional bytes credentialiid = 2;</code>
+     */
+    public boolean hasCredentialiid() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional bytes credentialiid = 2;</code>
+     */
+    public com.google.protobuf.ByteString getCredentialiid() {
+      return credentialiid_;
+    }
+
+    public static final int CREDENTIAL_FIELD_NUMBER = 3;
+    private ch.epfl.dedis.lib.proto.Personhood.CredentialStruct credential_;
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    public boolean hasCredential() {
+      return ((bitField0_ & 0x00000004) == 0x00000004);
+    }
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getCredential() {
+      return credential_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : credential_;
+    }
+    /**
+     * <code>optional .personhood.CredentialStruct credential = 3;</code>
+     */
+    public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getCredentialOrBuilder() {
+      return credential_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : credential_;
+    }
+
+    public static final int LOCATION_FIELD_NUMBER = 4;
+    private volatile java.lang.Object location_;
+    /**
+     * <code>optional string location = 4;</code>
+     */
+    public boolean hasLocation() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional string location = 4;</code>
+     */
+    public java.lang.String getLocation() {
+      java.lang.Object ref = location_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          location_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string location = 4;</code>
+     */
+    public com.google.protobuf.ByteString
+        getLocationBytes() {
+      java.lang.Object ref = location_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        location_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int TIME_FIELD_NUMBER = 5;
+    private long time_;
+    /**
+     * <code>required sint64 time = 5;</code>
+     */
+    public boolean hasTime() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>required sint64 time = 5;</code>
+     */
+    public long getTime() {
+      return time_;
+    }
+
+    private byte memoizedIsInitialized = -1;
+    @java.lang.Override
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      if (!hasPublickey()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasTime()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (hasCredential()) {
+        if (!getCredential().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
+      }
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    @java.lang.Override
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, publickey_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, credentialiid_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        output.writeMessage(3, getCredential());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 4, location_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeSInt64(5, time_);
+      }
+      unknownFields.writeTo(output);
+    }
+
+    @java.lang.Override
+    public int getSerializedSize() {
+      int size = memoizedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, publickey_);
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, credentialiid_);
+      }
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(3, getCredential());
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, location_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeSInt64Size(5, time_);
+      }
+      size += unknownFields.getSerializedSize();
+      memoizedSize = size;
+      return size;
+    }
+
+    @java.lang.Override
+    public boolean equals(final java.lang.Object obj) {
+      if (obj == this) {
+       return true;
+      }
+      if (!(obj instanceof ch.epfl.dedis.lib.proto.Personhood.UserLocation)) {
+        return super.equals(obj);
+      }
+      ch.epfl.dedis.lib.proto.Personhood.UserLocation other = (ch.epfl.dedis.lib.proto.Personhood.UserLocation) obj;
+
+      boolean result = true;
+      result = result && (hasPublickey() == other.hasPublickey());
+      if (hasPublickey()) {
+        result = result && getPublickey()
+            .equals(other.getPublickey());
+      }
+      result = result && (hasCredentialiid() == other.hasCredentialiid());
+      if (hasCredentialiid()) {
+        result = result && getCredentialiid()
+            .equals(other.getCredentialiid());
+      }
+      result = result && (hasCredential() == other.hasCredential());
+      if (hasCredential()) {
+        result = result && getCredential()
+            .equals(other.getCredential());
+      }
+      result = result && (hasLocation() == other.hasLocation());
+      if (hasLocation()) {
+        result = result && getLocation()
+            .equals(other.getLocation());
+      }
+      result = result && (hasTime() == other.hasTime());
+      if (hasTime()) {
+        result = result && (getTime()
+            == other.getTime());
+      }
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
+    }
+
+    @java.lang.Override
+    public int hashCode() {
+      if (memoizedHashCode != 0) {
+        return memoizedHashCode;
+      }
+      int hash = 41;
+      hash = (19 * hash) + getDescriptor().hashCode();
+      if (hasPublickey()) {
+        hash = (37 * hash) + PUBLICKEY_FIELD_NUMBER;
+        hash = (53 * hash) + getPublickey().hashCode();
+      }
+      if (hasCredentialiid()) {
+        hash = (37 * hash) + CREDENTIALIID_FIELD_NUMBER;
+        hash = (53 * hash) + getCredentialiid().hashCode();
+      }
+      if (hasCredential()) {
+        hash = (37 * hash) + CREDENTIAL_FIELD_NUMBER;
+        hash = (53 * hash) + getCredential().hashCode();
+      }
+      if (hasLocation()) {
+        hash = (37 * hash) + LOCATION_FIELD_NUMBER;
+        hash = (53 * hash) + getLocation().hashCode();
+      }
+      if (hasTime()) {
+        hash = (37 * hash) + TIME_FIELD_NUMBER;
+        hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
+            getTime());
+      }
+      hash = (29 * hash) + unknownFields.hashCode();
+      memoizedHashCode = hash;
+      return hash;
+    }
+
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        java.nio.ByteBuffer data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        java.nio.ByteBuffer data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseDelimitedWithIOException(PARSER, input, extensionRegistry);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input);
+    }
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return com.google.protobuf.GeneratedMessageV3
+          .parseWithIOException(PARSER, input, extensionRegistry);
+    }
+
+    @java.lang.Override
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder() {
+      return DEFAULT_INSTANCE.toBuilder();
+    }
+    public static Builder newBuilder(ch.epfl.dedis.lib.proto.Personhood.UserLocation prototype) {
+      return DEFAULT_INSTANCE.toBuilder().mergeFrom(prototype);
+    }
+    @java.lang.Override
+    public Builder toBuilder() {
+      return this == DEFAULT_INSTANCE
+          ? new Builder() : new Builder().mergeFrom(this);
+    }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * <pre>
+     * UserLocation is the moment a user has been at a certain location.
+     * </pre>
+     *
+     * Protobuf type {@code personhood.UserLocation}
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessageV3.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:personhood.UserLocation)
+        ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_UserLocation_descriptor;
+      }
+
+      @java.lang.Override
+      protected com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_UserLocation_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                ch.epfl.dedis.lib.proto.Personhood.UserLocation.class, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder.class);
+      }
+
+      // Construct using ch.epfl.dedis.lib.proto.Personhood.UserLocation.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessageV3.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessageV3
+                .alwaysUseFieldBuilders) {
+          getCredentialFieldBuilder();
+        }
+      }
+      @java.lang.Override
+      public Builder clear() {
+        super.clear();
+        publickey_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000001);
+        credentialiid_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000002);
+        if (credentialBuilder_ == null) {
+          credential_ = null;
+        } else {
+          credentialBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        location_ = "";
+        bitField0_ = (bitField0_ & ~0x00000008);
+        time_ = 0L;
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return ch.epfl.dedis.lib.proto.Personhood.internal_static_personhood_UserLocation_descriptor;
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation getDefaultInstanceForType() {
+        return ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance();
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation build() {
+        ch.epfl.dedis.lib.proto.Personhood.UserLocation result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      @java.lang.Override
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation buildPartial() {
+        ch.epfl.dedis.lib.proto.Personhood.UserLocation result = new ch.epfl.dedis.lib.proto.Personhood.UserLocation(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.publickey_ = publickey_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.credentialiid_ = credentialiid_;
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
+          to_bitField0_ |= 0x00000004;
+        }
+        if (credentialBuilder_ == null) {
+          result.credential_ = credential_;
+        } else {
+          result.credential_ = credentialBuilder_.build();
+        }
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.location_ = location_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.time_ = time_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      @java.lang.Override
+      public Builder clone() {
+        return (Builder) super.clone();
+      }
+      @java.lang.Override
+      public Builder setField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.setField(field, value);
+      }
+      @java.lang.Override
+      public Builder clearField(
+          com.google.protobuf.Descriptors.FieldDescriptor field) {
+        return (Builder) super.clearField(field);
+      }
+      @java.lang.Override
+      public Builder clearOneof(
+          com.google.protobuf.Descriptors.OneofDescriptor oneof) {
+        return (Builder) super.clearOneof(oneof);
+      }
+      @java.lang.Override
+      public Builder setRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          int index, java.lang.Object value) {
+        return (Builder) super.setRepeatedField(field, index, value);
+      }
+      @java.lang.Override
+      public Builder addRepeatedField(
+          com.google.protobuf.Descriptors.FieldDescriptor field,
+          java.lang.Object value) {
+        return (Builder) super.addRepeatedField(field, value);
+      }
+      @java.lang.Override
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof ch.epfl.dedis.lib.proto.Personhood.UserLocation) {
+          return mergeFrom((ch.epfl.dedis.lib.proto.Personhood.UserLocation)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(ch.epfl.dedis.lib.proto.Personhood.UserLocation other) {
+        if (other == ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance()) return this;
+        if (other.hasPublickey()) {
+          setPublickey(other.getPublickey());
+        }
+        if (other.hasCredentialiid()) {
+          setCredentialiid(other.getCredentialiid());
+        }
+        if (other.hasCredential()) {
+          mergeCredential(other.getCredential());
+        }
+        if (other.hasLocation()) {
+          bitField0_ |= 0x00000008;
+          location_ = other.location_;
+          onChanged();
+        }
+        if (other.hasTime()) {
+          setTime(other.getTime());
+        }
+        this.mergeUnknownFields(other.unknownFields);
+        onChanged();
+        return this;
+      }
+
+      @java.lang.Override
+      public final boolean isInitialized() {
+        if (!hasPublickey()) {
+          return false;
+        }
+        if (!hasTime()) {
+          return false;
+        }
+        if (hasCredential()) {
+          if (!getCredential().isInitialized()) {
+            return false;
+          }
+        }
+        return true;
+      }
+
+      @java.lang.Override
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        ch.epfl.dedis.lib.proto.Personhood.UserLocation parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (ch.epfl.dedis.lib.proto.Personhood.UserLocation) e.getUnfinishedMessage();
+          throw e.unwrapIOException();
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private com.google.protobuf.ByteString publickey_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>required bytes publickey = 1;</code>
+       */
+      public boolean hasPublickey() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>required bytes publickey = 1;</code>
+       */
+      public com.google.protobuf.ByteString getPublickey() {
+        return publickey_;
+      }
+      /**
+       * <code>required bytes publickey = 1;</code>
+       */
+      public Builder setPublickey(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        publickey_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required bytes publickey = 1;</code>
+       */
+      public Builder clearPublickey() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        publickey_ = getDefaultInstance().getPublickey();
+        onChanged();
+        return this;
+      }
+
+      private com.google.protobuf.ByteString credentialiid_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>optional bytes credentialiid = 2;</code>
+       */
+      public boolean hasCredentialiid() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional bytes credentialiid = 2;</code>
+       */
+      public com.google.protobuf.ByteString getCredentialiid() {
+        return credentialiid_;
+      }
+      /**
+       * <code>optional bytes credentialiid = 2;</code>
+       */
+      public Builder setCredentialiid(com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        credentialiid_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bytes credentialiid = 2;</code>
+       */
+      public Builder clearCredentialiid() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        credentialiid_ = getDefaultInstance().getCredentialiid();
+        onChanged();
+        return this;
+      }
+
+      private ch.epfl.dedis.lib.proto.Personhood.CredentialStruct credential_ = null;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> credentialBuilder_;
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public boolean hasCredential() {
+        return ((bitField0_ & 0x00000004) == 0x00000004);
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getCredential() {
+        if (credentialBuilder_ == null) {
+          return credential_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : credential_;
+        } else {
+          return credentialBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public Builder setCredential(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
+        if (credentialBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          credential_ = value;
+          onChanged();
+        } else {
+          credentialBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public Builder setCredential(
+          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder builderForValue) {
+        if (credentialBuilder_ == null) {
+          credential_ = builderForValue.build();
+          onChanged();
+        } else {
+          credentialBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public Builder mergeCredential(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
+        if (credentialBuilder_ == null) {
+          if (((bitField0_ & 0x00000004) == 0x00000004) &&
+              credential_ != null &&
+              credential_ != ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance()) {
+            credential_ =
+              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.newBuilder(credential_).mergeFrom(value).buildPartial();
+          } else {
+            credential_ = value;
+          }
+          onChanged();
+        } else {
+          credentialBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000004;
+        return this;
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public Builder clearCredential() {
+        if (credentialBuilder_ == null) {
+          credential_ = null;
+          onChanged();
+        } else {
+          credentialBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000004);
+        return this;
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder getCredentialBuilder() {
+        bitField0_ |= 0x00000004;
+        onChanged();
+        return getCredentialFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getCredentialOrBuilder() {
+        if (credentialBuilder_ != null) {
+          return credentialBuilder_.getMessageOrBuilder();
+        } else {
+          return credential_ == null ?
+              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : credential_;
+        }
+      }
+      /**
+       * <code>optional .personhood.CredentialStruct credential = 3;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
+          getCredentialFieldBuilder() {
+        if (credentialBuilder_ == null) {
+          credentialBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder>(
+                  getCredential(),
+                  getParentForChildren(),
+                  isClean());
+          credential_ = null;
+        }
+        return credentialBuilder_;
+      }
+
+      private java.lang.Object location_ = "";
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public boolean hasLocation() {
+        return ((bitField0_ & 0x00000008) == 0x00000008);
+      }
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public java.lang.String getLocation() {
+        java.lang.Object ref = location_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            location_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public com.google.protobuf.ByteString
+          getLocationBytes() {
+        java.lang.Object ref = location_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          location_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public Builder setLocation(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        location_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public Builder clearLocation() {
+        bitField0_ = (bitField0_ & ~0x00000008);
+        location_ = getDefaultInstance().getLocation();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string location = 4;</code>
+       */
+      public Builder setLocationBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000008;
+        location_ = value;
+        onChanged();
+        return this;
+      }
+
+      private long time_ ;
+      /**
+       * <code>required sint64 time = 5;</code>
+       */
+      public boolean hasTime() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>required sint64 time = 5;</code>
+       */
+      public long getTime() {
+        return time_;
+      }
+      /**
+       * <code>required sint64 time = 5;</code>
+       */
+      public Builder setTime(long value) {
+        bitField0_ |= 0x00000010;
+        time_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>required sint64 time = 5;</code>
+       */
+      public Builder clearTime() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        time_ = 0L;
+        onChanged();
+        return this;
+      }
+      @java.lang.Override
+      public final Builder setUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.setUnknownFields(unknownFields);
+      }
+
+      @java.lang.Override
+      public final Builder mergeUnknownFields(
+          final com.google.protobuf.UnknownFieldSet unknownFields) {
+        return super.mergeUnknownFields(unknownFields);
+      }
+
+
+      // @@protoc_insertion_point(builder_scope:personhood.UserLocation)
+    }
+
+    // @@protoc_insertion_point(class_scope:personhood.UserLocation)
+    private static final ch.epfl.dedis.lib.proto.Personhood.UserLocation DEFAULT_INSTANCE;
+    static {
+      DEFAULT_INSTANCE = new ch.epfl.dedis.lib.proto.Personhood.UserLocation();
+    }
+
+    public static ch.epfl.dedis.lib.proto.Personhood.UserLocation getDefaultInstance() {
+      return DEFAULT_INSTANCE;
+    }
+
+    @java.lang.Deprecated public static final com.google.protobuf.Parser<UserLocation>
+        PARSER = new com.google.protobuf.AbstractParser<UserLocation>() {
+      @java.lang.Override
+      public UserLocation parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new UserLocation(input, extensionRegistry);
+      }
+    };
+
+    public static com.google.protobuf.Parser<UserLocation> parser() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<UserLocation> getParserForType() {
+      return PARSER;
+    }
+
+    @java.lang.Override
+    public ch.epfl.dedis.lib.proto.Personhood.UserLocation getDefaultInstanceForType() {
+      return DEFAULT_INSTANCE;
+    }
+
+  }
+
+  public interface MeetupOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:personhood.Meetup)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
+     */
+    boolean hasUserlocation();
+    /**
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
+     */
+    ch.epfl.dedis.lib.proto.Personhood.UserLocation getUserlocation();
+    /**
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
+     */
+    ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUserlocationOrBuilder();
+
+    /**
+     * <code>optional bool wipe = 2;</code>
      */
     boolean hasWipe();
     /**
-     * <code>optional bool wipe = 3;</code>
+     * <code>optional bool wipe = 2;</code>
      */
     boolean getWipe();
   }
@@ -37621,7 +38690,6 @@ public final class Personhood {
       super(builder);
     }
     private Meetup() {
-      location_ = "";
       wipe_ = false;
     }
 
@@ -37650,26 +38718,20 @@ public final class Personhood {
               done = true;
               break;
             case 10: {
-              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder subBuilder = null;
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder subBuilder = null;
               if (((bitField0_ & 0x00000001) == 0x00000001)) {
-                subBuilder = attributes_.toBuilder();
+                subBuilder = userlocation_.toBuilder();
               }
-              attributes_ = input.readMessage(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.parser(), extensionRegistry);
+              userlocation_ = input.readMessage(ch.epfl.dedis.lib.proto.Personhood.UserLocation.parser(), extensionRegistry);
               if (subBuilder != null) {
-                subBuilder.mergeFrom(attributes_);
-                attributes_ = subBuilder.buildPartial();
+                subBuilder.mergeFrom(userlocation_);
+                userlocation_ = subBuilder.buildPartial();
               }
               bitField0_ |= 0x00000001;
               break;
             }
-            case 18: {
-              com.google.protobuf.ByteString bs = input.readBytes();
+            case 16: {
               bitField0_ |= 0x00000002;
-              location_ = bs;
-              break;
-            }
-            case 24: {
-              bitField0_ |= 0x00000004;
               wipe_ = input.readBool();
               break;
             }
@@ -37706,79 +38768,37 @@ public final class Personhood {
     }
 
     private int bitField0_;
-    public static final int ATTRIBUTES_FIELD_NUMBER = 1;
-    private ch.epfl.dedis.lib.proto.Personhood.CredentialStruct attributes_;
+    public static final int USERLOCATION_FIELD_NUMBER = 1;
+    private ch.epfl.dedis.lib.proto.Personhood.UserLocation userlocation_;
     /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
      */
-    public boolean hasAttributes() {
+    public boolean hasUserlocation() {
       return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
      */
-    public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getAttributes() {
-      return attributes_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : attributes_;
+    public ch.epfl.dedis.lib.proto.Personhood.UserLocation getUserlocation() {
+      return userlocation_ == null ? ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance() : userlocation_;
     }
     /**
-     * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+     * <code>optional .personhood.UserLocation userlocation = 1;</code>
      */
-    public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getAttributesOrBuilder() {
-      return attributes_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : attributes_;
+    public ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUserlocationOrBuilder() {
+      return userlocation_ == null ? ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance() : userlocation_;
     }
 
-    public static final int LOCATION_FIELD_NUMBER = 2;
-    private volatile java.lang.Object location_;
+    public static final int WIPE_FIELD_NUMBER = 2;
+    private boolean wipe_;
     /**
-     * <code>optional string location = 2;</code>
+     * <code>optional bool wipe = 2;</code>
      */
-    public boolean hasLocation() {
+    public boolean hasWipe() {
       return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
-     * <code>optional string location = 2;</code>
-     */
-    public java.lang.String getLocation() {
-      java.lang.Object ref = location_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          location_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>optional string location = 2;</code>
-     */
-    public com.google.protobuf.ByteString
-        getLocationBytes() {
-      java.lang.Object ref = location_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        location_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    public static final int WIPE_FIELD_NUMBER = 3;
-    private boolean wipe_;
-    /**
-     * <code>optional bool wipe = 3;</code>
-     */
-    public boolean hasWipe() {
-      return ((bitField0_ & 0x00000004) == 0x00000004);
-    }
-    /**
-     * <code>optional bool wipe = 3;</code>
+     * <code>optional bool wipe = 2;</code>
      */
     public boolean getWipe() {
       return wipe_;
@@ -37791,8 +38811,8 @@ public final class Personhood {
       if (isInitialized == 1) return true;
       if (isInitialized == 0) return false;
 
-      if (hasAttributes()) {
-        if (!getAttributes().isInitialized()) {
+      if (hasUserlocation()) {
+        if (!getUserlocation().isInitialized()) {
           memoizedIsInitialized = 0;
           return false;
         }
@@ -37805,13 +38825,10 @@ public final class Personhood {
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
-        output.writeMessage(1, getAttributes());
+        output.writeMessage(1, getUserlocation());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 2, location_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
-        output.writeBool(3, wipe_);
+        output.writeBool(2, wipe_);
       }
       unknownFields.writeTo(output);
     }
@@ -37824,14 +38841,11 @@ public final class Personhood {
       size = 0;
       if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(1, getAttributes());
+          .computeMessageSize(1, getUserlocation());
       }
       if (((bitField0_ & 0x00000002) == 0x00000002)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, location_);
-      }
-      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBoolSize(3, wipe_);
+          .computeBoolSize(2, wipe_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -37849,15 +38863,10 @@ public final class Personhood {
       ch.epfl.dedis.lib.proto.Personhood.Meetup other = (ch.epfl.dedis.lib.proto.Personhood.Meetup) obj;
 
       boolean result = true;
-      result = result && (hasAttributes() == other.hasAttributes());
-      if (hasAttributes()) {
-        result = result && getAttributes()
-            .equals(other.getAttributes());
-      }
-      result = result && (hasLocation() == other.hasLocation());
-      if (hasLocation()) {
-        result = result && getLocation()
-            .equals(other.getLocation());
+      result = result && (hasUserlocation() == other.hasUserlocation());
+      if (hasUserlocation()) {
+        result = result && getUserlocation()
+            .equals(other.getUserlocation());
       }
       result = result && (hasWipe() == other.hasWipe());
       if (hasWipe()) {
@@ -37875,13 +38884,9 @@ public final class Personhood {
       }
       int hash = 41;
       hash = (19 * hash) + getDescriptor().hashCode();
-      if (hasAttributes()) {
-        hash = (37 * hash) + ATTRIBUTES_FIELD_NUMBER;
-        hash = (53 * hash) + getAttributes().hashCode();
-      }
-      if (hasLocation()) {
-        hash = (37 * hash) + LOCATION_FIELD_NUMBER;
-        hash = (53 * hash) + getLocation().hashCode();
+      if (hasUserlocation()) {
+        hash = (37 * hash) + USERLOCATION_FIELD_NUMBER;
+        hash = (53 * hash) + getUserlocation().hashCode();
       }
       if (hasWipe()) {
         hash = (37 * hash) + WIPE_FIELD_NUMBER;
@@ -38020,22 +39025,20 @@ public final class Personhood {
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessageV3
                 .alwaysUseFieldBuilders) {
-          getAttributesFieldBuilder();
+          getUserlocationFieldBuilder();
         }
       }
       @java.lang.Override
       public Builder clear() {
         super.clear();
-        if (attributesBuilder_ == null) {
-          attributes_ = null;
+        if (userlocationBuilder_ == null) {
+          userlocation_ = null;
         } else {
-          attributesBuilder_.clear();
+          userlocationBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
-        location_ = "";
-        bitField0_ = (bitField0_ & ~0x00000002);
         wipe_ = false;
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         return this;
       }
 
@@ -38067,17 +39070,13 @@ public final class Personhood {
         if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
-        if (attributesBuilder_ == null) {
-          result.attributes_ = attributes_;
+        if (userlocationBuilder_ == null) {
+          result.userlocation_ = userlocation_;
         } else {
-          result.attributes_ = attributesBuilder_.build();
+          result.userlocation_ = userlocationBuilder_.build();
         }
         if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
-        }
-        result.location_ = location_;
-        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
-          to_bitField0_ |= 0x00000004;
         }
         result.wipe_ = wipe_;
         result.bitField0_ = to_bitField0_;
@@ -38129,13 +39128,8 @@ public final class Personhood {
 
       public Builder mergeFrom(ch.epfl.dedis.lib.proto.Personhood.Meetup other) {
         if (other == ch.epfl.dedis.lib.proto.Personhood.Meetup.getDefaultInstance()) return this;
-        if (other.hasAttributes()) {
-          mergeAttributes(other.getAttributes());
-        }
-        if (other.hasLocation()) {
-          bitField0_ |= 0x00000002;
-          location_ = other.location_;
-          onChanged();
+        if (other.hasUserlocation()) {
+          mergeUserlocation(other.getUserlocation());
         }
         if (other.hasWipe()) {
           setWipe(other.getWipe());
@@ -38147,8 +39141,8 @@ public final class Personhood {
 
       @java.lang.Override
       public final boolean isInitialized() {
-        if (hasAttributes()) {
-          if (!getAttributes().isInitialized()) {
+        if (hasUserlocation()) {
+          if (!getUserlocation().isInitialized()) {
             return false;
           }
         }
@@ -38175,227 +39169,151 @@ public final class Personhood {
       }
       private int bitField0_;
 
-      private ch.epfl.dedis.lib.proto.Personhood.CredentialStruct attributes_ = null;
+      private ch.epfl.dedis.lib.proto.Personhood.UserLocation userlocation_ = null;
       private com.google.protobuf.SingleFieldBuilderV3<
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> attributesBuilder_;
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> userlocationBuilder_;
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public boolean hasAttributes() {
+      public boolean hasUserlocation() {
         return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getAttributes() {
-        if (attributesBuilder_ == null) {
-          return attributes_ == null ? ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : attributes_;
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation getUserlocation() {
+        if (userlocationBuilder_ == null) {
+          return userlocation_ == null ? ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance() : userlocation_;
         } else {
-          return attributesBuilder_.getMessage();
+          return userlocationBuilder_.getMessage();
         }
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public Builder setAttributes(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
-        if (attributesBuilder_ == null) {
+      public Builder setUserlocation(ch.epfl.dedis.lib.proto.Personhood.UserLocation value) {
+        if (userlocationBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
           }
-          attributes_ = value;
+          userlocation_ = value;
           onChanged();
         } else {
-          attributesBuilder_.setMessage(value);
+          userlocationBuilder_.setMessage(value);
         }
         bitField0_ |= 0x00000001;
         return this;
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public Builder setAttributes(
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder builderForValue) {
-        if (attributesBuilder_ == null) {
-          attributes_ = builderForValue.build();
+      public Builder setUserlocation(
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder builderForValue) {
+        if (userlocationBuilder_ == null) {
+          userlocation_ = builderForValue.build();
           onChanged();
         } else {
-          attributesBuilder_.setMessage(builderForValue.build());
+          userlocationBuilder_.setMessage(builderForValue.build());
         }
         bitField0_ |= 0x00000001;
         return this;
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public Builder mergeAttributes(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
-        if (attributesBuilder_ == null) {
+      public Builder mergeUserlocation(ch.epfl.dedis.lib.proto.Personhood.UserLocation value) {
+        if (userlocationBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001) &&
-              attributes_ != null &&
-              attributes_ != ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance()) {
-            attributes_ =
-              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.newBuilder(attributes_).mergeFrom(value).buildPartial();
+              userlocation_ != null &&
+              userlocation_ != ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance()) {
+            userlocation_ =
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation.newBuilder(userlocation_).mergeFrom(value).buildPartial();
           } else {
-            attributes_ = value;
+            userlocation_ = value;
           }
           onChanged();
         } else {
-          attributesBuilder_.mergeFrom(value);
+          userlocationBuilder_.mergeFrom(value);
         }
         bitField0_ |= 0x00000001;
         return this;
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public Builder clearAttributes() {
-        if (attributesBuilder_ == null) {
-          attributes_ = null;
+      public Builder clearUserlocation() {
+        if (userlocationBuilder_ == null) {
+          userlocation_ = null;
           onChanged();
         } else {
-          attributesBuilder_.clear();
+          userlocationBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000001);
         return this;
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder getAttributesBuilder() {
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder getUserlocationBuilder() {
         bitField0_ |= 0x00000001;
         onChanged();
-        return getAttributesFieldBuilder().getBuilder();
+        return getUserlocationFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getAttributesOrBuilder() {
-        if (attributesBuilder_ != null) {
-          return attributesBuilder_.getMessageOrBuilder();
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUserlocationOrBuilder() {
+        if (userlocationBuilder_ != null) {
+          return userlocationBuilder_.getMessageOrBuilder();
         } else {
-          return attributes_ == null ?
-              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance() : attributes_;
+          return userlocation_ == null ?
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance() : userlocation_;
         }
       }
       /**
-       * <code>optional .personhood.CredentialStruct attributes = 1;</code>
+       * <code>optional .personhood.UserLocation userlocation = 1;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
-          getAttributesFieldBuilder() {
-        if (attributesBuilder_ == null) {
-          attributesBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
-              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder>(
-                  getAttributes(),
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> 
+          getUserlocationFieldBuilder() {
+        if (userlocationBuilder_ == null) {
+          userlocationBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder>(
+                  getUserlocation(),
                   getParentForChildren(),
                   isClean());
-          attributes_ = null;
+          userlocation_ = null;
         }
-        return attributesBuilder_;
-      }
-
-      private java.lang.Object location_ = "";
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public boolean hasLocation() {
-        return ((bitField0_ & 0x00000002) == 0x00000002);
-      }
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public java.lang.String getLocation() {
-        java.lang.Object ref = location_;
-        if (!(ref instanceof java.lang.String)) {
-          com.google.protobuf.ByteString bs =
-              (com.google.protobuf.ByteString) ref;
-          java.lang.String s = bs.toStringUtf8();
-          if (bs.isValidUtf8()) {
-            location_ = s;
-          }
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public com.google.protobuf.ByteString
-          getLocationBytes() {
-        java.lang.Object ref = location_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          location_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public Builder setLocation(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        location_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public Builder clearLocation() {
-        bitField0_ = (bitField0_ & ~0x00000002);
-        location_ = getDefaultInstance().getLocation();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>optional string location = 2;</code>
-       */
-      public Builder setLocationBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000002;
-        location_ = value;
-        onChanged();
-        return this;
+        return userlocationBuilder_;
       }
 
       private boolean wipe_ ;
       /**
-       * <code>optional bool wipe = 3;</code>
+       * <code>optional bool wipe = 2;</code>
        */
       public boolean hasWipe() {
-        return ((bitField0_ & 0x00000004) == 0x00000004);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
-       * <code>optional bool wipe = 3;</code>
+       * <code>optional bool wipe = 2;</code>
        */
       public boolean getWipe() {
         return wipe_;
       }
       /**
-       * <code>optional bool wipe = 3;</code>
+       * <code>optional bool wipe = 2;</code>
        */
       public Builder setWipe(boolean value) {
-        bitField0_ |= 0x00000004;
+        bitField0_ |= 0x00000002;
         wipe_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional bool wipe = 3;</code>
+       * <code>optional bool wipe = 2;</code>
        */
       public Builder clearWipe() {
-        bitField0_ = (bitField0_ & ~0x00000004);
+        bitField0_ = (bitField0_ & ~0x00000002);
         wipe_ = false;
         onChanged();
         return this;
@@ -38458,27 +39376,27 @@ public final class Personhood {
       com.google.protobuf.MessageOrBuilder {
 
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> 
+    java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation> 
         getUsersList();
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getUsers(int index);
+    ch.epfl.dedis.lib.proto.Personhood.UserLocation getUsers(int index);
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
     int getUsersCount();
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
+    java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> 
         getUsersOrBuilderList();
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getUsersOrBuilder(
+    ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUsersOrBuilder(
         int index);
   }
   /**
@@ -38527,11 +39445,11 @@ public final class Personhood {
               break;
             case 10: {
               if (!((mutable_bitField0_ & 0x00000001) == 0x00000001)) {
-                users_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct>();
+                users_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.Personhood.UserLocation>();
                 mutable_bitField0_ |= 0x00000001;
               }
               users_.add(
-                  input.readMessage(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.parser(), extensionRegistry));
+                  input.readMessage(ch.epfl.dedis.lib.proto.Personhood.UserLocation.parser(), extensionRegistry));
               break;
             }
             default: {
@@ -38570,36 +39488,36 @@ public final class Personhood {
     }
 
     public static final int USERS_FIELD_NUMBER = 1;
-    private java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> users_;
+    private java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation> users_;
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    public java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> getUsersList() {
+    public java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation> getUsersList() {
       return users_;
     }
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    public java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
+    public java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> 
         getUsersOrBuilderList() {
       return users_;
     }
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
     public int getUsersCount() {
       return users_.size();
     }
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getUsers(int index) {
+    public ch.epfl.dedis.lib.proto.Personhood.UserLocation getUsers(int index) {
       return users_.get(index);
     }
     /**
-     * <code>repeated .personhood.CredentialStruct users = 1;</code>
+     * <code>repeated .personhood.UserLocation users = 1;</code>
      */
-    public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getUsersOrBuilder(
+    public ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUsersOrBuilder(
         int index) {
       return users_.get(index);
     }
@@ -38962,22 +39880,22 @@ public final class Personhood {
       }
       private int bitField0_;
 
-      private java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> users_ =
+      private java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation> users_ =
         java.util.Collections.emptyList();
       private void ensureUsersIsMutable() {
         if (!((bitField0_ & 0x00000001) == 0x00000001)) {
-          users_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct>(users_);
+          users_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.Personhood.UserLocation>(users_);
           bitField0_ |= 0x00000001;
          }
       }
 
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> usersBuilder_;
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> usersBuilder_;
 
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> getUsersList() {
+      public java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation> getUsersList() {
         if (usersBuilder_ == null) {
           return java.util.Collections.unmodifiableList(users_);
         } else {
@@ -38985,7 +39903,7 @@ public final class Personhood {
         }
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public int getUsersCount() {
         if (usersBuilder_ == null) {
@@ -38995,9 +39913,9 @@ public final class Personhood {
         }
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct getUsers(int index) {
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation getUsers(int index) {
         if (usersBuilder_ == null) {
           return users_.get(index);
         } else {
@@ -39005,10 +39923,10 @@ public final class Personhood {
         }
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder setUsers(
-          int index, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
+          int index, ch.epfl.dedis.lib.proto.Personhood.UserLocation value) {
         if (usersBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -39022,10 +39940,10 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder setUsers(
-          int index, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder builderForValue) {
+          int index, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder builderForValue) {
         if (usersBuilder_ == null) {
           ensureUsersIsMutable();
           users_.set(index, builderForValue.build());
@@ -39036,9 +39954,9 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public Builder addUsers(ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
+      public Builder addUsers(ch.epfl.dedis.lib.proto.Personhood.UserLocation value) {
         if (usersBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -39052,10 +39970,10 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder addUsers(
-          int index, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct value) {
+          int index, ch.epfl.dedis.lib.proto.Personhood.UserLocation value) {
         if (usersBuilder_ == null) {
           if (value == null) {
             throw new NullPointerException();
@@ -39069,10 +39987,10 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder addUsers(
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder builderForValue) {
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder builderForValue) {
         if (usersBuilder_ == null) {
           ensureUsersIsMutable();
           users_.add(builderForValue.build());
@@ -39083,10 +40001,10 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder addUsers(
-          int index, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder builderForValue) {
+          int index, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder builderForValue) {
         if (usersBuilder_ == null) {
           ensureUsersIsMutable();
           users_.add(index, builderForValue.build());
@@ -39097,10 +40015,10 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder addAllUsers(
-          java.lang.Iterable<? extends ch.epfl.dedis.lib.proto.Personhood.CredentialStruct> values) {
+          java.lang.Iterable<? extends ch.epfl.dedis.lib.proto.Personhood.UserLocation> values) {
         if (usersBuilder_ == null) {
           ensureUsersIsMutable();
           com.google.protobuf.AbstractMessageLite.Builder.addAll(
@@ -39112,7 +40030,7 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder clearUsers() {
         if (usersBuilder_ == null) {
@@ -39125,7 +40043,7 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
       public Builder removeUsers(int index) {
         if (usersBuilder_ == null) {
@@ -39138,16 +40056,16 @@ public final class Personhood {
         return this;
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder getUsersBuilder(
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder getUsersBuilder(
           int index) {
         return getUsersFieldBuilder().getBuilder(index);
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder getUsersOrBuilder(
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder getUsersOrBuilder(
           int index) {
         if (usersBuilder_ == null) {
           return users_.get(index);  } else {
@@ -39155,9 +40073,9 @@ public final class Personhood {
         }
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
+      public java.util.List<? extends ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> 
            getUsersOrBuilderList() {
         if (usersBuilder_ != null) {
           return usersBuilder_.getMessageOrBuilderList();
@@ -39166,33 +40084,33 @@ public final class Personhood {
         }
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder addUsersBuilder() {
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder addUsersBuilder() {
         return getUsersFieldBuilder().addBuilder(
-            ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance());
+            ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance());
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder addUsersBuilder(
+      public ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder addUsersBuilder(
           int index) {
         return getUsersFieldBuilder().addBuilder(
-            index, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.getDefaultInstance());
+            index, ch.epfl.dedis.lib.proto.Personhood.UserLocation.getDefaultInstance());
       }
       /**
-       * <code>repeated .personhood.CredentialStruct users = 1;</code>
+       * <code>repeated .personhood.UserLocation users = 1;</code>
        */
-      public java.util.List<ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder> 
+      public java.util.List<ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder> 
            getUsersBuilderList() {
         return getUsersFieldBuilder().getBuilderList();
       }
       private com.google.protobuf.RepeatedFieldBuilderV3<
-          ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder> 
+          ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder> 
           getUsersFieldBuilder() {
         if (usersBuilder_ == null) {
           usersBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
-              ch.epfl.dedis.lib.proto.Personhood.CredentialStruct, ch.epfl.dedis.lib.proto.Personhood.CredentialStruct.Builder, ch.epfl.dedis.lib.proto.Personhood.CredentialStructOrBuilder>(
+              ch.epfl.dedis.lib.proto.Personhood.UserLocation, ch.epfl.dedis.lib.proto.Personhood.UserLocation.Builder, ch.epfl.dedis.lib.proto.Personhood.UserLocationOrBuilder>(
                   users_,
                   ((bitField0_ & 0x00000001) == 0x00000001),
                   getParentForChildren(),
@@ -39460,6 +40378,11 @@ public final class Personhood {
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
       internal_static_personhood_Capability_fieldAccessorTable;
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_personhood_UserLocation_descriptor;
+  private static final 
+    com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
+      internal_static_personhood_UserLocation_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_personhood_Meetup_descriptor;
   private static final 
     com.google.protobuf.GeneratedMessageV3.FieldAccessorTable
@@ -39559,12 +40482,15 @@ public final class Personhood {
       "ollStruct\"\016\n\014Capabilities\"D\n\024Capabilitie" +
       "sResponse\022,\n\014capabilities\030\001 \003(\0132\026.person" +
       "hood.Capability\"/\n\nCapability\022\020\n\010endpoin" +
-      "t\030\001 \002(\t\022\017\n\007version\030\002 \002(\014\"Z\n\006Meetup\0220\n\nat" +
-      "tributes\030\001 \001(\0132\034.personhood.CredentialSt" +
-      "ruct\022\020\n\010location\030\002 \001(\t\022\014\n\004wipe\030\003 \001(\010\"=\n\016" +
-      "MeetupResponse\022+\n\005users\030\001 \003(\0132\034.personho" +
-      "od.CredentialStructB%\n\027ch.epfl.dedis.lib" +
-      ".protoB\nPersonhood"
+      "t\030\001 \002(\t\022\017\n\007version\030\002 \002(\014\"\212\001\n\014UserLocatio" +
+      "n\022\021\n\tpublickey\030\001 \002(\014\022\025\n\rcredentialiid\030\002 " +
+      "\001(\014\0220\n\ncredential\030\003 \001(\0132\034.personhood.Cre" +
+      "dentialStruct\022\020\n\010location\030\004 \001(\t\022\014\n\004time\030" +
+      "\005 \002(\022\"F\n\006Meetup\022.\n\014userlocation\030\001 \001(\0132\030." +
+      "personhood.UserLocation\022\014\n\004wipe\030\002 \001(\010\"9\n" +
+      "\016MeetupResponse\022\'\n\005users\030\001 \003(\0132\030.personh" +
+      "ood.UserLocationB%\n\027ch.epfl.dedis.lib.pr" +
+      "otoB\nPersonhood"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -39827,14 +40753,20 @@ public final class Personhood {
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_Capability_descriptor,
         new java.lang.String[] { "Endpoint", "Version", });
-    internal_static_personhood_Meetup_descriptor =
+    internal_static_personhood_UserLocation_descriptor =
       getDescriptor().getMessageTypes().get(41);
+    internal_static_personhood_UserLocation_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
+        internal_static_personhood_UserLocation_descriptor,
+        new java.lang.String[] { "Publickey", "Credentialiid", "Credential", "Location", "Time", });
+    internal_static_personhood_Meetup_descriptor =
+      getDescriptor().getMessageTypes().get(42);
     internal_static_personhood_Meetup_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_Meetup_descriptor,
-        new java.lang.String[] { "Attributes", "Location", "Wipe", });
+        new java.lang.String[] { "Userlocation", "Wipe", });
     internal_static_personhood_MeetupResponse_descriptor =
-      getDescriptor().getMessageTypes().get(42);
+      getDescriptor().getMessageTypes().get(43);
     internal_static_personhood_MeetupResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_MeetupResponse_descriptor,
