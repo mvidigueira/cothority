@@ -8,13 +8,15 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/dedis/cothority/byzcoin/trie"
-	"github.com/dedis/kyber/sign/schnorr"
 	"math"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/dedis/cothority/byzcoin/trie"
+	"github.com/dedis/kyber/sign/schnorr"
+	uuid "github.com/satori/go.uuid"
 
 	bolt "github.com/coreos/bbolt"
 	"github.com/dedis/cothority"
@@ -28,7 +30,6 @@ import (
 	"github.com/dedis/onet/log"
 	"github.com/dedis/onet/network"
 	"github.com/dedis/protobuf"
-	"gopkg.in/satori/go.uuid.v1"
 )
 
 // This is to boost the acceptable timestamp window when dealing with
@@ -398,7 +399,7 @@ func (s *Service) CheckAuthorization(req *CheckAuthorization) (resp *CheckAuthor
 	if err != nil {
 		return nil, err
 	}
-	d, err := loadDarcFromTrie(st, req.DarcID)
+	d, err := LoadDarcFromTrie(st, req.DarcID)
 	if err != nil {
 		return nil, errors.New("couldn't find darc: " + err.Error())
 	}
@@ -412,7 +413,7 @@ func (s *Service) CheckAuthorization(req *CheckAuthorization) (resp *CheckAuthor
 			log.Error("invalid darc id", s, len(id), err)
 			return nil
 		}
-		d, err := loadDarcFromTrie(st, id)
+		d, err := LoadDarcFromTrie(st, id)
 		if err != nil {
 			log.Error("didn't find darc")
 			return nil

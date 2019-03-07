@@ -348,7 +348,7 @@ func (c *contractDarc) Invoke(rst ReadOnlyStateTrie, inst Instruction, coins []C
 		if err != nil {
 			return nil, nil, err
 		}
-		oldD, err := loadDarcFromTrie(rst, darcID)
+		oldD, err := LoadDarcFromTrie(rst, darcID)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -414,8 +414,8 @@ func getInstanceDarc(c ReadOnlyStateTrie, iid InstanceID) (*darc.Darc, error) {
 	return darc.NewFromProtobuf(value)
 }
 
-// loadDarcFromTrie loads a darc which should be stored in key.
-func loadDarcFromTrie(st ReadOnlyStateTrie, key []byte) (*darc.Darc, error) {
+// LoadDarcFromTrie loads a darc which should be stored in key.
+func LoadDarcFromTrie(st ReadOnlyStateTrie, key []byte) (*darc.Darc, error) {
 	darcBuf, _, contract, _, err := st.GetValues(key)
 	if err != nil {
 		return nil, err

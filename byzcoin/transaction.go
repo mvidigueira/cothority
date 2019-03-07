@@ -258,7 +258,7 @@ func (instr Instruction) Verify(st ReadOnlyStateTrie, msg []byte) error {
 		if err != nil {
 			return nil
 		}
-		d, err := loadDarcFromTrie(st, darcID)
+		d, err := LoadDarcFromTrie(st, darcID)
 		if err != nil {
 			return nil
 		}
