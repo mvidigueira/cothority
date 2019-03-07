@@ -2443,10 +2443,17 @@ func newService(c *onet.Context) (onet.Service, error) {
 	}
 	s.RegisterProcessorFunc(viewChangeMsgID, s.handleViewChangeReq)
 
-	s.registerContract(ContractConfigID, contractConfigFromBytes)
-	s.registerContract(ContractDarcID, s.contractSecureDarcFromBytes)
+	if err := s.registerContract(ContractConfigID, contractConfigFromBytes); err != nil {
+		log.ErrFatal(err)
+	}
+	if err := s.registerContract(ContractDarcID, s.contractSecureDarcFromBytes); err != nil {
+		log.ErrFatal(err)
+	}
 
-	skipchain.RegisterVerification(c, Verify, s.verifySkipBlock)
+	if err := skipchain.RegisterVerification(c, Verify, s.verifySkipBlock); err != nil {
+		log.ErrFatal(err)
+	}
+
 	if _, err := s.ProtocolRegister(collectTxProtocol, NewCollectTxProtocol(s.getTxs)); err != nil {
 		return nil, err
 	}
