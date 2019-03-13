@@ -111,7 +111,7 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 		if err != nil {
 			return nil, nil, err
 		}
-		var trustees []*darc.Darc
+		var trusteesDarc []*darc.Darc
 		var threshold uint32
 		for _, cred := range c.Credentials {
 			if cred.Name == "recover" {
@@ -119,13 +119,13 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 					switch att.Name {
 					case "threshold":
 						threshold = binary.LittleEndian.Uint32(att.Value)
-					case "trustees":
+					case "trusteesDarc":
 						for t := 0; t < len(att.Value); t += 32 {
-							trustee, err := getDarc(rst, att.Value[t:t+32])
+							trusteeDarc, err := getDarc(rst, att.Value[t:t+32])
 							if err != nil {
 								return nil, nil, err
 							}
-							trustees = append(trustees, trustee)
+							trusteesDarc = append(trusteesDarc, trusteeDarc)
 						}
 					default:
 						return nil, nil, errors.New("unknown recover attribute")
@@ -134,7 +134,7 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 				break
 			}
 		}
-		if threshold == 0 || len(trustees) == 0 {
+		if threshold == 0 || len(trusteesDarc) == 0 {
 			return nil, nil, errors.New("no threshold or no trustee found")
 		}
 		var valid uint32
@@ -152,8 +152,8 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 			}
 			pubStr := darc.NewIdentityEd25519(pub).String()
 			if err = schnorr.Verify(cothority.Suite, pub, msg, sig); err == nil {
-				for _, trustee := range trustees {
-					if err := checkDarcRule(rst, trustee, pubStr); err == nil {
+				for _, trusteeDarc := range trusteesDarc {
+					if err := checkDarcRule(rst, trusteeDarc, pubStr); err == nil {
 						valid++
 						break
 					}
