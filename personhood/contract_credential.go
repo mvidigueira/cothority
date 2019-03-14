@@ -119,16 +119,16 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 					switch att.Name {
 					case "threshold":
 						threshold = binary.LittleEndian.Uint32(att.Value)
-					case "trusteesDarc":
+					case "trustees":
 						for t := 0; t < len(att.Value); t += 32 {
-							trusteeDarc, err := getDarc(rst, att.Value[t:t+32])
+							trusteeDarc, err := getDarcFromCredIID(rst, att.Value[t:t+32])
 							if err != nil {
 								return nil, nil, err
 							}
 							trusteesDarc = append(trusteesDarc, trusteeDarc)
 						}
 					default:
-						return nil, nil, errors.New("unknown recover attribute")
+						return nil, nil, errors.New("unknown recover attribute: " + att.Name)
 					}
 				}
 				break
@@ -196,6 +196,17 @@ func getDarc(rst byzcoin.ReadOnlyStateTrie, darcID darc.ID) (*darc.Darc, error) 
 		return nil, errors.New("this is not a darc-id")
 	}
 	return darc.NewFromProtobuf(darcBuf)
+}
+
+func getDarcFromCredIID(rst byzcoin.ReadOnlyStateTrie, credIID []byte) (*darc.Darc, error) {
+	_, _, cid, darcID, err := rst.GetValues(credIID)
+	if err != nil {
+		return nil, err
+	}
+	if cid != ContractCredentialID {
+		return nil, errors.New("not a credential instance")
+	}
+	return getDarc(rst, darcID)
 }
 
 func checkDarcRule(rst byzcoin.ReadOnlyStateTrie, d *darc.Darc, id string) error {
