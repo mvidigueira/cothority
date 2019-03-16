@@ -5,6 +5,8 @@ import (
 	"encoding/hex"
 	"errors"
 
+	"github.com/dedis/cothority/darc/expression"
+
 	"github.com/dedis/kyber/sign/schnorr"
 
 	"github.com/dedis/cothority"
@@ -107,9 +109,10 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 		if err != nil {
 			return
 		}
-		d, err := getDarc(rst, darcID)
+		var d *darc.Darc
+		d, err = getDarc(rst, darcID)
 		if err != nil {
-			return nil, nil, err
+			return
 		}
 		var trusteesDarc []*darc.Darc
 		var threshold uint32
@@ -165,6 +168,27 @@ func (c *ContractCredential) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.
 		if valid < threshold {
 			return nil, nil, errors.New("didn't reach threshold for recovery")
 		}
+		publicStr := darc.NewIdentityEd25519(public).String()
+		newDarc := d.Copy()
+		err = newDarc.Rules.UpdateRule("invoke:evolve", expression.InitAndExpr(publicStr))
+		if err != nil {
+			return
+		}
+		err = newDarc.Rules.UpdateSign(expression.InitAndExpr(publicStr))
+		if err != nil {
+			return
+		}
+		err = newDarc.EvolveFrom(d)
+		if err != nil {
+			return
+		}
+		var newDarcBuf []byte
+		newDarcBuf, err = newDarc.ToProto()
+		if err != nil {
+			return
+		}
+		sc = append(sc, byzcoin.NewStateChange(byzcoin.Update, byzcoin.NewInstanceID(newDarc.GetBaseID()),
+			byzcoin.ContractDarcID, newDarcBuf, newDarc.GetBaseID()))
 	default:
 		err = errors.New("credential contract can only 'update'")
 		return

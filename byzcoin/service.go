@@ -2178,8 +2178,6 @@ func (s *Service) startAllChains() error {
 			log.Error("getLeader should not return an error if roster is initialised:", err)
 			continue
 		}
-		log.Printf("%s: last block: %d - leader is: %s", s.ServerIdentity(),
-			latest.Index, leader)
 		if leader.Equal(s.ServerIdentity()) {
 			log.Lvlf2("%s: Starting as a leader for chain %x", s.ServerIdentity(), latest.SkipChainID())
 			s.pollChanMut.Lock()
@@ -2263,7 +2261,6 @@ func (s *Service) trySyncAll() error {
 	s.working.Add(1)
 	defer s.working.Done()
 	s.closedMutex.Unlock()
-	log.Print(s.ServerIdentity(), "Starting catching up")
 
 	gas := &skipchain.GetAllSkipChainIDs{}
 	gasr, err := s.skService().GetAllSkipChainIDs(gas)
