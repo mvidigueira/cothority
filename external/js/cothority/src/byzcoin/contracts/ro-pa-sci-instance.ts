@@ -116,6 +116,7 @@ export default class RoPaSciInstance {
         });
 
         await ctx.updateCounters(this.rpc, [signer]);
+        // TODO: correctly sign only the first instruction and not the second.
         ctx.signWith([signer]);
 
         await this.rpc.sendTransactionAndWait(ctx);
@@ -151,6 +152,7 @@ export default class RoPaSciInstance {
         });
 
         await this.rpc.sendTransactionAndWait(ctx);
+        await this.update()
     }
 
     /**

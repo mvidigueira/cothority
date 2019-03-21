@@ -134,6 +134,7 @@ export default class Darc extends Message<Darc> {
     /**
      * Get the id of the genesis darc
      * @returns the id as a buffer
+     * TODO: rename this as baseid
      */
     getGenesisDarcID(): Buffer {
         if (this.version.eq(0)) {

@@ -8,6 +8,7 @@ import CredentialInstance from "../credentials-instance";
 import DarcInstance from "../darc-instance";
 import SpawnerInstance from "../spawner-instance";
 import { FinalStatement, PopPartyStruct } from "./proto";
+import Darc from "../../../darc/darc";
 
 const { anon } = sign;
 
@@ -173,12 +174,14 @@ export class PopPartyInstance {
     }
 
     /**
-     * Mine coins for a person using a coin instance ID
+     * Mine coins for a person using either an existing coinIID, or a
+     * new darc that yet has to be instantiated.
      *
      * @param secret The secret key of the miner
      * @param coinID The coin instance ID of the miner
+     * @param newDarc A new darc that has not been instantiated yet
      */
-    async mine(secret: Scalar, coinID?: Buffer): Promise<void> {
+    async mine(secret: Scalar, coinID?: Buffer, newDarc?: Darc): Promise<void> {
         if (this.popPartyStruct.state !== PopPartyInstance.FINALIZED) {
             throw new Error("cannot mine on a non-finalized party");
         }
@@ -186,9 +189,15 @@ export class PopPartyInstance {
         const keys = this.popPartyStruct.attendees.publics;
         const lrs = await anon.sign(Buffer.from("mine"), keys, secret, this.instance.id);
         const args = [
-            new Argument({ name: "lrs", value: lrs.encode() }),
-            new Argument({ name: "coinIID", value: coinID }),
-        ];
+            new Argument({ name: "lrs", value: lrs.encode() })
+            ];
+        if (coinID) {
+            args.push(new Argument({name: "coinIID", value: coinID}))
+        } else if (newDarc){
+            args.push(new Argument({name: "newDarc", value: newDarc.toBytes()}))
+        } else {
+            throw new Error("need to give either coinIID or newDarc");
+        }
 
         const instr = Instruction.createInvoke(
             this.instance.id,

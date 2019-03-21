@@ -4,6 +4,7 @@ import { EMPTY_BUFFER, registerMessage } from "../../protobuf";
 import ByzCoinRPC from "../byzcoin-rpc";
 import ClientTransaction, { Argument, Instruction } from "../client-transaction";
 import Instance, { InstanceID } from "../instance";
+import {Point} from "../../../../kyber/src";
 
 export default class CredentialsInstance {
     static readonly contractID = "credential";
@@ -57,15 +58,7 @@ export default class CredentialsInstance {
      * @returns the value of the attribute if it exists, null otherwise
      */
     getAttribute(credential: string, attribute: string): Buffer {
-        const cred = this.credential.credentials.find((c) => c.name === credential);
-        if (!cred) {
-            return null;
-        }
-        const att = cred.attributes.find((a) => a.name === attribute);
-        if (!att) {
-            return null;
-        }
-        return att.value;
+        return this.credential.getAttribute(credential, attribute);
     }
 
     /**
@@ -80,34 +73,39 @@ export default class CredentialsInstance {
      * for an error
      */
     async setAttribute(owner: Signer, credential: string, attribute: string, value: Buffer): Promise<any> {
-        let cred = this.credential.credentials.find((c) => c.name === credential);
-        if (!cred) {
-            cred = new Credential({ name: credential, attributes: [new Attribute({name: attribute, value})] });
-            this.credential.credentials.push(cred);
-        } else {
-            const idx = cred.attributes.findIndex((a) => a.name === attribute);
-            const attr = new Attribute({ name: attribute, value });
-            if (idx === -1) {
-                cred.attributes.push(attr);
-            } else {
-                cred.attributes[idx] = attr;
-            }
-        }
+        return this.credential.setAttribute(credential, attribute, value);
+    }
 
+    async sendUpdate(owner: Signer, newCred: CredentialStruct = null): Promise<CredentialsInstance> {
+        if (newCred) {
+            this.credential = newCred.copy();
+        }
         const instr = Instruction.createInvoke(
             this.instance.id,
             CredentialsInstance.contractID,
             "update",
-            [new Argument({ name: "credential", value: this.credential.toBytes() })],
+            [new Argument({name: "credential", value: this.credential.toBytes()})],
         );
         await instr.updateCounters(this.rpc, [owner]);
 
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
         ctx.signWith([owner]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 
         return this;
+    }
+
+    async recoverIdentity(pubKey: Point, signatures: RecoverySignature[]): Promise<any> {
+        let sigBuf = Buffer.alloc(RecoverySignature.pubSig * signatures.length);
+        signatures.forEach((s, i) => s.signature.copy(sigBuf, RecoverySignature.pubSig * i));
+        let ctx = new ClientTransaction([
+            Instruction.createInvoke(this.iid,
+                "recover",
+                [new Argument("signatures", sigBuf),
+                    new Argument("public", pubKey.toBuffer())])
+        ]);
+        await this.bc.sendTransactionAndWait(ctx);
     }
 }
 
@@ -138,7 +136,52 @@ export class CredentialStruct extends Message<CredentialStruct> {
 
         this.credentials = this.credentials.slice() || [];
     }
+    /**
+     * Get a credential attribute
+     *
+     * @param credential    The name of the credential
+     * @param attribute     The name of the attribute
+     * @returns the value of the attribute if it exists, null otherwise
+     */
+    getAttribute(credential: string, attribute: string): Buffer {
+        return this.credential.getAttribute(credential, attribute);
+        const cred = this.credential.credentials.find((c) => c.name === credential);
+        if (!cred) {
+            return null;
+        }
+        const att = cred.attributes.find((a) => a.name === attribute);
+        if (!att) {
+            return null;
+        }
+        return att.value;
+    }
 
+    /**
+     * Set or update a credential attribute by sending a transaction. It will wait
+     * for the block inclusion or throw an error if it fails.
+     *
+     * @param owner         Signer to use for the transaction
+     * @param credential    Name of the credential
+     * @param attribute     Name of the attribute
+     * @param value         The value to set
+     * @returns a promise resolving when the transaction is in a block, or rejecting
+     * for an error
+     */
+    async setAttribute(credential: string, attribute: string, value: Buffer): Promise<any> {
+        let cred = this.credential.credentials.find((c) => c.name === credential);
+        if (!cred) {
+            cred = new Credential({name: credential, attributes: [new Attribute({name: attribute, value})]});
+            this.credential.credentials.push(cred);
+        } else {
+            const idx = cred.attributes.findIndex((a) => a.name === attribute);
+            const attr = new Attribute({name: attribute, value});
+            if (idx === -1) {
+                cred.attributes.push(attr);
+            } else {
+                cred.attributes[idx] = attr;
+            }
+        }
+    }
     /**
      * Helper to encode the struct using protobuf
      * @returns encoded struct as a buffer
@@ -187,6 +230,17 @@ export class Attribute extends Message<Attribute> {
         super(props);
 
         this.value = Buffer.from(this.value || EMPTY_BUFFER);
+    }
+}
+
+export class RecoverySignature {
+    static readonly sig = 64;
+    static readonly pub = 32;
+    static readonly credIID = 32;
+    static readonly version = 8;
+    static readonly pubSig = RecoverySignature.pub + RecoverySignature.sig;
+    static readonly msgBuf = RecoverySignature.credIID + RecoverySignature.pub + RecoverySignature.version;
+    constructor(public credentialIID: InstanceID, public signature: Buffer) {
     }
 }
 

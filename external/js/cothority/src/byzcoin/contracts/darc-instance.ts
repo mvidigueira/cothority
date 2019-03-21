@@ -64,6 +64,15 @@ export default class DarcInstance {
      * @returns a promise that resolves with the new darc instance
      */
     async evolveDarcAndWait(newDarc: Darc, signers: Signer[], wait: number): Promise<DarcInstance> {
+        if (!newDarc.getBaseId().equals(this.darc.getBaseId())){
+            throw new Error("not the same base id for the darc");
+        }
+        if (newDarc.version != this.darc.version + 1){
+            throw new Error("not the right version")
+        }
+        if (!newDarc.prevID.equals(this.darc.id)){
+            throw new Error("doesn't point to the previous darc")
+        }
         const args = [new Argument({ name: "darc", value: Buffer.from(Darc.encode(newDarc).finish()) })];
         const instr = Instruction.createInvoke(this.darc.getGenesisDarcID(), DarcInstance.contractID, "evolve", args);
 
@@ -73,7 +82,7 @@ export default class DarcInstance {
 
         await this.rpc.sendTransactionAndWait(ctx, wait);
 
-        return DarcInstance.fromByzcoin(this.rpc, this.darc.getGenesisDarcID());
+        return this.update();
     }
 
     /**

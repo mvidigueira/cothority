@@ -42,12 +42,14 @@ export class PopPartyStruct extends Message<PopPartyStruct> {
     }
 
     /**
-     * Replace the current attendees by the new ones
+     * Replace the current attendees by the new ones and sort them, so that different
+     * organizers scanning in a different order get the same result.
      *
      * @param publics Public keys of the new attendees
      */
     updateAttendes(publics: Point[]): void {
         const keys = publics.map((p) => p.toProto());
+        keys.sort((a, b) => Buffer.compare(a, b));
         this.attendees.keys.splice(0, this.attendees.keys.length, ...keys);
     }
 }

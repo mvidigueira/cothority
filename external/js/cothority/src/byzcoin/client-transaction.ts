@@ -32,6 +32,7 @@ export default class ClientTransaction extends Message<ClientTransaction> {
     /**
      * Sign the hash of the instructions using the list of signers
      * @param signers List of signers
+     * TODO: take slice of slices to allow for signing different instructions with different signers
      */
     signWith(signers: Signer[]): void {
         const ctxHash = this.hash();
