@@ -1,7 +1,13 @@
 package personhood
 
 import (
+	"crypto/sha256"
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
+	"go.dedis.ch/cothority/v3"
+	"go.dedis.ch/cothority/v3/darc/expression"
+	"go.dedis.ch/kyber/v3/sign/schnorr"
 
 	"go.dedis.ch/cothority/v3/byzcoin"
 	"go.dedis.ch/cothority/v3/darc"
@@ -50,6 +56,12 @@ func (c *ContractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 
 	// Spawn creates a new credential as a separate instance.
 	ca := inst.DeriveID("")
+	if pubBuf := inst.Spawn.Args.Search("public"); pubBuf != nil {
+		h := sha256.New()
+		h.Write([]byte(ContractCredentialID))
+		h.Write(pubBuf)
+		ca = byzcoin.NewInstanceID(h.Sum(nil))
+	}
 	if darcIDBuf := inst.Spawn.Args.Search("darcIDBuf"); darcIDBuf != nil {
 		darcID = darc.ID(darcIDBuf)
 	}

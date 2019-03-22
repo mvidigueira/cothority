@@ -46,6 +46,7 @@ func (s *Service) tryLoad() error {
 		network.DefaultConstructors(cothority.Suite))
 }
 
+// TODO: correctly go from previous to new version
 type storage1 struct {
 	RoPaSci []*RoPaSci
 	Parties map[string]*Party
