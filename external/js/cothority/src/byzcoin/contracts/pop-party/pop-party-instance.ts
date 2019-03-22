@@ -119,7 +119,7 @@ export class PopPartyInstance {
 
         const ctx = new ClientTransaction({ instructions: [instr] });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.bc.sendTransactionAndWait(ctx);
         await this.update();
@@ -149,7 +149,7 @@ export class PopPartyInstance {
 
         const ctx = new ClientTransaction({ instructions: [instr] });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.bc.sendTransactionAndWait(ctx);
         await this.update();

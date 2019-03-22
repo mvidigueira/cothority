@@ -18,7 +18,7 @@ describe("CoinInstance Tests", () => {
         darc.addIdentity("invoke:coin.transfer", SIGNER, Rules.OR);
 
         const rpc = await ByzCoinRPC.newByzCoinRPC(roster, darc, BLOCK_INTERVAL);
-        const ci = await CoinInstance.create(rpc, darc.getGenesisDarcID(), [SIGNER]);
+        const ci = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER]);
 
         expect(ci.value.toNumber()).toBe(0);
 
@@ -27,7 +27,7 @@ describe("CoinInstance Tests", () => {
 
         expect(ci.value.toNumber()).toBe(1000);
 
-        const ci2 = await CoinInstance.create(rpc, darc.getGenesisDarcID(), [SIGNER, SIGNER]);
+        const ci2 = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER, SIGNER]);
         await ci.transfer(Long.fromNumber(50), ci2.id, [SIGNER, SIGNER]);
 
         await ci.update();

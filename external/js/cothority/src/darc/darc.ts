@@ -134,9 +134,8 @@ export default class Darc extends Message<Darc> {
     /**
      * Get the id of the genesis darc
      * @returns the id as a buffer
-     * TODO: rename this as baseid
      */
-    getGenesisDarcID(): Buffer {
+    getBaseID(): Buffer {
         if (this.version.eq(0)) {
             return this.id;
         } else {
@@ -162,7 +161,7 @@ export default class Darc extends Message<Darc> {
      */
     evolve(): Darc {
         return new Darc({
-            baseID: this.getGenesisDarcID(),
+            baseID: this.getBaseID(),
             description: this.description,
             prevID: this.id,
             rules: this.rules.clone(),

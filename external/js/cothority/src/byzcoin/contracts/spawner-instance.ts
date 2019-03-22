@@ -48,7 +48,7 @@ export default class SpawnerInstance {
         const inst = Instruction.createSpawn(darcID, this.contractID, args);
         const ctx = new ClientTransaction({ instructions: [inst] });
         await ctx.updateCounters(bc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await bc.sendTransactionAndWait(ctx);
 
@@ -184,7 +184,7 @@ export default class SpawnerInstance {
     async createUserDarc(coin: CoinInstance, signers: Signer[], pubKey: Point, alias: string): Promise<DarcInstance> {
         const d = SpawnerInstance.prepareUserDarc(pubKey, alias);
         try {
-            const darc = await DarcInstance.fromByzcoin(this.rpc, d.getGenesisDarcID());
+            const darc = await DarcInstance.fromByzcoin(this.rpc, d.getBaseID());
             Log.warn("this darc is already registerd");
             return darc;
         } catch (e) {
@@ -207,11 +207,11 @@ export default class SpawnerInstance {
             ],
         });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers, signers]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 
-        return DarcInstance.fromByzcoin(this.rpc, d.getGenesisDarcID());
+        return DarcInstance.fromByzcoin(this.rpc, d.getBaseID());
     }
 
     /**
@@ -253,7 +253,7 @@ export default class SpawnerInstance {
             ],
         });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers, signers]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 
@@ -303,7 +303,7 @@ export default class SpawnerInstance {
             ],
         });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers, signers]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 
@@ -350,7 +350,7 @@ export default class SpawnerInstance {
                     this.iid,
                     PopPartyInstance.contractID,
                     [
-                        new Argument({ name: "darcID", value: orgDarc.getGenesisDarcID() }),
+                        new Argument({ name: "darcID", value: orgDarc.getBaseID() }),
                         new Argument({ name: "description", value: desc.toBytes() }),
                         new Argument({ name: "miningReward", value: Buffer.from(reward.toBytesLE()) }),
                     ],
@@ -358,7 +358,7 @@ export default class SpawnerInstance {
             ],
         });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers, signers, signers]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 
@@ -416,7 +416,7 @@ export default class SpawnerInstance {
             ],
         });
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers, signers]);
 
         await this.rpc.sendTransactionAndWait(ctx);
 

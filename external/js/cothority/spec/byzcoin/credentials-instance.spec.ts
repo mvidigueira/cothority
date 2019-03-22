@@ -10,17 +10,17 @@ async function createInstance(rpc: ByzCoinRPC, signers: Signer[], darc: Darc, cr
     const ctx = new ClientTransaction({
         instructions: [
             Instruction.createSpawn(
-                darc.getGenesisDarcID(),
+                darc.getBaseID(),
                 CredentialsInstance.contractID,
                 [
-                    new Argument({ name: "darcID", value: darc.getGenesisDarcID() }),
+                    new Argument({ name: "darcID", value: darc.getBaseID() }),
                     new Argument({ name: "credential", value: cred.toBytes() }),
                 ],
             ),
         ],
     });
     await ctx.updateCounters(rpc, signers);
-    ctx.signWith(signers);
+    ctx.signWith([signers]);
 
     await rpc.sendTransactionAndWait(ctx);
 
@@ -44,21 +44,24 @@ describe("CredentialsInstance Tests", () => {
         const cred = new CredentialStruct();
         const ci = await createInstance(rpc, [SIGNER], darc, cred);
         expect(ci).toBeDefined();
-        expect(ci.darcID).toEqual(darc.getGenesisDarcID());
+        expect(ci.darcID).toEqual(darc.getBaseID());
 
         // set non-existing credential
         await ci.setAttribute(SIGNER, "personhood", "ed25519", SIGNER.toBytes());
+        await ci.sendUpdate(SIGNER);
         await ci.update();
         expect(ci.getAttribute("personhood", "ed25519")).toEqual(SIGNER.toBytes());
 
         // set a different credential
         await ci.setAttribute(SIGNER, "personhood", "abc", Buffer.from("abc"));
+        await ci.sendUpdate(SIGNER);
         await ci.update();
         expect(ci.getAttribute("personhood", "ed25519")).toEqual(SIGNER.toBytes());
         expect(ci.getAttribute("personhood", "abc")).toEqual(Buffer.from("abc"));
 
         // update a credential
         await ci.setAttribute(SIGNER, "personhood", "abc", Buffer.from("def"));
+        await ci.sendUpdate(SIGNER);
         await ci.update();
         expect(ci.getAttribute("personhood", "ed25519")).toEqual(SIGNER.toBytes());
         expect(ci.getAttribute("personhood", "abc")).toEqual(Buffer.from("def"));

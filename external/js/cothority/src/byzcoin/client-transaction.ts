@@ -32,12 +32,15 @@ export default class ClientTransaction extends Message<ClientTransaction> {
     /**
      * Sign the hash of the instructions using the list of signers
      * @param signers List of signers
-     * TODO: take slice of slices to allow for signing different instructions with different signers
      */
-    signWith(signers: Signer[]): void {
+    signWith(signers: Signer[][]): void {
         const ctxHash = this.hash();
 
-        this.instructions.forEach((instr) => instr.signWith(ctxHash, signers));
+        if (signers.length != this.instructions.length){
+            throw new Error("need same number of signers as instructions");
+        }
+
+        this.instructions.forEach((instr, i) => instr.signWith(ctxHash, signers[i]));
     }
 
     /**

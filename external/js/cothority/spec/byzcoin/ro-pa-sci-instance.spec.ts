@@ -38,7 +38,7 @@ async function createInstance(
                 [new Argument({ name: "coins", value: Buffer.from(Long.fromNumber(100).toBytesLE()) })],
             ),
             Instruction.createSpawn(
-                darc.getGenesisDarcID(),
+                darc.getBaseID(),
                 RoPaSciInstance.contractID,
                 [new Argument({ name: "struct", value: rps.toBytes() })],
             ),
@@ -46,7 +46,7 @@ async function createInstance(
     });
 
     await ctx.updateCounters(rpc, [signer]);
-    ctx.signWith([signer]);
+    ctx.signWith([[signer], [signer]]);
 
     await rpc.sendTransactionAndWait(ctx);
 
@@ -72,10 +72,10 @@ describe("Rock-Paper-scissors Instance Tests", () => {
         darc.addIdentity("spawn:ropasci", SIGNER, Rules.OR);
 
         const rpc = await ByzCoinRPC.newByzCoinRPC(roster, darc, BLOCK_INTERVAL);
-        const p1 = await CoinInstance.create(rpc, darc.getGenesisDarcID(), [SIGNER]);
+        const p1 = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER]);
         await p1.mint([SIGNER], Long.fromNumber(1000));
         await p1.update();
-        const p2 = await CoinInstance.create(rpc, darc.getGenesisDarcID(), [SIGNER, SIGNER]);
+        const p2 = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER, SIGNER]);
         await p2.mint([SIGNER], Long.fromNumber(1000));
         await p2.update();
 

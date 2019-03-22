@@ -33,7 +33,7 @@ export default class CoinInstance {
         await inst.updateCounters(bc, signers);
 
         const ctx = new ClientTransaction({ instructions: [inst] });
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await bc.sendTransactionAndWait(ctx, 10);
 
@@ -120,7 +120,7 @@ export default class CoinInstance {
         await inst.updateCounters(this.rpc, signers);
 
         const ctx = new ClientTransaction({ instructions: [inst] });
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.rpc.sendTransactionAndWait(ctx, 10);
     }
@@ -142,7 +142,7 @@ export default class CoinInstance {
         await inst.updateCounters(this.rpc, signers);
 
         const ctx = new ClientTransaction({ instructions: [inst] });
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.rpc.sendTransactionAndWait(ctx, wait);
     }

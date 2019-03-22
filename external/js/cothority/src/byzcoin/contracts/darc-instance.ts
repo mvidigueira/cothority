@@ -1,8 +1,8 @@
 import Darc from "../../darc/darc";
 import Signer from "../../darc/signer";
 import ByzCoinRPC from "../byzcoin-rpc";
-import ClientTransaction, { Argument, Instruction } from "../client-transaction";
-import Instance, { InstanceID } from "../instance";
+import ClientTransaction, {Argument, Instruction} from "../client-transaction";
+import Instance, {InstanceID} from "../instance";
 
 export default class DarcInstance {
     static readonly contractID = "darc";
@@ -48,8 +48,8 @@ export default class DarcInstance {
      * @return a promise that resolves once the data is up-to-date
      */
     async update(): Promise<DarcInstance> {
-        const proof = await this.rpc.getProof(this.darc.getGenesisDarcID());
-        this.darc = Darc.fromProof(this.darc.getGenesisDarcID(), proof);
+        const proof = await this.rpc.getProof(this.darc.getBaseID());
+        this.darc = Darc.fromProof(this.darc.getBaseID(), proof);
 
         return this;
     }
@@ -64,21 +64,21 @@ export default class DarcInstance {
      * @returns a promise that resolves with the new darc instance
      */
     async evolveDarcAndWait(newDarc: Darc, signers: Signer[], wait: number): Promise<DarcInstance> {
-        if (!newDarc.getBaseId().equals(this.darc.getBaseId())){
+        if (!newDarc.getBaseID().equals(this.darc.getBaseID())) {
             throw new Error("not the same base id for the darc");
         }
-        if (newDarc.version != this.darc.version + 1){
+        if (newDarc.version.compare(this.darc.version.add(1)) != 0) {
             throw new Error("not the right version")
         }
-        if (!newDarc.prevID.equals(this.darc.id)){
+        if (!newDarc.prevID.equals(this.darc.id)) {
             throw new Error("doesn't point to the previous darc")
         }
-        const args = [new Argument({ name: "darc", value: Buffer.from(Darc.encode(newDarc).finish()) })];
-        const instr = Instruction.createInvoke(this.darc.getGenesisDarcID(), DarcInstance.contractID, "evolve", args);
+        const args = [new Argument({name: "darc", value: Buffer.from(Darc.encode(newDarc).finish())})];
+        const instr = Instruction.createInvoke(this.darc.getBaseID(), DarcInstance.contractID, "evolve", args);
 
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.rpc.sendTransactionAndWait(ctx, wait);
 
@@ -100,14 +100,14 @@ export default class DarcInstance {
                 value: Buffer.from(Darc.encode(d).finish()),
             }),
         ];
-        const instr = Instruction.createSpawn(this.darc.getGenesisDarcID(), DarcInstance.contractID, args);
+        const instr = Instruction.createSpawn(this.darc.getBaseID(), DarcInstance.contractID, args);
 
-        const ctx = new ClientTransaction({ instructions: [instr] });
+        const ctx = new ClientTransaction({instructions: [instr]});
         await ctx.updateCounters(this.rpc, signers);
-        ctx.signWith(signers);
+        ctx.signWith([signers]);
 
         await this.rpc.sendTransactionAndWait(ctx, wait);
 
-        return DarcInstance.fromByzcoin(this.rpc, d.getGenesisDarcID());
+        return DarcInstance.fromByzcoin(this.rpc, d.getBaseID());
     }
 }
