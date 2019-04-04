@@ -1,0 +1,14 @@
+syntax = "proto2";
+package testdata;
+
+option java_package = "ch.epfl.dedis.lib.proto";
+option java_outer_classname = "TestData";
+
+// TestStore is used to store test-structures. If it is called
+// with null pointers, nothing is stored, and only the currently
+// stored data is returned.
+// This will not be saved to disk.
+message TestStore {
+  optional bytes byzcoinid = 1;
+  optional bytes spawneriid = 2;
+}

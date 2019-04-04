@@ -6,7 +6,7 @@ set -u
 struct_files=(`find . -name proto.go | sort`)
 
 pv=`protoc --version`
-if [ "$pv" != "libprotoc 3.6.1" ]; then
+if [ "$pv" != "libprotoc 3.7.1" ]; then
 	echo "Protoc version $pv is not supported."
 	exit 1
 fi
