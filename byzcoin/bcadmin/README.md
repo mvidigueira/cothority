@@ -6,7 +6,13 @@ bcadmin
 
 # bcadmin - the CLI to configure ByzCoin ledgers
 
-## Create a new ByzCoin, saving the config
+## Example usage
+
+For the example given here, let's suppose there are ...
+
+## Command reference
+
+### Create a new ByzCoin, saving the config
 
 ```
 $ bcadmin create -roster roster.toml
@@ -29,7 +35,7 @@ shared!
 
 To see the config you just made, use `bcadmin show -bc $file`.
 
-## Granting access to contracts
+### Granting access to contracts
 
 The user who wants to use ByzCoin generates a private key and shares the
 public key with you, the ByzCoin admin. You grant access to a given contract
@@ -47,12 +53,12 @@ Using the ByzCoin config file you give them and their private key to sign
 transactions, they will now be able to use their application to send
 transactions.
 
-## Environmnet variables
+### Environmnet variables
 
 You can set the environment variable BC to the config file for the ByzCoin
 you are currently working with. (Client apps should follow this same standard.)
 
-## Generating a new keypair
+### Generating a new keypair
 
 ```
 $ bcadmin key
@@ -63,7 +69,8 @@ Generates a new keypair and prints the result in the console
 Optional flags:
 
 -save file.txt            Outputs the key in file.txt instead of stdout
-## Managing DARCS
+
+### Managing DARCS
 
 ```
 $ bcadmin darc add -bc $file
