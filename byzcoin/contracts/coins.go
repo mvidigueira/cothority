@@ -58,10 +58,10 @@ func (c *contractCoin) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruc
 
 	// Spawn creates a new coin account as a separate instance.
 	ca := inst.DeriveID("")
-	if pub := inst.Spawn.Args.Search("public"); pub != nil {
+	if coinID := inst.Spawn.Args.Search("coinID"); coinID != nil {
 		h := sha256.New()
 		h.Write([]byte(ContractCoinID))
-		h.Write(pub)
+		h.Write(coinID)
 		ca = byzcoin.NewInstanceID(h.Sum(nil))
 	}
 	if did := inst.Spawn.Args.Search("darcID"); did != nil {

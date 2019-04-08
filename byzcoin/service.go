@@ -46,6 +46,9 @@ var minTimestampWindow = 10 * time.Second
 // some blocks are missing.
 var catchupDownloadAll = 100
 
+// How much minimum time between two catch up requests
+var catchupMinimumInterval = 10 * time.Minute
+
 // How many blocks it should fetch in one go.
 var catchupFetchBlocks = 10
 
@@ -90,9 +93,8 @@ type Service struct {
 	*onet.ServiceProcessor
 	// stateTries contains a reference to all the tries that the service is
 	// responsible for, one for each skipchain.
-	updateCollectionLock sync.Mutex
-	stateTries           map[string]*stateTrie
-	stateTriesLock       sync.Mutex
+	stateTries     map[string]*stateTrie
+	stateTriesLock sync.Mutex
 	// We need to store the state changes for keeping track
 	// of the history of an instance
 	stateChangeStorage *stateChangeStorage
@@ -134,8 +136,10 @@ type Service struct {
 
 	streamingMan streamingManager
 
-	updateTrieLock sync.Mutex
-	catchingUp     bool
+	updateTrieLock        sync.Mutex
+	catchingUp            bool
+	catchingUpHistory     map[string]time.Time
+	catchingUpHistoryLock sync.Mutex
 
 	downloadState downloadState
 }
@@ -370,12 +374,15 @@ func (s *Service) AddTransaction(req *AddTxRequest) (*AddTxResponse, error) {
 // GetProof searches for a key and returns a proof of the
 // presence or the absence of this key.
 func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
+	log.Print("GetProof")
 	s.updateTrieLock.Lock()
 	defer s.updateTrieLock.Unlock()
 	if s.catchingUp {
+		log.Error("catching up")
 		return nil, errors.New("currently catching up on our state")
 	}
 	if req.Version != CurrentVersion {
+		log.Error("wrong version")
 		return nil, errors.New("version mismatch")
 	}
 
@@ -402,7 +409,7 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 	}
 
 	_, v := proof.InclusionProof.KeyValue()
-	log.Lvlf3("value is %x", v)
+	log.LLvlf3("value is %x", v)
 	resp = &GetProofResponse{
 		Version: CurrentVersion,
 		Proof:   *proof,
@@ -883,6 +890,18 @@ func (s *Service) createNewBlock(scID skipchain.SkipBlockID, r *onet.Roster, tx 
 		log.Lvl2("Sending new block to other node", sb.Roster.List[0])
 		ssbReply = &skipchain.StoreSkipBlockReply{}
 		err = skipchain.NewClient().SendProtobuf(sb.Roster.List[0], &ssb, ssbReply)
+		if err != nil {
+			return nil, err
+		}
+
+		if ssbReply.Latest == nil {
+			return nil, errors.New("got an empty reply")
+		}
+
+		// we're not doing more verification because the block should not be used
+		// as is. It's up to the client to fetch the forward link of the previous
+		// block to insure the new one has been validated but at this moment we
+		// can't do it because it might not be propagated to this node yet
 	}
 	if err != nil {
 		return nil, err
@@ -940,6 +959,8 @@ func (s *Service) downloadDB(sb *skipchain.SkipBlock) error {
 			var bucketName []byte
 			var nonce uint64
 			for {
+				// Note: we trust the chain therefore even if the reply is corrupted,
+				// it will be detected by difference in the root hash
 				resp, err := cl.DownloadState(sb.SkipChainID(), nonce, catchupFetchDBEntries)
 				if err != nil {
 					return errors.New("cannot download trie: " + err.Error())
@@ -974,16 +995,16 @@ func (s *Service) downloadDB(sb *skipchain.SkipBlock) error {
 			}
 			if sb.Index != st.GetIndex() {
 				log.Lvl2("Downloading corresponding block")
-				cl := skipchain.NewClient()
-				// TODO: make sure the downloaded block is correct
-				search, err := cl.GetSingleBlockByIndex(roster, sb.SkipChainID(), st.GetIndex())
+				skCl := skipchain.NewClient()
+				// TODO: add a client API to fetch a specific block and its proof
+				search, err := skCl.GetSingleBlockByIndex(roster, sb.SkipChainID(), st.GetIndex())
 				if err != nil {
 					return errors.New("couldn't get correct block for verification: " + err.Error())
 				}
 				sb = search.SkipBlock
 			}
 			var header DataHeader
-			err = protobuf.DecodeWithConstructors(sb.Data, &header, network.DefaultConstructors(cothority.Suite))
+			err = protobuf.Decode(sb.Data, &header)
 			if err != nil {
 				return errors.New("couldn't unmarshal header: " + err.Error())
 			}
@@ -1029,33 +1050,42 @@ func (s *Service) catchupAll() error {
 			return err
 		}
 		s.catchUp(sb)
-
-		// the MT root is not checked so we don't need the correct nonce
-		sst, err := s.stateChangeStorage.getStateTrie(sb.SkipChainID())
-		if err != nil {
-			log.Error(s.ServerIdentity(), err)
-			continue
-		}
-
-		_, err = s.buildStateChanges(sb.Hash, sst, []Coin{})
-		if err != nil {
-			log.Error(s.ServerIdentity(), err)
-		}
 	}
 	return nil
 }
 
 // catchupFromID takes a roster and a skipchain-ID, and then searches to update this
 // skipchain. This is useful in case there is no block stored yet in the system, but
-// we get a roster, e.g., from getTxs
+// we get a roster, e.g., from getTxs.
+// To prevent distributed denial-of-service, we first check that the skipchain is
+// known and then we limit the number of catch up requests per skipchain by waiting
+// for a minimal amount of time
 func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error {
-	s.updateCollectionLock.Lock()
+	// Catch up only friendly skipchains to avoid unnecessary requests
+	if s.db().GetByID(scID) == nil {
+		return fmt.Errorf("%s: Got asked for an unknown skipchain: %x", s.ServerIdentity(), scID)
+	}
+
+	// The size of the map is limited here by the number of known skipchains
+	s.catchingUpHistoryLock.Lock()
+	ts := s.catchingUpHistory[string(scID)]
+	if ts.After(time.Now()) {
+		s.catchingUpHistoryLock.Unlock()
+		return errors.New("catch up request already processed recently")
+	}
+
+	s.catchingUpHistory[string(scID)] = time.Now().Add(catchupMinimumInterval)
+	s.catchingUpHistoryLock.Unlock()
+
+	log.Lvlf1("%s: catching up with chain %x", s.ServerIdentity(), scID)
+
+	s.updateTrieLock.Lock()
 	if s.catchingUp {
-		s.updateCollectionLock.Unlock()
+		s.updateTrieLock.Unlock()
 		return errors.New("already catching up")
 	}
 	s.catchingUp = true
-	s.updateCollectionLock.Unlock()
+	s.updateTrieLock.Unlock()
 
 	cl := skipchain.NewClient()
 	search, err := cl.GetUpdateChain(r, scID)
@@ -1099,6 +1129,10 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		if err != nil {
 			log.Error("Error while downloading trie:", err)
 		}
+
+		// Note: in that case we don't get the previous blocks and therefore we can't
+		// recreate the state changes. The storage will then be filled with new
+		// incoming blocks
 		return
 	}
 
@@ -1177,7 +1211,7 @@ func (s *Service) updateTrieCallback(sbID skipchain.SkipBlockID) error {
 	// create state trie here.
 	if sb.Index == 0 && !s.hasStateTrie(sb.SkipChainID()) {
 		var body DataBody
-		err := protobuf.DecodeWithConstructors(sb.Payload, &body, network.DefaultConstructors(cothority.Suite))
+		err := protobuf.Decode(sb.Payload, &body)
 		if err != nil {
 			log.Error(s.ServerIdentity(), "could not unmarshal body for genesis block", err)
 			return errors.New("couldn't unmarshal body for genesis block")
@@ -1221,14 +1255,14 @@ func (s *Service) updateTrieCallback(sbID skipchain.SkipBlockID) error {
 
 	// Get the DataHeader and the DataBody of the block.
 	var header DataHeader
-	err = protobuf.DecodeWithConstructors(sb.Data, &header, network.DefaultConstructors(cothority.Suite))
+	err = protobuf.Decode(sb.Data, &header)
 	if err != nil {
 		log.Error(s.ServerIdentity(), "could not unmarshal header", err)
 		return errors.New("couldn't unmarshal header")
 	}
 
 	var body DataBody
-	err = protobuf.DecodeWithConstructors(sb.Payload, &body, network.DefaultConstructors(cothority.Suite))
+	err = protobuf.Decode(sb.Payload, &body)
 	if err != nil {
 		log.Error(s.ServerIdentity(), "could not unmarshal body", err)
 		return errors.New("couldn't unmarshal body")
@@ -1369,7 +1403,7 @@ func isViewChangeTx(txs TxResults) *viewchange.View {
 		return nil
 	}
 	var req viewchange.NewViewReq
-	if err := protobuf.DecodeWithConstructors(invoke.Args.Search("newview"), &req, network.DefaultConstructors(cothority.Suite)); err != nil {
+	if err := protobuf.Decode(invoke.Args.Search("newview"), &req); err != nil {
 		log.Error("failed to decode new-view req")
 		return nil
 	}
@@ -1437,12 +1471,16 @@ func (s *Service) skService() *skipchain.Service {
 }
 
 func (s *Service) isLeader(view viewchange.View) bool {
-	sb := s.db().GetByID(view.ID)
-	if view.LeaderIndex < len(sb.Roster.List) {
-		sid := sb.Roster.List[view.LeaderIndex]
-		return sid.ID.Equal(s.ServerIdentity().ID)
+	if view.LeaderIndex < 0 {
+		// no guaranties on the leader index value
+		return false
 	}
-	return false
+
+	sb := s.db().GetByID(view.ID)
+
+	idx := view.LeaderIndex % len(sb.Roster.List)
+	sid := sb.Roster.List[idx]
+	return sid.ID.Equal(s.ServerIdentity().ID)
 }
 
 // gives us access to the skipchain's database, so we can get blocks by ID
@@ -1637,7 +1675,7 @@ func (s *Service) verifySkipBlock(newID []byte, newSB *skipchain.SkipBlock) bool
 	}()
 
 	var header DataHeader
-	err := protobuf.DecodeWithConstructors(newSB.Data, &header, network.DefaultConstructors(cothority.Suite))
+	err := protobuf.Decode(newSB.Data, &header)
 	if err != nil {
 		log.Error(s.ServerIdentity(), "verifySkipblock: couldn't unmarshal header")
 		return false
@@ -1664,7 +1702,7 @@ func (s *Service) verifySkipBlock(newID []byte, newSB *skipchain.SkipBlock) bool
 	}
 
 	var body DataBody
-	err = protobuf.DecodeWithConstructors(newSB.Payload, &body, network.DefaultConstructors(cothority.Suite))
+	err = protobuf.Decode(newSB.Payload, &body)
 	if err != nil {
 		log.Error("verifySkipblock: couldn't unmarshal body")
 		return false
@@ -1920,6 +1958,7 @@ func (s *Service) processOneTx(sst *stagingStateTrie, tx ClientTransaction) (Sta
 				}
 				return nil, nil, fmt.Errorf("%s: contract %s %s", s.ServerIdentity(), contractID, reason)
 			}
+			log.Lvlf2("StateChange %s for id %x - contract: %s", sc.StateAction, sc.InstanceID, sc.ContractID)
 			err = sst.StoreAll(StateChanges{sc})
 			if err != nil {
 				return nil, nil, fmt.Errorf("%s StoreAll failed: %s", s.ServerIdentity(), err)
@@ -2049,18 +2088,24 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	s.working.Add(1)
 	s.closedMutex.Unlock()
 	defer s.working.Done()
+
+	// First we check if we are up-to-date with this chain (and that we know it)
+	latestSB := s.db().GetByID(latestID)
+	if latestSB == nil {
+		// The function will prevent multiple request to catch up so we can securely call it here
+		err := s.catchupFromID(roster, scID)
+		if err != nil {
+			log.Error(err)
+		}
+		// Give up the current request and wait for the next one, and keep skipping requests
+		// until the catching up is done
+		return []ClientTransaction{}
+	}
+
+	// Then we make sure who's the leader
 	actualLeader, err := s.getLeader(scID)
 	if err != nil {
 		log.Lvlf2("%s: could not find a leader on %x with error: %s", s.ServerIdentity(), scID, err)
-		if s.skService().ChainIsFriendly(scID) {
-			log.Lvlf1("%s: catching up with chain %x", s.ServerIdentity(), scID)
-			err = s.catchupFromID(roster, scID)
-			if err != nil {
-				log.Error(err)
-			}
-		} else {
-			log.Lvlf1("%s: Got asked for transactions of unknown, non-friendly chain %x", s.ServerIdentity(), scID)
-		}
 		return []ClientTransaction{}
 	}
 	if !leader.Equal(actualLeader) {
@@ -2068,32 +2113,8 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 			"should be", actualLeader)
 		return []ClientTransaction{}
 	}
-	s.heartbeats.beat(string(scID))
 
-	// If the leader's latestID is something we do not know about, then we
-	// need to synchronise.
-	// NOTE: there is a potential denial of service when the leader sends
-	// an invalid latestID, but our current implementation assumes that the
-	// leader cannot be byzantine (i.e., it can only exhibit crash
-	// failure).
-	ourLatest, err := s.db().GetLatestByID(scID)
-	if err != nil {
-		log.Warnf("%s: we do not know about the skipchain ID %x: %s", s.ServerIdentity(), scID, err)
-		err = s.catchupFromID(roster, scID)
-		if err != nil {
-			log.Error(err)
-		}
-		return []ClientTransaction{}
-	}
-	latestSB := s.db().GetByID(latestID)
-	if latestSB == nil {
-		log.Lvl3(s.ServerIdentity(), "chain is out of date")
-		if err := s.skService().SyncChain(roster, ourLatest.Hash); err != nil {
-			log.Error(s.ServerIdentity(), err)
-		}
-	} else {
-		log.Lvl3(s.ServerIdentity(), "chain is up to date")
-	}
+	s.heartbeats.beat(string(scID))
 
 	return s.txBuffer.take(string(scID))
 }
@@ -2338,65 +2359,12 @@ func (s *Service) getBlockTx(sid skipchain.SkipBlockID) (TxResults, *skipchain.S
 	}
 
 	var body DataBody
-	err = protobuf.DecodeWithConstructors(sb.Payload, &body, network.DefaultConstructors(cothority.Suite))
+	err = protobuf.Decode(sb.Payload, &body)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return body.TxResults, sb, nil
-}
-
-// buildStateChanges recursively gets the TXs of a skipchain's blocks and populates
-// the state changes storage by restoring them from the TXs. We don't need to worry
-// about overriding thanks to the key generation.
-func (s *Service) buildStateChanges(sid skipchain.SkipBlockID, sst *stagingStateTrie, cin []Coin) ([]Coin, error) {
-	txs, sb, err := s.getBlockTx(sid)
-	if err != nil {
-		return nil, err
-	}
-
-	// when an error occured, we stop where we are because those state changes
-	// should be generated without errors then something else went wrong
-	// (e.g. storage issue)
-	for _, tx := range txs {
-		if tx.Accepted {
-			// Only accepted transactions must be used
-			// to create the state changes
-			h := tx.ClientTransaction.Instructions.Hash()
-			for _, instr := range tx.ClientTransaction.Instructions {
-				scs, cout, err := s.executeInstruction(sst, cin, instr, h)
-				cin = cout
-				if err != nil {
-					return nil, err
-				}
-				counterScs, err := incrementSignerCounters(sst, instr.SignerIdentities)
-				if err != nil {
-					return nil, err
-				}
-
-				scs = append(scs, counterScs...)
-				err = sst.StoreAll(scs)
-				if err != nil {
-					return nil, err
-				}
-
-				s.stateChangeStorage.append(scs, sb)
-			}
-		}
-	}
-
-	if len(sb.ForwardLink) > 0 {
-		// There might be skips in the blockchain, so take the first
-		// link that points to an existing block.
-		for _, link := range sb.ForwardLink {
-			if block := s.db().GetByID(link.To); block != nil {
-				return s.buildStateChanges(block.Hash, sst, cin)
-			}
-		}
-		return nil, errors.New("last block has forwardlinks that are not available")
-	}
-
-	return nil, nil
 }
 
 var existingDB = regexp.MustCompile(`^ByzCoin_[0-9a-f]+$`)
@@ -2420,6 +2388,7 @@ func newService(c *onet.Context) (onet.Service, error) {
 		viewChangeMan:          newViewChangeManager(),
 		streamingMan:           streamingManager{},
 		closed:                 true,
+		catchingUpHistory:      make(map[string]time.Time),
 	}
 	err := s.RegisterHandlers(
 		s.CreateGenesisBlock,
@@ -2502,6 +2471,9 @@ func newService(c *onet.Context) (onet.Service, error) {
 	default:
 		return nil, fmt.Errorf("unknown db version number %v", ver)
 	}
+
+	// initialize the stats of the storage
+	s.stateChangeStorage.calculateSize()
 
 	if err := s.startAllChains(); err != nil {
 		return nil, err

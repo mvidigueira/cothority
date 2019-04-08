@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.dedis.ch/cothority/v3"
+	"go.dedis.ch/cothority/v3/byzcoin/viewchange"
 	"go.dedis.ch/cothority/v3/darc"
 	"go.dedis.ch/cothority/v3/darc/expression"
 	"go.dedis.ch/cothority/v3/skipchain"
@@ -23,7 +24,6 @@ import (
 	"go.dedis.ch/onet/v3/log"
 	"go.dedis.ch/onet/v3/network"
 	"go.dedis.ch/protobuf"
-	bbolt "go.etcd.io/bbolt"
 )
 
 var tSuite = suites.MustFind("Ed25519")
@@ -40,24 +40,26 @@ func TestMain(m *testing.M) {
 }
 
 func TestService_CreateGenesisBlock(t *testing.T) {
-	s := newSer(t, 0, testInterval)
+	s := newSerN(t, 0, testInterval, 4, false)
 	defer s.local.CloseAll()
 
+	service := s.services[1]
+
 	// invalid version, missing transaction
-	resp, err := s.service().CreateGenesisBlock(&CreateGenesisBlock{
+	resp, err := service.CreateGenesisBlock(&CreateGenesisBlock{
 		Version: 0,
 		Roster:  *s.roster,
 	})
 	require.NotNil(t, err)
 
 	// invalid: max block too small, big
-	resp, err = s.service().CreateGenesisBlock(&CreateGenesisBlock{
+	resp, err = service.CreateGenesisBlock(&CreateGenesisBlock{
 		Version:      0,
 		Roster:       *s.roster,
 		MaxBlockSize: 3000,
 	})
 	require.NotNil(t, err)
-	resp, err = s.service().CreateGenesisBlock(&CreateGenesisBlock{
+	resp, err = service.CreateGenesisBlock(&CreateGenesisBlock{
 		Version:      0,
 		Roster:       *s.roster,
 		MaxBlockSize: 30 * 1e6,
@@ -65,7 +67,7 @@ func TestService_CreateGenesisBlock(t *testing.T) {
 	require.NotNil(t, err)
 
 	// invalid darc
-	resp, err = s.service().CreateGenesisBlock(&CreateGenesisBlock{
+	resp, err = service.CreateGenesisBlock(&CreateGenesisBlock{
 		Version:     CurrentVersion,
 		Roster:      *s.roster,
 		GenesisDarc: darc.Darc{},
@@ -80,12 +82,12 @@ func TestService_CreateGenesisBlock(t *testing.T) {
 	genesisMsg.MaxBlockSize = 1 * 1e6
 
 	// finally passing
-	resp, err = s.service().CreateGenesisBlock(genesisMsg)
+	resp, err = service.CreateGenesisBlock(genesisMsg)
 	require.Nil(t, err)
 	assert.Equal(t, CurrentVersion, resp.Version)
 	assert.NotNil(t, resp.Skipblock)
 
-	proof, err := s.service().GetProof(&GetProof{
+	proof, err := service.GetProof(&GetProof{
 		Version: CurrentVersion,
 		Key:     genesisMsg.GenesisDarc.GetID(),
 		ID:      resp.Skipblock.SkipChainID(),
@@ -96,7 +98,7 @@ func TestService_CreateGenesisBlock(t *testing.T) {
 	require.Nil(t, err)
 	require.EqualValues(t, genesisMsg.GenesisDarc.GetID(), k)
 
-	interval, maxsz, err := s.service().LoadBlockInfo(resp.Skipblock.SkipChainID())
+	interval, maxsz, err := service.LoadBlockInfo(resp.Skipblock.SkipChainID())
 	require.NoError(t, err)
 	require.Equal(t, interval, genesisMsg.BlockInterval)
 	require.Equal(t, maxsz, genesisMsg.MaxBlockSize)
@@ -1940,6 +1942,36 @@ func testViewChange(t *testing.T, nHosts, nFailures int, interval time.Duration)
 	log.Lvl1("Sent two tx")
 }
 
+// Tests that a view change can happen when the leader index is out of bound
+func TestService_ViewChangeForced(t *testing.T) {
+	s := newSerN(t, 1, time.Second, 5, true)
+	defer s.local.CloseAll()
+
+	err := s.services[0].sendViewChangeReq(viewchange.View{LeaderIndex: -1})
+	require.Error(t, err)
+	require.Equal(t, "leader index must be positive", err.Error())
+
+	for i := 0; i < 5; i++ {
+		err := s.services[i].sendViewChangeReq(viewchange.View{
+			ID:          s.genesis.SkipChainID(),
+			Gen:         s.genesis.SkipChainID(),
+			LeaderIndex: 7,
+		})
+		require.NoError(t, err)
+	}
+
+	// more than enough for a view change to complete
+	time.Sleep(10 * time.Second)
+
+	for _, service := range s.services {
+		// everyone should have the same leader after the genesis block is stored
+		leader, err := service.getLeader(s.genesis.SkipChainID())
+		require.NoError(t, err)
+		require.NotNil(t, leader)
+		require.True(t, leader.Equal(s.services[2].ServerIdentity()))
+	}
+}
+
 func TestService_DarcToSc(t *testing.T) {
 	s := newSer(t, 1, testInterval)
 	defer s.local.CloseAll()
@@ -2138,7 +2170,7 @@ func TestService_StateChangeStorage(t *testing.T) {
 			sb, err := service.skService().GetSingleBlock(&skipchain.GetSingleBlock{ID: res.BlockID})
 			require.Nil(t, err)
 			var header DataHeader
-			err = protobuf.DecodeWithConstructors(sb.Data, &header, network.DefaultConstructors(cothority.Suite))
+			err = protobuf.Decode(sb.Data, &header)
 			require.Nil(t, err)
 			require.Equal(t, StateChanges(res.StateChanges).Hash(), header.StateChangesHash)
 		}
@@ -2161,102 +2193,74 @@ func TestService_StateChangeStorage(t *testing.T) {
 	}
 }
 
-// This tests that the service will restore the state changes
-// after a (re)boot and catch up potential new blocks
-func TestService_StateChangeCatchUp(t *testing.T) {
+// Tests that the state change storage will be caught up by a new conode
+func TestService_StateChangeStorageCatchUp(t *testing.T) {
+	// we don't want a db download
+	catchupDownloadAll = 100
+
 	s := newSer(t, 1, testInterval)
 	defer s.local.CloseAll()
 
-	n := 5
-	contract := func(cdb ReadOnlyStateTrie, inst Instruction, c []Coin) ([]StateChange, []Coin, error) {
-		// Check the state trie is created from the known global state
-		iid := inst.Hash()
-		if !bytes.Equal(inst.InstanceID.Slice(), s.darc.GetBaseID()) {
-			iid = inst.InstanceID.Slice()
-		}
-		_, ver, _, _, err := cdb.GetValues(iid)
-		sc1 := StateChange{
-			StateAction: Update,
-			InstanceID:  iid,
-			ContractID:  stateChangeCacheContract,
-			Version:     ver + 1,
-		}
-		if err != nil {
-			sc1.StateAction = Create
-		}
-		return []StateChange{sc1}, []Coin{}, nil
-	}
-	for _, s := range s.hosts {
-		RegisterContract(s, stateChangeCacheContract, adaptorNoVerify(contract))
-	}
-
-	createTx := func(iid []byte, counter uint64, wait int) *Instruction {
-		instr := Instruction{
-			InstanceID:       NewInstanceID(iid),
-			Spawn:            &Spawn{ContractID: stateChangeCacheContract},
-			SignerIdentities: []darc.Identity{s.signer.Identity()},
-			SignerCounter:    []uint64{counter},
-		}
-		tx := ClientTransaction{Instructions: Instructions{instr}}
-		err := tx.Instructions[0].SignWith(tx.Instructions.Hash(), s.signer)
+	n := 2
+	for i := 0; i < n; i++ {
+		tx, err := createClientTxWithTwoInstrWithCounter(s.darc.GetBaseID(), dummyContract, []byte{}, s.signer, uint64(i*2+1))
 		require.Nil(t, err)
 
 		_, err = s.service().AddTransaction(&AddTxRequest{
 			Version:       CurrentVersion,
 			SkipchainID:   s.genesis.SkipChainID(),
 			Transaction:   tx,
-			InclusionWait: wait,
+			InclusionWait: 10,
 		})
 		require.Nil(t, err)
-
-		return &instr
 	}
 
-	instr := createTx(s.darc.GetBaseID(), uint64(1), 1)
+	newServer, newRoster, newService := s.local.MakeSRS(cothority.Suite, 1, ByzCoinID)
+	registerDummy(newServer)
 
-	for i := 0; i < n-1; i++ {
-		// add transactions that must be recreated
-		createTx(instr.Hash(), uint64(i+1), 0)
+	newRoster = onet.NewRoster(append(s.roster.List, newRoster.List...))
+	ctx, _ := createConfigTxWithCounter(t, testInterval, *newRoster, defaultMaxBlockSize, s, 5)
+	s.sendTxAndWait(t, ctx, 10)
+
+	for i := 0; i < 10; i++ {
+		log.Lvl1("Sleeping for 1 second...")
+		time.Sleep(time.Second)
+		scs, _ := newService.(*Service).stateChangeStorage.getByBlock(s.genesis.Hash, 2)
+
+		if len(scs) > 0 {
+			require.Equal(t, Create, scs[0].StateChange.StateAction)
+			require.Equal(t, Update, scs[1].StateChange.StateAction)
+			require.Equal(t, uint64(3), scs[1].StateChange.Version)
+			return
+		}
 	}
-	createTx(instr.Hash(), uint64(n), 2)
 
-	// Remove some entries to check it will recreate them
-	err := s.service().stateChangeStorage.db.Update(func(tx *bbolt.Tx) error {
-		b := s.service().stateChangeStorage.getBucket(tx, s.genesis.SkipChainID())
-		if b == nil {
-			return errors.New("missing bucket")
-		}
+	require.True(t, false, "the new conode has never caught up in the last 10s")
+}
 
-		c := b.Cursor()
-		// Remove entries associated with the second block
-		for k, _ := c.First(); k != nil; k, _ = c.Next() {
-			if k[len(k)-1] == byte(2) {
-				err := c.Delete()
-				if err != nil {
-					return err
-				}
-			}
-		}
-		return nil
-	})
-	require.Nil(t, err)
+// Tests that a conode can't be overflowed by catching requests
+func TestService_TestCatchUpHistory(t *testing.T) {
+	s := newSer(t, 1, testInterval)
+	defer s.local.CloseAll()
 
-	scs, err := s.service().stateChangeStorage.getAll(instr.Hash(), s.genesis.SkipChainID())
-	require.Nil(t, err)
-	require.Equal(t, 1, len(scs))
+	require.Equal(t, 0, len(s.service().catchingUpHistory))
 
-	s.service().catchupAll()
+	// unknown skipchain, we shouldn't try to catch up
+	err := s.service().catchupFromID(s.roster, skipchain.SkipBlockID{})
+	require.Equal(t, 0, len(s.service().catchingUpHistory))
+	require.Error(t, err)
 
-	scs, err = s.service().stateChangeStorage.getAll(instr.Hash(), s.genesis.SkipChainID())
-	require.Nil(t, err)
-	require.Equal(t, n+1, len(scs))
-	require.Equal(t, uint64(n), scs[n].StateChange.Version)
+	// catch up
+	err = s.service().catchupFromID(s.roster, s.genesis.Hash)
+	require.Equal(t, 1, len(s.service().catchingUpHistory))
+	require.NoError(t, err)
 
-	counterID := publicVersionKey(s.signer.Identity().String())
-	sc, ok, err := s.service().stateChangeStorage.getLast(counterID, s.genesis.SkipChainID())
-	require.Nil(t, err)
-	require.True(t, ok)
-	require.Equal(t, uint64(n+1), sc.StateChange.Version)
+	ts := s.service().catchingUpHistory[string(s.genesis.Hash)]
+
+	// ... but not twice
+	err = s.service().catchupFromID(s.roster, s.genesis.Hash)
+	require.True(t, s.service().catchingUpHistory[string(s.genesis.Hash)].Equal(ts))
+	require.Error(t, err)
 }
 
 func createBadConfigTx(t *testing.T, s *ser, intervalBad, szBad bool) (ClientTransaction, ChainConfig) {

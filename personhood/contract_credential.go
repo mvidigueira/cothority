@@ -49,23 +49,29 @@ func (c *ContractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 	cout = coins
 
 	var darcID darc.ID
-	_, _, _, darcID, err = rst.GetValues(inst.InstanceID.Slice())
-	if err != nil {
-		return
+	if darcIDBuf := inst.Spawn.Args.Search("darcID"); darcIDBuf != nil {
+		darcID = darc.ID(darcIDBuf)
+	} else {
+		var cid string
+		_, _, cid, darcID, err = rst.GetValues(inst.InstanceID.Slice())
+		if err != nil {
+			return
+		}
+		if cid != byzcoin.ContractDarcID{
+			return nil, nil, errors.New("give darcID if not spawned from a darc")
+		}
 	}
 
 	// Spawn creates a new credential as a separate instance.
 	ca := inst.DeriveID("")
-	if pubBuf := inst.Spawn.Args.Search("public"); pubBuf != nil {
+	if credID := inst.Spawn.Args.Search("credID"); credID != nil {
+		log.Printf("Using credID %x", credID)
 		h := sha256.New()
 		h.Write([]byte(ContractCredentialID))
-		h.Write(pubBuf)
+		h.Write(credID)
 		ca = byzcoin.NewInstanceID(h.Sum(nil))
 	}
-	if darcIDBuf := inst.Spawn.Args.Search("darcIDBuf"); darcIDBuf != nil {
-		darcID = darc.ID(darcIDBuf)
-	}
-	log.Lvlf3("Spawning Credential to %x", ca.Slice())
+	log.LLvlf3("Spawning Credential to %x", ca.Slice())
 	var ciBuf []byte
 	if ciBuf = inst.Spawn.Args.Search("credential"); ciBuf == nil {
 		ciBuf, err = protobuf.Encode(&c.CredentialStruct)
@@ -77,6 +83,7 @@ func (c *ContractCredential) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.I
 		if err != nil {
 			return nil, nil, errors.New("got wrong credential data: " + err.Error())
 		}
+		log.Printf("credstruct is: %+v", c.CredentialStruct)
 	}
 	sc = []byzcoin.StateChange{
 		byzcoin.NewStateChange(byzcoin.Create, ca, ContractCredentialID, ciBuf, darcID),

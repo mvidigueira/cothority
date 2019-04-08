@@ -190,6 +190,10 @@ var cmds = cli.Commands{
 				Name:  "save",
 				Usage: "file in which the user wants to save the public key instead of printing it",
 			},
+			cli.StringFlag{
+				Name: "print",
+				Usage: "print the private and public key",
+			},
 		},
 		Action: key,
 	},
@@ -957,6 +961,15 @@ func rosterLeader(c *cli.Context) error {
 }
 
 func key(c *cli.Context) error {
+	if f := c.String("print"); f != ""{
+		sig, err := lib.LoadSigner(f)
+		if err != nil{
+			return errors.New("couldn't load signer: " + err.Error())
+		}
+		log.Infof("Private: %s\nPublic: %s", sig.Ed25519.Secret, sig.Ed25519.Point)
+		//log.Infof("Private: 65642e706f696e74%s\nPublic: %s", sig.Ed25519.Secret, sig.Ed25519.Point)
+		return nil
+	}
 	newSigner := darc.NewSignerEd25519(nil, nil)
 	err := lib.SaveKey(newSigner)
 	if err != nil {
