@@ -1048,6 +1048,10 @@ func (s *Service) catchupAll() error {
 		if err != nil {
 			return err
 		}
+
+		s.updateTrieLock.Lock()
+		s.catchingUp = true
+		s.updateTrieLock.Unlock()
 		s.catchUp(sb)
 	}
 	return nil
@@ -1059,7 +1063,7 @@ func (s *Service) catchupAll() error {
 // To prevent distributed denial-of-service, we first check that the skipchain is
 // known and then we limit the number of catch up requests per skipchain by waiting
 // for a minimal amount of time
-func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) error {
+func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID, sbID skipchain.SkipBlockID) error {
 	// Catch up only friendly skipchains to avoid unnecessary requests
 	if s.db().GetByID(scID) == nil {
 		return fmt.Errorf("%s: Got asked for an unknown skipchain: %x", s.ServerIdentity(), scID)
@@ -1087,15 +1091,13 @@ func (s *Service) catchupFromID(r *onet.Roster, scID skipchain.SkipBlockID) erro
 	s.updateTrieLock.Unlock()
 
 	cl := skipchain.NewClient()
-	search, err := cl.GetUpdateChain(r, scID)
+	sb, err := cl.GetSingleBlock(r, sbID)
 	if err != nil {
 		return err
 	}
-	if len(search.Update) == 0 {
-		log.Lvlf1("%s: Got empty skipblock", s.ServerIdentity())
-		return errors.New("got empty skipblock")
-	}
-	s.catchUp(search.Update[len(search.Update)-1])
+
+	// catch up the intermediate missing blocks
+	s.catchUp(sb)
 	return nil
 }
 
@@ -1109,13 +1111,14 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		s.catchingUp = false
 		s.updateTrieLock.Unlock()
 	}()
-	log.Lvlf2("Catching up %x / %d", sb.SkipChainID(), sb.Index)
+
+	log.Lvlf2("%v Catching up %x / %d", s.ServerIdentity(), sb.SkipChainID(), sb.Index)
 
 	// Load the trie.
 	download := false
 	st, err := s.getStateTrie(sb.SkipChainID())
 	if err != nil {
-		log.Warn("problem with trie:", err)
+		log.Warn(s.ServerIdentity(), "problem with trie:", err)
 		download = true
 	} else {
 		download = sb.Index-st.GetIndex() > catchupDownloadAll
@@ -1123,7 +1126,7 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 
 	// Check if we are updating the right index.
 	if download {
-		log.Lvl2("Downloading whole DB for catching up")
+		log.Lvl2(s.ServerIdentity(), "Downloading whole DB for catching up")
 		err := s.downloadDB(sb)
 		if err != nil {
 			log.Error("Error while downloading trie:", err)
@@ -1135,16 +1138,23 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		return
 	}
 
+	// Get the latest block known and processed by the conode
 	trieIndex := st.GetIndex()
-	cl := skipchain.NewClient()
-
-	// Fetch all missing blocks to fill the hole
-	search, err := cl.GetSingleBlockByIndex(sb.Roster, sb.SkipChainID(), trieIndex)
+	req, err := s.skService().GetSingleBlockByIndex(&skipchain.GetSingleBlockByIndex{
+		Genesis: sb.SkipChainID(),
+		Index:   trieIndex,
+	})
 	if err != nil {
-		log.Error(s.ServerIdentity(), "Couldn't update blocks: "+err.Error())
+		// because we rely on the trie index, this should never happen because we're only
+		// asking locally to get the block associated with the index (thus processed already)
+		log.Errorf("%v cannot find latest block to catch up", s.ServerIdentity())
 		return
 	}
-	latest := search.SkipBlock
+
+	latest := req.SkipBlock
+
+	// Fetch all missing blocks to fill the hole
+	cl := skipchain.NewClient()
 	for trieIndex < sb.Index {
 		log.Lvlf1("%s: our index: %d - latest known index: %d", s.ServerIdentity(), trieIndex, sb.Index)
 		updates, err := cl.GetUpdateChainLevel(sb.Roster, latest.Hash, 1, catchupFetchBlocks)
@@ -1162,6 +1172,7 @@ func (s *Service) catchUp(sb *skipchain.SkipBlock) {
 		latest = updates[len(updates)-1]
 		trieIndex = latest.Index
 	}
+	log.Lvlf2("%v Done catch up %x / %d", s.ServerIdentity(), sb.SkipChainID(), trieIndex)
 }
 
 // updateTrieCallback is registered in skipchain and is called after a
@@ -1354,13 +1365,17 @@ func (s *Service) updateTrieCallback(sbID skipchain.SkipBlockID) error {
 				log.Errorf("%s heartbeat failed to start with error: %s", s.ServerIdentity(), err.Error())
 			}
 		}
-		if s.viewChangeMan.started(sb.SkipChainID()) {
-			// If it is a view-change transaction, confirm it's done
-			view := isViewChangeTx(body.TxResults)
-			if view != nil {
-				s.viewChangeMan.done(*view)
-			}
+
+		// If it is a view-change transaction, confirm it's done
+		view := isViewChangeTx(body.TxResults)
+
+		if s.viewChangeMan.started(sb.SkipChainID()) && view != nil {
+			s.viewChangeMan.done(*view)
 		} else {
+			// clean previous states as a new block has been added in the mean time
+			// making them thus invalid
+			s.viewChangeMan.stop(sb.SkipChainID())
+
 			// Start viewchange monitor that will fire if we don't get updates in time.
 			log.Lvlf2("%s started viewchangeMonitor for %x", s.ServerIdentity(), sb.SkipChainID())
 			s.viewChangeMan.add(s.sendViewChangeReq, s.sendNewView, s.isLeader, string(sb.SkipChainID()))
@@ -1531,138 +1546,40 @@ func (s *Service) LoadBlockInfo(scID skipchain.SkipBlockID) (time.Duration, int,
 }
 
 func (s *Service) startPolling(scID skipchain.SkipBlockID) chan bool {
-	s.pollChanWG.Add(1)
-	closeSignal := make(chan bool)
+	pipeline := txPipeline{
+		processor: &defaultTxProcessor{
+			stopCollect: make(chan bool),
+			scID:        scID,
+			Service:     s,
+		},
+	}
+	st, err := s.getStateTrie(scID)
+	if err != nil {
+		panic("the state trie must exist because we only start polling after creating/loading the skipchain")
+	}
+	initialState := txProcessorState{
+		sst: st.MakeStagingStateTrie(),
+	}
+
+	stopChan := make(chan bool)
 	go func() {
-		s.closedMutex.Lock()
+		s.pollChanWG.Add(1)
 		defer s.pollChanWG.Done()
+
+		s.closedMutex.Lock()
 		if s.closed {
 			s.closedMutex.Unlock()
 			return
 		}
+
 		s.working.Add(1)
 		defer s.working.Done()
 		s.closedMutex.Unlock()
-		var txs []ClientTransaction
-		for {
-			bcConfig, err := s.LoadConfig(scID)
-			if err != nil {
-				panic("couldn't get configuration - this is bad and probably " +
-					"a problem with the database! " + err.Error())
-			}
-			select {
-			case <-closeSignal:
-				log.Lvl2(s.ServerIdentity(), "abort waiting for next block")
-				return
-			case <-time.After(bcConfig.BlockInterval):
-				// Need to update the config, as in the meantime a new block should have
-				// arrived with a possible new configuration.
-				bcConfig, err = s.LoadConfig(scID)
-				if err != nil {
-					panic("couldn't get configuration - this is bad and probably " +
-						"a problem with the database! " + err.Error())
-				}
 
-				latest, err := s.db().GetLatestByID(scID)
-				if err != nil {
-					log.Errorf("Error while searching for %x", scID[:])
-					log.Error("DB is in bad state and cannot find skipchain anymore: " + err.Error() +
-						" This function should never be called on a skipchain that does not exist.")
-					return
-				}
-
-				log.Lvlf3("%s: Starting new block %d for chain %x", s.ServerIdentity(), latest.Index+1, scID)
-				tree := bcConfig.Roster.GenerateNaryTree(len(bcConfig.Roster.List))
-
-				proto, err := s.CreateProtocol(collectTxProtocol, tree)
-				if err != nil {
-					panic("Protocol creation failed with error: " + err.Error() +
-						" This panic indicates that there is most likely a programmer error," +
-						" e.g., the protocol does not exist." +
-						" Hence, we cannot recover from this failure without putting" +
-						" the server in a strange state, so we panic.")
-				}
-				root := proto.(*CollectTxProtocol)
-				root.SkipchainID = scID
-				root.LatestID = latest.Hash
-				if err := root.Start(); err != nil {
-					panic("Failed to start the protocol with error: " + err.Error() +
-						" Start() only returns an error when the protocol is not initialised correctly," +
-						" e.g., not all the required fields are set." +
-						" If you see this message then there may be a programmer error.")
-				}
-
-				// When we poll, the child nodes must reply within half of the block interval,
-				// because we'll use the other half to process the transactions.
-				protocolTimeout := time.After(bcConfig.BlockInterval / 2)
-
-			collectTxLoop:
-				for {
-					select {
-					case newTxs, more := <-root.TxsChan:
-						if more {
-							for _, ct := range newTxs {
-								txsz := txSize(TxResult{ClientTransaction: ct})
-								if txsz < bcConfig.MaxBlockSize {
-									txs = append(txs, ct)
-								} else {
-									log.Lvl2(s.ServerIdentity(), "dropping collected transaction with length", txsz)
-								}
-							}
-						} else {
-							break collectTxLoop
-						}
-					case <-protocolTimeout:
-						log.Lvl2(s.ServerIdentity(), "timeout while collecting transactions from other nodes")
-						close(root.Finish)
-						break collectTxLoop
-					case <-closeSignal:
-						log.Lvl2(s.ServerIdentity(), "abort collection of transactions")
-						close(root.Finish)
-						return
-					}
-				}
-
-				log.Lvl3("Collected all new transactions:", len(txs))
-
-				if len(txs) == 0 {
-					log.Lvl3(s.ServerIdentity(), "no new transactions, not creating new block")
-					continue
-				}
-
-				txIn := make([]TxResult, len(txs))
-				for i := range txIn {
-					txIn[i].ClientTransaction = txs[i]
-				}
-
-				// Pre-run transactions to look how many we can fit in the alloted time
-				// slot. Perhaps we can run this in parallel during the wait-phase?
-				log.Lvl3("Counting how many transactions fit in", bcConfig.BlockInterval/2)
-				then := time.Now()
-				st, err := s.getStateTrie(scID)
-				if err != nil {
-					panic("the state trie must exist because we only start polling after creating/loading the skipchain")
-				}
-				_, txOut, _, sstTemp := s.createStateChanges(st.MakeStagingStateTrie(), scID, txIn, bcConfig.BlockInterval/2)
-				bcConfig, err = LoadConfigFromTrie(sstTemp)
-				if err != nil {
-					panic("couldn't load config from temp stage Trie, this should never happen: " + err.Error())
-				}
-
-				txs = txs[len(txOut):]
-				if len(txs) > 0 {
-					sz := txSize(txOut...)
-					log.Warnf("%d transactions (%v bytes) included in block in %v, %d transactions left for the next block", len(txOut), sz, time.Now().Sub(then), len(txs))
-				}
-
-				_, err = s.createNewBlock(scID, &bcConfig.Roster, txOut)
-				if err != nil {
-					log.Error(s.ServerIdentity(), "couldn't create new block: "+err.Error())
-				}
-			}
-		}
+		pipeline.start(&initialState, stopChan)
 	}()
-	return closeSignal
+
+	return stopChan
 }
 
 // We use the ByzCoin as a receiver (as is done in the identity service),
@@ -1855,13 +1772,9 @@ func (s *Service) createStateChanges(sst *stagingStateTrie, scID skipchain.SkipB
 	for _, tx := range txIn {
 		txsz := txSize(tx)
 
-		// Make a new trie for each instruction. If the instruction is
-		// sucessfully implemented and changes applied, then keep it
-		// otherwise dump it.
-		sstTempC := sstTemp.Clone()
-
+		var sstTempC *stagingStateTrie
 		var statesTemp StateChanges
-		statesTemp, sstTempC, err = s.processOneTx(sstTempC, tx.ClientTransaction)
+		statesTemp, sstTempC, err = s.processOneTx(sstTemp, tx.ClientTransaction)
 		if err != nil {
 			tx.Accepted = false
 			txOut = append(txOut, tx)
@@ -1913,6 +1826,10 @@ func (s *Service) createStateChanges(sst *stagingStateTrie, scID skipchain.SkipB
 }
 
 func (s *Service) processOneTx(sst *stagingStateTrie, tx ClientTransaction) (StateChanges, *stagingStateTrie, error) {
+	// Make a new trie for each instruction. If the instruction is
+	// sucessfully implemented and changes applied, then keep it
+	// otherwise dump it.
+	sst = sst.Clone()
 	h := tx.Instructions.Hash()
 	var statesTemp StateChanges
 	var cin []Coin
@@ -2092,9 +2009,9 @@ func (s *Service) getTxs(leader *network.ServerIdentity, roster *onet.Roster, sc
 	latestSB := s.db().GetByID(latestID)
 	if latestSB == nil {
 		// The function will prevent multiple request to catch up so we can securely call it here
-		err := s.catchupFromID(roster, scID)
+		err := s.catchupFromID(roster, scID, latestID)
 		if err != nil {
-			log.Error(err)
+			log.Error(s.ServerIdentity(), err)
 		}
 		// Give up the current request and wait for the next one, and keep skipping requests
 		// until the catching up is done
@@ -2182,22 +2099,34 @@ func (s *Service) monitorLeaderFailure() {
 			case key := <-s.heartbeatsTimeout:
 				log.Lvlf3("%s: missed heartbeat for %x", s.ServerIdentity(), key)
 				gen := []byte(key)
-				latest, err := s.db().GetLatestByID(gen)
-				if err != nil {
-					log.Error("heartbeat monitors are started after "+
-						"the creation of the genesis block, "+
-						"so the block should always exist: ", err)
+
+				genBlock := s.db().GetByID(gen)
+				if genBlock == nil {
+					// This should not happen as the heartbeats are started after
+					// a new skipchain is created or when the conode starts ..
+					log.Error("heartbeat monitors are started after " +
+						"the creation of the genesis block, " +
+						"so the block should always exist")
+					// .. but just in case we stop the heartbeat
 					s.heartbeats.stop(key)
 				}
-				req := viewchange.InitReq{
-					SignerID: s.ServerIdentity().ID,
-					View: viewchange.View{
-						ID:          latest.Hash,
-						Gen:         gen,
-						LeaderIndex: 1,
-					},
+
+				latest, err := s.db().GetLatestByID(gen)
+				if err != nil {
+					log.Errorf("failed to get the latest block: %v", err)
+				} else {
+					// Send only if the latest block is consistent as it wouldn't
+					// anyway if we're out of sync with the chain
+					req := viewchange.InitReq{
+						SignerID: s.ServerIdentity().ID,
+						View: viewchange.View{
+							ID:          latest.Hash,
+							Gen:         gen,
+							LeaderIndex: 1,
+						},
+					}
+					s.viewChangeMan.addReq(req)
 				}
-				s.viewChangeMan.addReq(req)
 			case <-s.closeLeaderMonitorChan:
 				log.Lvl2(s.ServerIdentity(), "closing heartbeat timeout monitor")
 				return

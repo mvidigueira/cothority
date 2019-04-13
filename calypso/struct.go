@@ -4,13 +4,13 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"errors"
+	"go.dedis.ch/onet/v3/log"
 
 	"go.dedis.ch/cothority/v3/byzcoin"
 	"go.dedis.ch/cothority/v3/darc"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/suites"
 	"go.dedis.ch/kyber/v3/xof/keccak"
-	"go.dedis.ch/onet/v3/log"
 	"go.dedis.ch/onet/v3/network"
 )
 
@@ -26,9 +26,7 @@ type suite interface {
 }
 
 // NewWrite is used by the writer to ByzCoin to encode his symmetric key
-// under the collective public key created by the DKG. As this method uses
-// `Embed` to encode the key, depending on the key-length more than one point
-// is needed to encode the data.
+// under the collective public key created by the DKG.
 //
 // Input:
 //   - suite - the cryptographic suite to use

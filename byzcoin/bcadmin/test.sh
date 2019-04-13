@@ -37,9 +37,9 @@ testLink(){
   testGrep $bcID runBA -c linkDri link public.toml
   bcIDWrong=$( printf "%032d" 1234 )
   testNGrep $bcIDWrong runBA -c linkDri link public.toml
-  testFail runBA -c linkDri link public.toml $bcIDWrong
-  testOK runBA -c linkDri link public.toml $bcID
-  testFile linkDri/bc*
+  testFail runBA -c linkDir link public.toml $bcIDWrong
+  testOK runBA -c linkDir link public.toml $bcID
+  testFile linkDir/bc*
 }
 
 testCoin(){
@@ -57,13 +57,13 @@ testRoster(){
   testOK runBA create public.toml --interval .5s
   bc=config/bc*cfg
   key=config/key*cfg
-  testOK runBA show $bc
+  testOK runBA latest $bc
   testFail runBA roster add $bc $key co1/public.toml
   testOK runBA roster add $bc $key co4/public.toml
 
   # Change the block size to create a new block before verifying the roster
   testOK runBA config --blockSize 1000000 $bc $key
-  testGrep 2008 runBA show $bc
+  testGrep 2008 runBA latest $bc
 
   testFail runBA roster add $bc $key co4/public.toml
   testFail runBA roster del $bc $key co1/public.toml
@@ -80,7 +80,7 @@ testRoster(){
   testOK runBA roster leader $bc $key co3/public.toml
   # Change the block size to create a new block before verifying the roster
   testOK runBA config --blockSize 1000000 $bc $key
-  testGrep "Roster: tls://localhost:2006" runBA show -server 2 $bc
+  testGrep "Roster: tls://localhost:2006" runBA latest -server 2 $bc
 }
 
 # create a ledger, and read the genesis darc.

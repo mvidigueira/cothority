@@ -11,6 +11,7 @@ import ch.epfl.dedis.lib.darc.SignerEd25519;
 import ch.epfl.dedis.lib.exception.CothorityCommunicationException;
 import ch.epfl.dedis.lib.exception.CothorityCryptoException;
 import ch.epfl.dedis.lib.proto.ByzCoinProto;
+import ch.epfl.dedis.lib.proto.SkipchainProto;
 import ch.epfl.dedis.lib.proto.TrieProto;
 import com.google.protobuf.ByteString;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,6 +77,7 @@ class ProofTest {
         // useful variables for constructing a bad proof
         TrieProto.Proof inclusionProof = p.toProto().getInclusionproof();
         TrieProto.LeafNode leaf = inclusionProof.getLeaf();
+        assertTrue(inclusionProof.getInteriorsCount() > 1);
         TrieProto.InteriorNode interior1 = inclusionProof.getInteriors(1);
         List<Boolean> prefixList = leaf.getPrefixList();
         assertTrue(prefixList.size() > 0);
@@ -115,5 +117,15 @@ class ProofTest {
                 .build();
         assertThrows(CothorityCryptoException.class,
                 () -> new Proof(badProtoProof4, bc.getGenesisBlock().getId(), iid).exists(iid.getId()));
+
+        // wrong block hash
+        SkipchainProto.SkipBlock badBlock = p.getLatest().getProto().toBuilder()
+                .setBaseHeight(123)
+                .build();
+        ByzCoinProto.Proof badProtoProof5 = p.toProto().toBuilder()
+                .setLatest(badBlock)
+                .build();
+        assertThrows(CothorityCryptoException.class,
+                () -> new Proof(badProtoProof5, bc.getGenesisBlock().getId(), iid).exists(iid.getId()));
     }
 }

@@ -6,12 +6,11 @@ import ch.epfl.dedis.lib.crypto.Bn256G2Point;
 import ch.epfl.dedis.lib.crypto.Point;
 import ch.epfl.dedis.lib.darc.DarcId;
 import ch.epfl.dedis.lib.exception.CothorityCryptoException;
-import ch.epfl.dedis.lib.exception.CothorityNotFoundException;
 import ch.epfl.dedis.lib.network.ServerIdentity;
-import ch.epfl.dedis.lib.proto.NetworkProto;
-import ch.epfl.dedis.lib.proto.TrieProto;
 import ch.epfl.dedis.lib.proto.ByzCoinProto;
+import ch.epfl.dedis.lib.proto.NetworkProto;
 import ch.epfl.dedis.lib.proto.SkipchainProto;
+import ch.epfl.dedis.lib.proto.TrieProto;
 import ch.epfl.dedis.skipchain.ForwardLink;
 import com.google.protobuf.InvalidProtocolBufferException;
 
@@ -114,12 +113,11 @@ public class Proof {
             throw new CothorityCryptoException("root of trie is not in skipblock");
         }
 
-        SkipblockId sbID = null;
+        SkipblockId sbID = scID;
         List<Point> publics = null;
 
         for (int i = 0; i < this.links.size(); i++) {
             if (i == 0) {
-                sbID = scID;
                 publics = getPoints(this.links.get(i).getNewRoster().getListList());
                 continue;
             }
@@ -138,6 +136,11 @@ public class Proof {
             } catch (URISyntaxException e) {
                 throw new CothorityCryptoException(e.getMessage());
             }
+        }
+
+        // Check that the latest block is correct
+        if (!Arrays.equals(sbID.getId(), this.latest.getHash())) {
+            throw new CothorityCryptoException("last forward link does not point to the latest block");
         }
     }
 

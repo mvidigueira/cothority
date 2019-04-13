@@ -89,15 +89,15 @@ public final class NetworkProto {
         getDescriptionBytes();
 
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     boolean hasUrl();
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     java.lang.String getUrl();
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     com.google.protobuf.ByteString
         getUrlBytes();
@@ -153,7 +153,7 @@ public final class NetworkProto {
               break;
             }
             case 18: {
-              if (!((mutable_bitField0_ & 0x00000002) != 0)) {
+              if (!((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
                 serviceIdentities_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity>();
                 mutable_bitField0_ |= 0x00000002;
               }
@@ -178,7 +178,7 @@ public final class NetworkProto {
               description_ = bs;
               break;
             }
-            case 50: {
+            case 58: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000010;
               url_ = bs;
@@ -199,7 +199,7 @@ public final class NetworkProto {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e).setUnfinishedMessage(this);
       } finally {
-        if (((mutable_bitField0_ & 0x00000002) != 0)) {
+        if (((mutable_bitField0_ & 0x00000002) == 0x00000002)) {
           serviceIdentities_ = java.util.Collections.unmodifiableList(serviceIdentities_);
         }
         this.unknownFields = unknownFields.build();
@@ -226,7 +226,7 @@ public final class NetworkProto {
      * <code>required bytes public = 1;</code>
      */
     public boolean hasPublic() {
-      return ((bitField0_ & 0x00000001) != 0);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>required bytes public = 1;</code>
@@ -276,7 +276,7 @@ public final class NetworkProto {
      * <code>required bytes id = 3;</code>
      */
     public boolean hasId() {
-      return ((bitField0_ & 0x00000002) != 0);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>required bytes id = 3;</code>
@@ -291,7 +291,7 @@ public final class NetworkProto {
      * <code>required string address = 4;</code>
      */
     public boolean hasAddress() {
-      return ((bitField0_ & 0x00000004) != 0);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>required string address = 4;</code>
@@ -333,7 +333,7 @@ public final class NetworkProto {
      * <code>required string description = 5;</code>
      */
     public boolean hasDescription() {
-      return ((bitField0_ & 0x00000008) != 0);
+      return ((bitField0_ & 0x00000008) == 0x00000008);
     }
     /**
      * <code>required string description = 5;</code>
@@ -369,16 +369,16 @@ public final class NetworkProto {
       }
     }
 
-    public static final int URL_FIELD_NUMBER = 6;
+    public static final int URL_FIELD_NUMBER = 7;
     private volatile java.lang.Object url_;
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     public boolean hasUrl() {
-      return ((bitField0_ & 0x00000010) != 0);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     public java.lang.String getUrl() {
       java.lang.Object ref = url_;
@@ -395,7 +395,7 @@ public final class NetworkProto {
       }
     }
     /**
-     * <code>optional string url = 6;</code>
+     * <code>optional string url = 7;</code>
      */
     public com.google.protobuf.ByteString
         getUrlBytes() {
@@ -447,23 +447,23 @@ public final class NetworkProto {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
         output.writeBytes(1, public_);
       }
       for (int i = 0; i < serviceIdentities_.size(); i++) {
         output.writeMessage(2, serviceIdentities_.get(i));
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         output.writeBytes(3, id_);
       }
-      if (((bitField0_ & 0x00000004) != 0)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 4, address_);
       }
-      if (((bitField0_ & 0x00000008) != 0)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 5, description_);
       }
-      if (((bitField0_ & 0x00000010) != 0)) {
-        com.google.protobuf.GeneratedMessageV3.writeString(output, 6, url_);
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        com.google.protobuf.GeneratedMessageV3.writeString(output, 7, url_);
       }
       unknownFields.writeTo(output);
     }
@@ -474,7 +474,7 @@ public final class NetworkProto {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(1, public_);
       }
@@ -482,18 +482,18 @@ public final class NetworkProto {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(2, serviceIdentities_.get(i));
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, id_);
       }
-      if (((bitField0_ & 0x00000004) != 0)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, address_);
       }
-      if (((bitField0_ & 0x00000008) != 0)) {
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, description_);
       }
-      if (((bitField0_ & 0x00000010) != 0)) {
-        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(6, url_);
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.GeneratedMessageV3.computeStringSize(7, url_);
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -510,35 +510,36 @@ public final class NetworkProto {
       }
       ch.epfl.dedis.lib.proto.NetworkProto.ServerIdentity other = (ch.epfl.dedis.lib.proto.NetworkProto.ServerIdentity) obj;
 
-      if (hasPublic() != other.hasPublic()) return false;
+      boolean result = true;
+      result = result && (hasPublic() == other.hasPublic());
       if (hasPublic()) {
-        if (!getPublic()
-            .equals(other.getPublic())) return false;
+        result = result && getPublic()
+            .equals(other.getPublic());
       }
-      if (!getServiceIdentitiesList()
-          .equals(other.getServiceIdentitiesList())) return false;
-      if (hasId() != other.hasId()) return false;
+      result = result && getServiceIdentitiesList()
+          .equals(other.getServiceIdentitiesList());
+      result = result && (hasId() == other.hasId());
       if (hasId()) {
-        if (!getId()
-            .equals(other.getId())) return false;
+        result = result && getId()
+            .equals(other.getId());
       }
-      if (hasAddress() != other.hasAddress()) return false;
+      result = result && (hasAddress() == other.hasAddress());
       if (hasAddress()) {
-        if (!getAddress()
-            .equals(other.getAddress())) return false;
+        result = result && getAddress()
+            .equals(other.getAddress());
       }
-      if (hasDescription() != other.hasDescription()) return false;
+      result = result && (hasDescription() == other.hasDescription());
       if (hasDescription()) {
-        if (!getDescription()
-            .equals(other.getDescription())) return false;
+        result = result && getDescription()
+            .equals(other.getDescription());
       }
-      if (hasUrl() != other.hasUrl()) return false;
+      result = result && (hasUrl() == other.hasUrl());
       if (hasUrl()) {
-        if (!getUrl()
-            .equals(other.getUrl())) return false;
+        result = result && getUrl()
+            .equals(other.getUrl());
       }
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
     @java.lang.Override
@@ -750,12 +751,12 @@ public final class NetworkProto {
         ch.epfl.dedis.lib.proto.NetworkProto.ServerIdentity result = new ch.epfl.dedis.lib.proto.NetworkProto.ServerIdentity(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
         result.public_ = public_;
         if (serviceIdentitiesBuilder_ == null) {
-          if (((bitField0_ & 0x00000002) != 0)) {
+          if (((bitField0_ & 0x00000002) == 0x00000002)) {
             serviceIdentities_ = java.util.Collections.unmodifiableList(serviceIdentities_);
             bitField0_ = (bitField0_ & ~0x00000002);
           }
@@ -763,19 +764,19 @@ public final class NetworkProto {
         } else {
           result.serviceIdentities_ = serviceIdentitiesBuilder_.build();
         }
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000002;
         }
         result.id_ = id_;
-        if (((from_bitField0_ & 0x00000008) != 0)) {
+        if (((from_bitField0_ & 0x00000008) == 0x00000008)) {
           to_bitField0_ |= 0x00000004;
         }
         result.address_ = address_;
-        if (((from_bitField0_ & 0x00000010) != 0)) {
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
           to_bitField0_ |= 0x00000008;
         }
         result.description_ = description_;
-        if (((from_bitField0_ & 0x00000020) != 0)) {
+        if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000010;
         }
         result.url_ = url_;
@@ -786,35 +787,35 @@ public final class NetworkProto {
 
       @java.lang.Override
       public Builder clone() {
-        return super.clone();
+        return (Builder) super.clone();
       }
       @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return super.setField(field, value);
+        return (Builder) super.setField(field, value);
       }
       @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
+        return (Builder) super.clearField(field);
       }
       @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
+        return (Builder) super.clearOneof(oneof);
       }
       @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
+        return (Builder) super.setRepeatedField(field, index, value);
       }
       @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return super.addRepeatedField(field, value);
+        return (Builder) super.addRepeatedField(field, value);
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -927,7 +928,7 @@ public final class NetworkProto {
        * <code>required bytes public = 1;</code>
        */
       public boolean hasPublic() {
-        return ((bitField0_ & 0x00000001) != 0);
+        return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>required bytes public = 1;</code>
@@ -960,7 +961,7 @@ public final class NetworkProto {
       private java.util.List<ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity> serviceIdentities_ =
         java.util.Collections.emptyList();
       private void ensureServiceIdentitiesIsMutable() {
-        if (!((bitField0_ & 0x00000002) != 0)) {
+        if (!((bitField0_ & 0x00000002) == 0x00000002)) {
           serviceIdentities_ = new java.util.ArrayList<ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity>(serviceIdentities_);
           bitField0_ |= 0x00000002;
          }
@@ -1189,7 +1190,7 @@ public final class NetworkProto {
           serviceIdentitiesBuilder_ = new com.google.protobuf.RepeatedFieldBuilderV3<
               ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity, ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity.Builder, ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentityOrBuilder>(
                   serviceIdentities_,
-                  ((bitField0_ & 0x00000002) != 0),
+                  ((bitField0_ & 0x00000002) == 0x00000002),
                   getParentForChildren(),
                   isClean());
           serviceIdentities_ = null;
@@ -1202,7 +1203,7 @@ public final class NetworkProto {
        * <code>required bytes id = 3;</code>
        */
       public boolean hasId() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>required bytes id = 3;</code>
@@ -1237,7 +1238,7 @@ public final class NetworkProto {
        * <code>required string address = 4;</code>
        */
       public boolean hasAddress() {
-        return ((bitField0_ & 0x00000008) != 0);
+        return ((bitField0_ & 0x00000008) == 0x00000008);
       }
       /**
        * <code>required string address = 4;</code>
@@ -1313,7 +1314,7 @@ public final class NetworkProto {
        * <code>required string description = 5;</code>
        */
       public boolean hasDescription() {
-        return ((bitField0_ & 0x00000010) != 0);
+        return ((bitField0_ & 0x00000010) == 0x00000010);
       }
       /**
        * <code>required string description = 5;</code>
@@ -1386,13 +1387,13 @@ public final class NetworkProto {
 
       private java.lang.Object url_ = "";
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public boolean hasUrl() {
-        return ((bitField0_ & 0x00000020) != 0);
+        return ((bitField0_ & 0x00000020) == 0x00000020);
       }
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public java.lang.String getUrl() {
         java.lang.Object ref = url_;
@@ -1409,7 +1410,7 @@ public final class NetworkProto {
         }
       }
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public com.google.protobuf.ByteString
           getUrlBytes() {
@@ -1425,7 +1426,7 @@ public final class NetworkProto {
         }
       }
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public Builder setUrl(
           java.lang.String value) {
@@ -1438,7 +1439,7 @@ public final class NetworkProto {
         return this;
       }
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public Builder clearUrl() {
         bitField0_ = (bitField0_ & ~0x00000020);
@@ -1447,7 +1448,7 @@ public final class NetworkProto {
         return this;
       }
       /**
-       * <code>optional string url = 6;</code>
+       * <code>optional string url = 7;</code>
        */
       public Builder setUrlBytes(
           com.google.protobuf.ByteString value) {
@@ -1651,7 +1652,7 @@ public final class NetworkProto {
      * <code>required string name = 1;</code>
      */
     public boolean hasName() {
-      return ((bitField0_ & 0x00000001) != 0);
+      return ((bitField0_ & 0x00000001) == 0x00000001);
     }
     /**
      * <code>required string name = 1;</code>
@@ -1693,7 +1694,7 @@ public final class NetworkProto {
      * <code>required string suite = 2;</code>
      */
     public boolean hasSuite() {
-      return ((bitField0_ & 0x00000002) != 0);
+      return ((bitField0_ & 0x00000002) == 0x00000002);
     }
     /**
      * <code>required string suite = 2;</code>
@@ -1735,7 +1736,7 @@ public final class NetworkProto {
      * <code>required bytes public = 3;</code>
      */
     public boolean hasPublic() {
-      return ((bitField0_ & 0x00000004) != 0);
+      return ((bitField0_ & 0x00000004) == 0x00000004);
     }
     /**
      * <code>required bytes public = 3;</code>
@@ -1770,13 +1771,13 @@ public final class NetworkProto {
     @java.lang.Override
     public void writeTo(com.google.protobuf.CodedOutputStream output)
                         throws java.io.IOException {
-      if (((bitField0_ & 0x00000001) != 0)) {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 1, name_);
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         com.google.protobuf.GeneratedMessageV3.writeString(output, 2, suite_);
       }
-      if (((bitField0_ & 0x00000004) != 0)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBytes(3, public_);
       }
       unknownFields.writeTo(output);
@@ -1788,13 +1789,13 @@ public final class NetworkProto {
       if (size != -1) return size;
 
       size = 0;
-      if (((bitField0_ & 0x00000001) != 0)) {
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(1, name_);
       }
-      if (((bitField0_ & 0x00000002) != 0)) {
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
         size += com.google.protobuf.GeneratedMessageV3.computeStringSize(2, suite_);
       }
-      if (((bitField0_ & 0x00000004) != 0)) {
+      if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(3, public_);
       }
@@ -1813,23 +1814,24 @@ public final class NetworkProto {
       }
       ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity other = (ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity) obj;
 
-      if (hasName() != other.hasName()) return false;
+      boolean result = true;
+      result = result && (hasName() == other.hasName());
       if (hasName()) {
-        if (!getName()
-            .equals(other.getName())) return false;
+        result = result && getName()
+            .equals(other.getName());
       }
-      if (hasSuite() != other.hasSuite()) return false;
+      result = result && (hasSuite() == other.hasSuite());
       if (hasSuite()) {
-        if (!getSuite()
-            .equals(other.getSuite())) return false;
+        result = result && getSuite()
+            .equals(other.getSuite());
       }
-      if (hasPublic() != other.hasPublic()) return false;
+      result = result && (hasPublic() == other.hasPublic());
       if (hasPublic()) {
-        if (!getPublic()
-            .equals(other.getPublic())) return false;
+        result = result && getPublic()
+            .equals(other.getPublic());
       }
-      if (!unknownFields.equals(other.unknownFields)) return false;
-      return true;
+      result = result && unknownFields.equals(other.unknownFields);
+      return result;
     }
 
     @java.lang.Override
@@ -2018,15 +2020,15 @@ public final class NetworkProto {
         ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity result = new ch.epfl.dedis.lib.proto.NetworkProto.ServiceIdentity(this);
         int from_bitField0_ = bitField0_;
         int to_bitField0_ = 0;
-        if (((from_bitField0_ & 0x00000001) != 0)) {
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
           to_bitField0_ |= 0x00000001;
         }
         result.name_ = name_;
-        if (((from_bitField0_ & 0x00000002) != 0)) {
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
           to_bitField0_ |= 0x00000002;
         }
         result.suite_ = suite_;
-        if (((from_bitField0_ & 0x00000004) != 0)) {
+        if (((from_bitField0_ & 0x00000004) == 0x00000004)) {
           to_bitField0_ |= 0x00000004;
         }
         result.public_ = public_;
@@ -2037,35 +2039,35 @@ public final class NetworkProto {
 
       @java.lang.Override
       public Builder clone() {
-        return super.clone();
+        return (Builder) super.clone();
       }
       @java.lang.Override
       public Builder setField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return super.setField(field, value);
+        return (Builder) super.setField(field, value);
       }
       @java.lang.Override
       public Builder clearField(
           com.google.protobuf.Descriptors.FieldDescriptor field) {
-        return super.clearField(field);
+        return (Builder) super.clearField(field);
       }
       @java.lang.Override
       public Builder clearOneof(
           com.google.protobuf.Descriptors.OneofDescriptor oneof) {
-        return super.clearOneof(oneof);
+        return (Builder) super.clearOneof(oneof);
       }
       @java.lang.Override
       public Builder setRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           int index, java.lang.Object value) {
-        return super.setRepeatedField(field, index, value);
+        return (Builder) super.setRepeatedField(field, index, value);
       }
       @java.lang.Override
       public Builder addRepeatedField(
           com.google.protobuf.Descriptors.FieldDescriptor field,
           java.lang.Object value) {
-        return super.addRepeatedField(field, value);
+        return (Builder) super.addRepeatedField(field, value);
       }
       @java.lang.Override
       public Builder mergeFrom(com.google.protobuf.Message other) {
@@ -2136,7 +2138,7 @@ public final class NetworkProto {
        * <code>required string name = 1;</code>
        */
       public boolean hasName() {
-        return ((bitField0_ & 0x00000001) != 0);
+        return ((bitField0_ & 0x00000001) == 0x00000001);
       }
       /**
        * <code>required string name = 1;</code>
@@ -2212,7 +2214,7 @@ public final class NetworkProto {
        * <code>required string suite = 2;</code>
        */
       public boolean hasSuite() {
-        return ((bitField0_ & 0x00000002) != 0);
+        return ((bitField0_ & 0x00000002) == 0x00000002);
       }
       /**
        * <code>required string suite = 2;</code>
@@ -2288,7 +2290,7 @@ public final class NetworkProto {
        * <code>required bytes public = 3;</code>
        */
       public boolean hasPublic() {
-        return ((bitField0_ & 0x00000004) != 0);
+        return ((bitField0_ & 0x00000004) == 0x00000004);
       }
       /**
        * <code>required bytes public = 3;</code>
@@ -2393,7 +2395,7 @@ public final class NetworkProto {
       "ity\022\016\n\006public\030\001 \002(\014\0223\n\021serviceIdentities" +
       "\030\002 \003(\0132\030.network.ServiceIdentity\022\n\n\002id\030\003" +
       " \002(\014\022\017\n\007address\030\004 \002(\t\022\023\n\013description\030\005 \002" +
-      "(\t\022\013\n\003url\030\006 \001(\t\">\n\017ServiceIdentity\022\014\n\004na" +
+      "(\t\022\013\n\003url\030\007 \001(\t\">\n\017ServiceIdentity\022\014\n\004na" +
       "me\030\001 \002(\t\022\r\n\005suite\030\002 \002(\t\022\016\n\006public\030\003 \002(\014B" +
       "\'\n\027ch.epfl.dedis.lib.protoB\014NetworkProto"
     };
