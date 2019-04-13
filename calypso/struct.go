@@ -1,6 +1,7 @@
 package calypso
 
 import (
+	"crypto/cipher"
 	"crypto/sha256"
 	"errors"
 
@@ -41,9 +42,9 @@ type suite interface {
 //   - write - structure containing the encrypted key U, C and the NIZKP of
 //   it containing the reader-darc. If it is nil then we failed to embed the
 //   key because it is too long to represent the key using a point.
-func NewWrite(suite suites.Suite, ltsid byzcoin.InstanceID, writeDarc darc.ID, X kyber.Point, key []byte) *Write {
+func NewWrite(suite suites.Suite, ltsid byzcoin.InstanceID, writeDarc darc.ID, X kyber.Point, key []byte, rand cipher.Stream) *Write {
 	wr := &Write{LTSID: ltsid}
-	r := suite.Scalar().Pick(suite.RandomStream())
+	r := suite.Scalar().Pick(rand)
 	C := suite.Point().Mul(r, X)
 	wr.U = suite.Point().Mul(r, nil)
 
@@ -51,12 +52,12 @@ func NewWrite(suite suites.Suite, ltsid byzcoin.InstanceID, writeDarc darc.ID, X
 	if len(key) > suite.Point().EmbedLen() {
 		return nil
 	}
-	kp := suite.Point().Embed(key, suite.RandomStream())
+	kp := suite.Point().Embed(key, rand)
 	wr.C = suite.Point().Add(C, kp)
 
 	gBar := suite.Point().Embed(ltsid.Slice(), keccak.New(ltsid.Slice()))
 	wr.Ubar = suite.Point().Mul(r, gBar)
-	s := suite.Scalar().Pick(suite.RandomStream())
+	s := suite.Scalar().Pick(rand)
 	w := suite.Point().Mul(s, nil)
 	wBar := suite.Point().Mul(s, gBar)
 	hash := sha256.New()
@@ -69,13 +70,6 @@ func NewWrite(suite suites.Suite, ltsid byzcoin.InstanceID, writeDarc darc.ID, X
 	wr.E = suite.Scalar().SetBytes(hash.Sum(nil))
 	wr.F = suite.Scalar().Add(s, suite.Scalar().Mul(wr.E, r))
 	return wr
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }
 
 // CheckProof verifies that the write-request has actually been created with
@@ -108,8 +102,9 @@ func (wr *Write) CheckProof(suite suite, writeID darc.ID) error {
 
 // EncodeKey can be used by the writer to ByzCoin to encode his symmetric
 // key under the collective public key created by the DKG.
-// As this method uses `Pick` to encode the key, depending on the key-length
-// more than one point is needed to encode the data.
+// As this method uses `Pick` to encode the key, only 29 bytes can be encoded
+// when using the ed25519 curve. The IV can be stored in clear, as it only
+// needs to be unique, but not secret.
 //
 // Input:
 //   - suite - the cryptographic suite to use
@@ -141,7 +136,7 @@ func EncodeKey(suite suites.Suite, X kyber.Point, key []byte) (U kyber.Point, C 
 // Input:
 //   - suite - the cryptographic suite to use
 //   - X - the aggregate public key of the DKG
-//   - C - the encrypted key-slices
+//   - C - the encrypted key
 //   - XhatEnc - the re-encrypted schnorr-commit
 //   - xc - the private key of the reader
 //
@@ -153,8 +148,6 @@ func DecodeKey(suite kyber.Group, X kyber.Point, C kyber.Point, XhatEnc kyber.Po
 	log.Lvl4("xc:", xc)
 	xcInv := suite.Scalar().Neg(xc)
 	log.Lvl4("xcInv:", xcInv)
-	sum := suite.Scalar().Add(xc, xcInv)
-	log.Lvl4("xc + xcInv:", sum, "::", xc)
 	log.Lvl4("X:", X)
 	XhatDec := suite.Point().Mul(xcInv, X)
 	log.Lvl4("XhatDec:", XhatDec)

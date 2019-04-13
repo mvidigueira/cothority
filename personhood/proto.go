@@ -101,6 +101,8 @@ type SpawnerStruct struct {
 	CostCoin       byzcoin.Coin
 	CostCredential byzcoin.Coin
 	CostParty      byzcoin.Coin
+	CostCWrite     byzcoin.Coin
+	CostCRead      byzcoin.Coin
 	Beneficiary    byzcoin.InstanceID
 	CostRoPaSci    byzcoin.Coin `protobuf:"opt"`
 }

@@ -374,7 +374,6 @@ func (s *Service) AddTransaction(req *AddTxRequest) (*AddTxResponse, error) {
 // GetProof searches for a key and returns a proof of the
 // presence or the absence of this key.
 func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
-	log.Print("GetProof")
 	s.updateTrieLock.Lock()
 	defer s.updateTrieLock.Unlock()
 	if s.catchingUp {
@@ -409,7 +408,7 @@ func (s *Service) GetProof(req *GetProof) (resp *GetProofResponse, err error) {
 	}
 
 	_, v := proof.InclusionProof.KeyValue()
-	log.LLvlf3("value is %x", v)
+	log.Lvlf3("value is %x", v)
 	resp = &GetProofResponse{
 		Version: CurrentVersion,
 		Proof:   *proof,

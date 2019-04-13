@@ -15,13 +15,13 @@ import (
 // ContractWriteID references a write contract system-wide.
 const ContractWriteID = "calypsoWrite"
 
-type contractWr struct {
+type ContractWrite struct {
 	byzcoin.BasicContract
 	Write
 }
 
 func contractWriteFromBytes(in []byte) (byzcoin.Contract, error) {
-	c := &contractWr{}
+	c := &ContractWrite{}
 
 	err := protobuf.DecodeWithConstructors(in, &c.Write, network.DefaultConstructors(cothority.Suite))
 	if err != nil {
@@ -30,7 +30,7 @@ func contractWriteFromBytes(in []byte) (byzcoin.Contract, error) {
 	return c, nil
 }
 
-func (c *contractWr) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
+func (c ContractWrite) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruction, coins []byzcoin.Coin) (sc []byzcoin.StateChange, cout []byzcoin.Coin, err error) {
 	cout = coins
 
 	var darcID darc.ID
@@ -68,12 +68,20 @@ func (c *contractWr) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructi
 		if err != nil {
 			return nil, nil, errors.New("passed read argument is invalid: " + err.Error())
 		}
-		_, _, wc, _, err := rst.GetValues(rd.Write.Slice())
-		if err != nil {
-			return nil, nil, errors.New("referenced write-id is not correct: " + err.Error())
+		if !rd.Write.Equal(inst.InstanceID) {
+			return nil, nil, errors.New("the read request doesn't reference this write-instance")
 		}
-		if wc != ContractWriteID {
-			return nil, nil, errors.New("referenced write-id is not a write instance, got " + wc)
+		if c.Cost.Value > 0 {
+			for i, coin := range cout {
+				if coin.Name.Equal(c.Cost.Name) {
+					err := coin.SafeSub(c.Cost.Value)
+					if err != nil {
+						return nil, nil, errors.New("couldn't pay for read request:" + err.Error())
+					}
+					cout[i] = coin
+					break
+				}
+			}
 		}
 		sc = byzcoin.StateChanges{byzcoin.NewStateChange(byzcoin.Create, inst.DeriveID(""), ContractReadID, r, darcID)}
 	default:
@@ -85,7 +93,7 @@ func (c *contractWr) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instructi
 // ContractReadID references a read contract system-wide.
 const ContractReadID = "calypsoRead"
 
-type contractRe struct {
+type ContractRead struct {
 	byzcoin.BasicContract
 	Read
 }
