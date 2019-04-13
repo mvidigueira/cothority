@@ -3,7 +3,10 @@ package personhood
 import (
 	"crypto/sha256"
 	"errors"
+	"fmt"
+	"go.dedis.ch/cothority/v3"
 	"go.dedis.ch/cothority/v3/calypso"
+	"go.dedis.ch/onet/v3/network"
 
 	"go.dedis.ch/cothority/v3/byzcoin"
 	"go.dedis.ch/cothority/v3/byzcoin/contracts"
@@ -143,6 +146,21 @@ func (c *ContractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 		h.Write(credID)
 		ca = byzcoin.NewInstanceID(h.Sum(nil))
 	case calypso.ContractWriteID:
+		w := inst.Spawn.Args.Search("write")
+		if w == nil || len(w) == 0 {
+			err = errors.New("need a write request in 'write' argument")
+			return
+		}
+		var write calypso.Write
+		err = protobuf.DecodeWithConstructors(w, &write, network.DefaultConstructors(cothority.Suite))
+		if err != nil {
+			err = errors.New("couldn't unmarshal write: " + err.Error())
+			return
+		}
+		if write.Cost.Value != c.CostCRead.Value ||
+			write.Cost.Name != c.CostCRead.Name{
+			err = fmt.Errorf("spawned calypso write needs to have cost at %d", c.CostCRead.Value)
+		}
 		if err = c.getCoins(cout, c.CostCWrite); err != nil {
 			return
 		}

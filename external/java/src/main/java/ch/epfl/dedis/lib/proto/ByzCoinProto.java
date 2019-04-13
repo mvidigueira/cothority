@@ -1818,7 +1818,7 @@ public final class ByzCoinProto {
 
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -1826,7 +1826,7 @@ public final class ByzCoinProto {
     boolean hasGenesisdarc();
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -1834,7 +1834,7 @@ public final class ByzCoinProto {
     ch.epfl.dedis.lib.proto.DarcProto.Darc getGenesisdarc();
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2104,7 +2104,7 @@ public final class ByzCoinProto {
     private ch.epfl.dedis.lib.proto.DarcProto.Darc genesisdarc_;
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2114,7 +2114,7 @@ public final class ByzCoinProto {
     }
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2124,7 +2124,7 @@ public final class ByzCoinProto {
     }
     /**
      * <pre>
-     * GenesisDarc defines who is allowed to write to this skipchain.
+     * AdminDarc defines who is allowed to write to this skipchain.
      * </pre>
      *
      * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2948,7 +2948,7 @@ public final class ByzCoinProto {
           ch.epfl.dedis.lib.proto.DarcProto.Darc, ch.epfl.dedis.lib.proto.DarcProto.Darc.Builder, ch.epfl.dedis.lib.proto.DarcProto.DarcOrBuilder> genesisdarcBuilder_;
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2958,7 +2958,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2972,7 +2972,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -2992,7 +2992,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -3010,7 +3010,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -3034,7 +3034,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -3051,7 +3051,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -3063,7 +3063,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>
@@ -3078,7 +3078,7 @@ public final class ByzCoinProto {
       }
       /**
        * <pre>
-       * GenesisDarc defines who is allowed to write to this skipchain.
+       * AdminDarc defines who is allowed to write to this skipchain.
        * </pre>
        *
        * <code>required .darc.Darc genesisdarc = 3;</code>

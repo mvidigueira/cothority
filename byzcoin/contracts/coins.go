@@ -164,6 +164,7 @@ func (c *contractCoin) Invoke(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instru
 		// instruction.
 		err = c.SafeSub(coinsArg)
 		if err != nil {
+			log.Warn("Tried to fetch", coinsArg, "but only had", c.Value)
 			return
 		}
 		cout = append(cout, byzcoin.Coin{Name: c.Name, Value: coinsArg})

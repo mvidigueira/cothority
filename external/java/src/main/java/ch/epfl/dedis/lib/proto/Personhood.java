@@ -8935,24 +8935,50 @@ public final class Personhood {
     ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostpartyOrBuilder();
 
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
+     */
+    boolean hasCostcwrite();
+    /**
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcwrite();
+    /**
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcwriteOrBuilder();
+
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    boolean hasCostcread();
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcread();
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcreadOrBuilder();
+
+    /**
+     * <code>required bytes beneficiary = 7;</code>
      */
     boolean hasBeneficiary();
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required bytes beneficiary = 7;</code>
      */
     com.google.protobuf.ByteString getBeneficiary();
 
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     boolean hasCostropasci();
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci();
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder();
   }
@@ -9054,13 +9080,39 @@ public final class Personhood {
               break;
             }
             case 42: {
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000010) != 0)) {
+                subBuilder = costcwrite_.toBuilder();
+              }
+              costcwrite_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(costcwrite_);
+                costcwrite_ = subBuilder.buildPartial();
+              }
               bitField0_ |= 0x00000010;
-              beneficiary_ = input.readBytes();
               break;
             }
             case 50: {
               ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
               if (((bitField0_ & 0x00000020) != 0)) {
+                subBuilder = costcread_.toBuilder();
+              }
+              costcread_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
+              if (subBuilder != null) {
+                subBuilder.mergeFrom(costcread_);
+                costcread_ = subBuilder.buildPartial();
+              }
+              bitField0_ |= 0x00000020;
+              break;
+            }
+            case 58: {
+              bitField0_ |= 0x00000040;
+              beneficiary_ = input.readBytes();
+              break;
+            }
+            case 66: {
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder subBuilder = null;
+              if (((bitField0_ & 0x00000080) != 0)) {
                 subBuilder = costropasci_.toBuilder();
               }
               costropasci_ = input.readMessage(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.parser(), extensionRegistry);
@@ -9068,7 +9120,7 @@ public final class Personhood {
                 subBuilder.mergeFrom(costropasci_);
                 costropasci_ = subBuilder.buildPartial();
               }
-              bitField0_ |= 0x00000020;
+              bitField0_ |= 0x00000080;
               break;
             }
             default: {
@@ -9188,37 +9240,79 @@ public final class Personhood {
       return costparty_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costparty_;
     }
 
-    public static final int BENEFICIARY_FIELD_NUMBER = 5;
-    private com.google.protobuf.ByteString beneficiary_;
+    public static final int COSTCWRITE_FIELD_NUMBER = 5;
+    private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costcwrite_;
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
      */
-    public boolean hasBeneficiary() {
+    public boolean hasCostcwrite() {
       return ((bitField0_ & 0x00000010) != 0);
     }
     /**
-     * <code>required bytes beneficiary = 5;</code>
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcwrite() {
+      return costcwrite_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcwrite_;
+    }
+    /**
+     * <code>required .byzcoin.Coin costcwrite = 5;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcwriteOrBuilder() {
+      return costcwrite_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcwrite_;
+    }
+
+    public static final int COSTCREAD_FIELD_NUMBER = 6;
+    private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costcread_;
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    public boolean hasCostcread() {
+      return ((bitField0_ & 0x00000020) != 0);
+    }
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcread() {
+      return costcread_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcread_;
+    }
+    /**
+     * <code>required .byzcoin.Coin costcread = 6;</code>
+     */
+    public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcreadOrBuilder() {
+      return costcread_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcread_;
+    }
+
+    public static final int BENEFICIARY_FIELD_NUMBER = 7;
+    private com.google.protobuf.ByteString beneficiary_;
+    /**
+     * <code>required bytes beneficiary = 7;</code>
+     */
+    public boolean hasBeneficiary() {
+      return ((bitField0_ & 0x00000040) != 0);
+    }
+    /**
+     * <code>required bytes beneficiary = 7;</code>
      */
     public com.google.protobuf.ByteString getBeneficiary() {
       return beneficiary_;
     }
 
-    public static final int COSTROPASCI_FIELD_NUMBER = 6;
+    public static final int COSTROPASCI_FIELD_NUMBER = 8;
     private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costropasci_;
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     public boolean hasCostropasci() {
-      return ((bitField0_ & 0x00000020) != 0);
+      return ((bitField0_ & 0x00000080) != 0);
     }
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci() {
       return costropasci_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
     }
     /**
-     * <code>optional .byzcoin.Coin costropasci = 6;</code>
+     * <code>optional .byzcoin.Coin costropasci = 8;</code>
      */
     public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder() {
       return costropasci_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costropasci_;
@@ -9247,6 +9341,14 @@ public final class Personhood {
         memoizedIsInitialized = 0;
         return false;
       }
+      if (!hasCostcwrite()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!hasCostcread()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
       if (!hasBeneficiary()) {
         memoizedIsInitialized = 0;
         return false;
@@ -9264,6 +9366,14 @@ public final class Personhood {
         return false;
       }
       if (!getCostparty().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getCostcwrite().isInitialized()) {
+        memoizedIsInitialized = 0;
+        return false;
+      }
+      if (!getCostcread().isInitialized()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -9293,10 +9403,16 @@ public final class Personhood {
         output.writeMessage(4, getCostparty());
       }
       if (((bitField0_ & 0x00000010) != 0)) {
-        output.writeBytes(5, beneficiary_);
+        output.writeMessage(5, getCostcwrite());
       }
       if (((bitField0_ & 0x00000020) != 0)) {
-        output.writeMessage(6, getCostropasci());
+        output.writeMessage(6, getCostcread());
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        output.writeBytes(7, beneficiary_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        output.writeMessage(8, getCostropasci());
       }
       unknownFields.writeTo(output);
     }
@@ -9325,11 +9441,19 @@ public final class Personhood {
       }
       if (((bitField0_ & 0x00000010) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(5, beneficiary_);
+          .computeMessageSize(5, getCostcwrite());
       }
       if (((bitField0_ & 0x00000020) != 0)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, getCostropasci());
+          .computeMessageSize(6, getCostcread());
+      }
+      if (((bitField0_ & 0x00000040) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(7, beneficiary_);
+      }
+      if (((bitField0_ & 0x00000080) != 0)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(8, getCostropasci());
       }
       size += unknownFields.getSerializedSize();
       memoizedSize = size;
@@ -9365,6 +9489,16 @@ public final class Personhood {
       if (hasCostparty()) {
         if (!getCostparty()
             .equals(other.getCostparty())) return false;
+      }
+      if (hasCostcwrite() != other.hasCostcwrite()) return false;
+      if (hasCostcwrite()) {
+        if (!getCostcwrite()
+            .equals(other.getCostcwrite())) return false;
+      }
+      if (hasCostcread() != other.hasCostcread()) return false;
+      if (hasCostcread()) {
+        if (!getCostcread()
+            .equals(other.getCostcread())) return false;
       }
       if (hasBeneficiary() != other.hasBeneficiary()) return false;
       if (hasBeneficiary()) {
@@ -9402,6 +9536,14 @@ public final class Personhood {
       if (hasCostparty()) {
         hash = (37 * hash) + COSTPARTY_FIELD_NUMBER;
         hash = (53 * hash) + getCostparty().hashCode();
+      }
+      if (hasCostcwrite()) {
+        hash = (37 * hash) + COSTCWRITE_FIELD_NUMBER;
+        hash = (53 * hash) + getCostcwrite().hashCode();
+      }
+      if (hasCostcread()) {
+        hash = (37 * hash) + COSTCREAD_FIELD_NUMBER;
+        hash = (53 * hash) + getCostcread().hashCode();
       }
       if (hasBeneficiary()) {
         hash = (37 * hash) + BENEFICIARY_FIELD_NUMBER;
@@ -9548,6 +9690,8 @@ public final class Personhood {
           getCostcoinFieldBuilder();
           getCostcredentialFieldBuilder();
           getCostpartyFieldBuilder();
+          getCostcwriteFieldBuilder();
+          getCostcreadFieldBuilder();
           getCostropasciFieldBuilder();
         }
       }
@@ -9578,14 +9722,26 @@ public final class Personhood {
           costpartyBuilder_.clear();
         }
         bitField0_ = (bitField0_ & ~0x00000008);
-        beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+        if (costcwriteBuilder_ == null) {
+          costcwrite_ = null;
+        } else {
+          costcwriteBuilder_.clear();
+        }
         bitField0_ = (bitField0_ & ~0x00000010);
+        if (costcreadBuilder_ == null) {
+          costcread_ = null;
+        } else {
+          costcreadBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+        bitField0_ = (bitField0_ & ~0x00000040);
         if (costropasciBuilder_ == null) {
           costropasci_ = null;
         } else {
           costropasciBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
 
@@ -9647,16 +9803,32 @@ public final class Personhood {
           to_bitField0_ |= 0x00000008;
         }
         if (((from_bitField0_ & 0x00000010) != 0)) {
+          if (costcwriteBuilder_ == null) {
+            result.costcwrite_ = costcwrite_;
+          } else {
+            result.costcwrite_ = costcwriteBuilder_.build();
+          }
           to_bitField0_ |= 0x00000010;
         }
-        result.beneficiary_ = beneficiary_;
         if (((from_bitField0_ & 0x00000020) != 0)) {
+          if (costcreadBuilder_ == null) {
+            result.costcread_ = costcread_;
+          } else {
+            result.costcread_ = costcreadBuilder_.build();
+          }
+          to_bitField0_ |= 0x00000020;
+        }
+        if (((from_bitField0_ & 0x00000040) != 0)) {
+          to_bitField0_ |= 0x00000040;
+        }
+        result.beneficiary_ = beneficiary_;
+        if (((from_bitField0_ & 0x00000080) != 0)) {
           if (costropasciBuilder_ == null) {
             result.costropasci_ = costropasci_;
           } else {
             result.costropasci_ = costropasciBuilder_.build();
           }
-          to_bitField0_ |= 0x00000020;
+          to_bitField0_ |= 0x00000080;
         }
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -9719,6 +9891,12 @@ public final class Personhood {
         if (other.hasCostparty()) {
           mergeCostparty(other.getCostparty());
         }
+        if (other.hasCostcwrite()) {
+          mergeCostcwrite(other.getCostcwrite());
+        }
+        if (other.hasCostcread()) {
+          mergeCostcread(other.getCostcread());
+        }
         if (other.hasBeneficiary()) {
           setBeneficiary(other.getBeneficiary());
         }
@@ -9744,6 +9922,12 @@ public final class Personhood {
         if (!hasCostparty()) {
           return false;
         }
+        if (!hasCostcwrite()) {
+          return false;
+        }
+        if (!hasCostcread()) {
+          return false;
+        }
         if (!hasBeneficiary()) {
           return false;
         }
@@ -9757,6 +9941,12 @@ public final class Personhood {
           return false;
         }
         if (!getCostparty().isInitialized()) {
+          return false;
+        }
+        if (!getCostcwrite().isInitialized()) {
+          return false;
+        }
+        if (!getCostcread().isInitialized()) {
           return false;
         }
         if (hasCostropasci()) {
@@ -10259,36 +10449,272 @@ public final class Personhood {
         return costpartyBuilder_;
       }
 
-      private com.google.protobuf.ByteString beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+      private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costcwrite_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> costcwriteBuilder_;
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
        */
-      public boolean hasBeneficiary() {
+      public boolean hasCostcwrite() {
         return ((bitField0_ & 0x00000010) != 0);
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcwrite() {
+        if (costcwriteBuilder_ == null) {
+          return costcwrite_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcwrite_;
+        } else {
+          return costcwriteBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public Builder setCostcwrite(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costcwriteBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          costcwrite_ = value;
+          onChanged();
+        } else {
+          costcwriteBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public Builder setCostcwrite(
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
+        if (costcwriteBuilder_ == null) {
+          costcwrite_ = builderForValue.build();
+          onChanged();
+        } else {
+          costcwriteBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public Builder mergeCostcwrite(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costcwriteBuilder_ == null) {
+          if (((bitField0_ & 0x00000010) != 0) &&
+              costcwrite_ != null &&
+              costcwrite_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
+            costcwrite_ =
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.newBuilder(costcwrite_).mergeFrom(value).buildPartial();
+          } else {
+            costcwrite_ = value;
+          }
+          onChanged();
+        } else {
+          costcwriteBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000010;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public Builder clearCostcwrite() {
+        if (costcwriteBuilder_ == null) {
+          costcwrite_ = null;
+          onChanged();
+        } else {
+          costcwriteBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000010);
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostcwriteBuilder() {
+        bitField0_ |= 0x00000010;
+        onChanged();
+        return getCostcwriteFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcwriteOrBuilder() {
+        if (costcwriteBuilder_ != null) {
+          return costcwriteBuilder_.getMessageOrBuilder();
+        } else {
+          return costcwrite_ == null ?
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcwrite_;
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costcwrite = 5;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
+          getCostcwriteFieldBuilder() {
+        if (costcwriteBuilder_ == null) {
+          costcwriteBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder>(
+                  getCostcwrite(),
+                  getParentForChildren(),
+                  isClean());
+          costcwrite_ = null;
+        }
+        return costcwriteBuilder_;
+      }
+
+      private ch.epfl.dedis.lib.proto.ByzCoinProto.Coin costcread_;
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> costcreadBuilder_;
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public boolean hasCostcread() {
+        return ((bitField0_ & 0x00000020) != 0);
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostcread() {
+        if (costcreadBuilder_ == null) {
+          return costcread_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcread_;
+        } else {
+          return costcreadBuilder_.getMessage();
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public Builder setCostcread(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costcreadBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          costcread_ = value;
+          onChanged();
+        } else {
+          costcreadBuilder_.setMessage(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public Builder setCostcread(
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
+        if (costcreadBuilder_ == null) {
+          costcread_ = builderForValue.build();
+          onChanged();
+        } else {
+          costcreadBuilder_.setMessage(builderForValue.build());
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public Builder mergeCostcread(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
+        if (costcreadBuilder_ == null) {
+          if (((bitField0_ & 0x00000020) != 0) &&
+              costcread_ != null &&
+              costcread_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
+            costcread_ =
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.newBuilder(costcread_).mergeFrom(value).buildPartial();
+          } else {
+            costcread_ = value;
+          }
+          onChanged();
+        } else {
+          costcreadBuilder_.mergeFrom(value);
+        }
+        bitField0_ |= 0x00000020;
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public Builder clearCostcread() {
+        if (costcreadBuilder_ == null) {
+          costcread_ = null;
+          onChanged();
+        } else {
+          costcreadBuilder_.clear();
+        }
+        bitField0_ = (bitField0_ & ~0x00000020);
+        return this;
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostcreadBuilder() {
+        bitField0_ |= 0x00000020;
+        onChanged();
+        return getCostcreadFieldBuilder().getBuilder();
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostcreadOrBuilder() {
+        if (costcreadBuilder_ != null) {
+          return costcreadBuilder_.getMessageOrBuilder();
+        } else {
+          return costcread_ == null ?
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : costcread_;
+        }
+      }
+      /**
+       * <code>required .byzcoin.Coin costcread = 6;</code>
+       */
+      private com.google.protobuf.SingleFieldBuilderV3<
+          ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
+          getCostcreadFieldBuilder() {
+        if (costcreadBuilder_ == null) {
+          costcreadBuilder_ = new com.google.protobuf.SingleFieldBuilderV3<
+              ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder>(
+                  getCostcread(),
+                  getParentForChildren(),
+                  isClean());
+          costcread_ = null;
+        }
+        return costcreadBuilder_;
+      }
+
+      private com.google.protobuf.ByteString beneficiary_ = com.google.protobuf.ByteString.EMPTY;
+      /**
+       * <code>required bytes beneficiary = 7;</code>
+       */
+      public boolean hasBeneficiary() {
+        return ((bitField0_ & 0x00000040) != 0);
+      }
+      /**
+       * <code>required bytes beneficiary = 7;</code>
        */
       public com.google.protobuf.ByteString getBeneficiary() {
         return beneficiary_;
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required bytes beneficiary = 7;</code>
        */
       public Builder setBeneficiary(com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000010;
+  bitField0_ |= 0x00000040;
         beneficiary_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>required bytes beneficiary = 5;</code>
+       * <code>required bytes beneficiary = 7;</code>
        */
       public Builder clearBeneficiary() {
-        bitField0_ = (bitField0_ & ~0x00000010);
+        bitField0_ = (bitField0_ & ~0x00000040);
         beneficiary_ = getDefaultInstance().getBeneficiary();
         onChanged();
         return this;
@@ -10298,13 +10724,13 @@ public final class Personhood {
       private com.google.protobuf.SingleFieldBuilderV3<
           ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> costropasciBuilder_;
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public boolean hasCostropasci() {
-        return ((bitField0_ & 0x00000020) != 0);
+        return ((bitField0_ & 0x00000080) != 0);
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCostropasci() {
         if (costropasciBuilder_ == null) {
@@ -10314,7 +10740,7 @@ public final class Personhood {
         }
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public Builder setCostropasci(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
         if (costropasciBuilder_ == null) {
@@ -10326,11 +10752,11 @@ public final class Personhood {
         } else {
           costropasciBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000080;
         return this;
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public Builder setCostropasci(
           ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
@@ -10340,15 +10766,15 @@ public final class Personhood {
         } else {
           costropasciBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000080;
         return this;
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public Builder mergeCostropasci(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
         if (costropasciBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) != 0) &&
+          if (((bitField0_ & 0x00000080) != 0) &&
               costropasci_ != null &&
               costropasci_ != ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance()) {
             costropasci_ =
@@ -10360,11 +10786,11 @@ public final class Personhood {
         } else {
           costropasciBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000080;
         return this;
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public Builder clearCostropasci() {
         if (costropasciBuilder_ == null) {
@@ -10373,19 +10799,19 @@ public final class Personhood {
         } else {
           costropasciBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000080);
         return this;
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostropasciBuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000080;
         onChanged();
         return getCostropasciFieldBuilder().getBuilder();
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostropasciOrBuilder() {
         if (costropasciBuilder_ != null) {
@@ -10396,7 +10822,7 @@ public final class Personhood {
         }
       }
       /**
-       * <code>optional .byzcoin.Coin costropasci = 6;</code>
+       * <code>optional .byzcoin.Coin costropasci = 8;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
@@ -26250,47 +26676,49 @@ public final class Personhood {
       "\0132\026.personhood.Credential\"E\n\nCredential\022" +
       "\014\n\004name\030\001 \002(\t\022)\n\nattributes\030\002 \003(\0132\025.pers" +
       "onhood.Attribute\"(\n\tAttribute\022\014\n\004name\030\001 " +
-      "\002(\t\022\r\n\005value\030\002 \002(\014\"\323\001\n\rSpawnerStruct\022\037\n\010" +
+      "\002(\t\022\r\n\005value\030\002 \002(\014\"\230\002\n\rSpawnerStruct\022\037\n\010" +
       "costdarc\030\001 \002(\0132\r.byzcoin.Coin\022\037\n\010costcoi" +
       "n\030\002 \002(\0132\r.byzcoin.Coin\022%\n\016costcredential" +
       "\030\003 \002(\0132\r.byzcoin.Coin\022 \n\tcostparty\030\004 \002(\013" +
-      "2\r.byzcoin.Coin\022\023\n\013beneficiary\030\005 \002(\014\022\"\n\013" +
-      "costropasci\030\006 \001(\0132\r.byzcoin.Coin\"\370\001\n\016Pop" +
-      "PartyStruct\022\r\n\005state\030\001 \002(\021\022\022\n\norganizers" +
-      "\030\002 \002(\021\022\025\n\rfinalizations\030\003 \003(\t\022(\n\013descrip" +
-      "tion\030\004 \002(\0132\023.personhood.PopDesc\022(\n\tatten" +
-      "dees\030\005 \002(\0132\025.personhood.Attendees\022\"\n\006min" +
-      "ers\030\006 \003(\0132\022.personhood.LRSTag\022\024\n\014miningr" +
-      "eward\030\007 \002(\004\022\020\n\010previous\030\010 \001(\014\022\014\n\004next\030\t " +
-      "\001(\014\"L\n\007PopDesc\022\014\n\004name\030\001 \002(\t\022\017\n\007purpose\030" +
-      "\002 \002(\t\022\020\n\010datetime\030\003 \002(\004\022\020\n\010location\030\004 \002(" +
-      "\t\"]\n\016FinalStatement\022!\n\004desc\030\001 \001(\0132\023.pers" +
-      "onhood.PopDesc\022(\n\tattendees\030\002 \002(\0132\025.pers" +
-      "onhood.Attendees\"\031\n\tAttendees\022\014\n\004keys\030\001 " +
-      "\003(\014\"\025\n\006LRSTag\022\013\n\003tag\030\001 \002(\014\"\216\001\n\004Poll\022\021\n\tb" +
-      "yzcoinid\030\001 \002(\014\022\'\n\007newpoll\030\002 \001(\0132\026.person" +
-      "hood.PollStruct\022\"\n\004list\030\003 \001(\0132\024.personho" +
-      "od.PollList\022&\n\006answer\030\004 \001(\0132\026.personhood" +
-      ".PollAnswer\"\034\n\010PollList\022\020\n\010partyids\030\001 \003(" +
-      "\014\"9\n\nPollAnswer\022\016\n\006pollid\030\001 \002(\014\022\016\n\006choic" +
-      "e\030\002 \002(\021\022\013\n\003lrs\030\003 \002(\014\"\215\001\n\nPollStruct\022\022\n\np" +
-      "ersonhood\030\001 \002(\014\022\016\n\006pollid\030\002 \001(\014\022\r\n\005title" +
-      "\030\003 \002(\t\022\023\n\013description\030\004 \002(\t\022\017\n\007choices\030\005" +
-      " \003(\t\022&\n\006chosen\030\006 \003(\0132\026.personhood.PollCh" +
-      "oice\",\n\nPollChoice\022\016\n\006choice\030\001 \002(\021\022\016\n\006lr" +
-      "stag\030\002 \002(\014\"5\n\014PollResponse\022%\n\005polls\030\001 \003(" +
-      "\0132\026.personhood.PollStruct\"\016\n\014Capabilitie" +
-      "s\"D\n\024CapabilitiesResponse\022,\n\014capabilitie" +
-      "s\030\001 \003(\0132\026.personhood.Capability\"/\n\nCapab" +
-      "ility\022\020\n\010endpoint\030\001 \002(\t\022\017\n\007version\030\002 \002(\014" +
-      "\"\212\001\n\014UserLocation\022\021\n\tpublickey\030\001 \002(\014\022\025\n\r" +
-      "credentialiid\030\002 \001(\014\0220\n\ncredential\030\003 \001(\0132" +
-      "\034.personhood.CredentialStruct\022\020\n\010locatio" +
-      "n\030\004 \001(\t\022\014\n\004time\030\005 \002(\022\"F\n\006Meetup\022.\n\014userl" +
-      "ocation\030\001 \001(\0132\030.personhood.UserLocation\022" +
-      "\014\n\004wipe\030\002 \001(\010\"9\n\016MeetupResponse\022\'\n\005users" +
-      "\030\001 \003(\0132\030.personhood.UserLocationB%\n\027ch.e" +
-      "pfl.dedis.lib.protoB\nPersonhood"
+      "2\r.byzcoin.Coin\022!\n\ncostcwrite\030\005 \002(\0132\r.by" +
+      "zcoin.Coin\022 \n\tcostcread\030\006 \002(\0132\r.byzcoin." +
+      "Coin\022\023\n\013beneficiary\030\007 \002(\014\022\"\n\013costropasci" +
+      "\030\010 \001(\0132\r.byzcoin.Coin\"\370\001\n\016PopPartyStruct" +
+      "\022\r\n\005state\030\001 \002(\021\022\022\n\norganizers\030\002 \002(\021\022\025\n\rf" +
+      "inalizations\030\003 \003(\t\022(\n\013description\030\004 \002(\0132" +
+      "\023.personhood.PopDesc\022(\n\tattendees\030\005 \002(\0132" +
+      "\025.personhood.Attendees\022\"\n\006miners\030\006 \003(\0132\022" +
+      ".personhood.LRSTag\022\024\n\014miningreward\030\007 \002(\004" +
+      "\022\020\n\010previous\030\010 \001(\014\022\014\n\004next\030\t \001(\014\"L\n\007PopD" +
+      "esc\022\014\n\004name\030\001 \002(\t\022\017\n\007purpose\030\002 \002(\t\022\020\n\010da" +
+      "tetime\030\003 \002(\004\022\020\n\010location\030\004 \002(\t\"]\n\016FinalS" +
+      "tatement\022!\n\004desc\030\001 \001(\0132\023.personhood.PopD" +
+      "esc\022(\n\tattendees\030\002 \002(\0132\025.personhood.Atte" +
+      "ndees\"\031\n\tAttendees\022\014\n\004keys\030\001 \003(\014\"\025\n\006LRST" +
+      "ag\022\013\n\003tag\030\001 \002(\014\"\216\001\n\004Poll\022\021\n\tbyzcoinid\030\001 " +
+      "\002(\014\022\'\n\007newpoll\030\002 \001(\0132\026.personhood.PollSt" +
+      "ruct\022\"\n\004list\030\003 \001(\0132\024.personhood.PollList" +
+      "\022&\n\006answer\030\004 \001(\0132\026.personhood.PollAnswer" +
+      "\"\034\n\010PollList\022\020\n\010partyids\030\001 \003(\014\"9\n\nPollAn" +
+      "swer\022\016\n\006pollid\030\001 \002(\014\022\016\n\006choice\030\002 \002(\021\022\013\n\003" +
+      "lrs\030\003 \002(\014\"\215\001\n\nPollStruct\022\022\n\npersonhood\030\001" +
+      " \002(\014\022\016\n\006pollid\030\002 \001(\014\022\r\n\005title\030\003 \002(\t\022\023\n\013d" +
+      "escription\030\004 \002(\t\022\017\n\007choices\030\005 \003(\t\022&\n\006cho" +
+      "sen\030\006 \003(\0132\026.personhood.PollChoice\",\n\nPol" +
+      "lChoice\022\016\n\006choice\030\001 \002(\021\022\016\n\006lrstag\030\002 \002(\014\"" +
+      "5\n\014PollResponse\022%\n\005polls\030\001 \003(\0132\026.personh" +
+      "ood.PollStruct\"\016\n\014Capabilities\"D\n\024Capabi" +
+      "litiesResponse\022,\n\014capabilities\030\001 \003(\0132\026.p" +
+      "ersonhood.Capability\"/\n\nCapability\022\020\n\010en" +
+      "dpoint\030\001 \002(\t\022\017\n\007version\030\002 \002(\014\"\212\001\n\014UserLo" +
+      "cation\022\021\n\tpublickey\030\001 \002(\014\022\025\n\rcredentiali" +
+      "id\030\002 \001(\014\0220\n\ncredential\030\003 \001(\0132\034.personhoo" +
+      "d.CredentialStruct\022\020\n\010location\030\004 \001(\t\022\014\n\004" +
+      "time\030\005 \002(\022\"F\n\006Meetup\022.\n\014userlocation\030\001 \001" +
+      "(\0132\030.personhood.UserLocation\022\014\n\004wipe\030\002 \001" +
+      "(\010\"9\n\016MeetupResponse\022\'\n\005users\030\001 \003(\0132\030.pe" +
+      "rsonhood.UserLocationB%\n\027ch.epfl.dedis.l" +
+      "ib.protoB\nPersonhood"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -26377,7 +26805,7 @@ public final class Personhood {
     internal_static_personhood_SpawnerStruct_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_personhood_SpawnerStruct_descriptor,
-        new java.lang.String[] { "Costdarc", "Costcoin", "Costcredential", "Costparty", "Beneficiary", "Costropasci", });
+        new java.lang.String[] { "Costdarc", "Costcoin", "Costcredential", "Costparty", "Costcwrite", "Costcread", "Beneficiary", "Costropasci", });
     internal_static_personhood_PopPartyStruct_descriptor =
       getDescriptor().getMessageTypes().get(12);
     internal_static_personhood_PopPartyStruct_fieldAccessorTable = new

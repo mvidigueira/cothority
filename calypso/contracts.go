@@ -51,6 +51,9 @@ func (c ContractWrite) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Instruc
 			err = errors.New("couldn't unmarshal write: " + err.Error())
 			return
 		}
+		if d := inst.Spawn.Args.Search("darcID"); d != nil{
+			darcID = d
+		}
 		if err = c.Write.CheckProof(cothority.Suite, darcID); err != nil {
 			err = errors.New("proof of write failed: " + err.Error())
 			return

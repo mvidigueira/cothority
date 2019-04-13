@@ -38,7 +38,7 @@ message CreateGenesisBlock {
   required sint32 version = 1;
   // Roster defines which nodes participate in the skipchain.
   required onet.Roster roster = 2;
-  // GenesisDarc defines who is allowed to write to this skipchain.
+  // AdminDarc defines who is allowed to write to this skipchain.
   required darc.Darc genesisdarc = 3;
   // BlockInterval in int64.
   required sint64 blockinterval = 4;
