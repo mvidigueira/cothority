@@ -46,7 +46,7 @@ type Write struct {
 	// LTSID points to the identity of the lts group
 	LTSID byzcoin.InstanceID
 	// Cost reflects how many coins you'll have to pay for a read-request
-	Cost byzcoin.Coin
+	Cost byzcoin.Coin `protobuf:"opt"`
 }
 
 // Read is the data stored in a read instance. It has a pointer to the write

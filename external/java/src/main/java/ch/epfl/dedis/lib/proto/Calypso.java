@@ -171,7 +171,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     boolean hasCost();
     /**
@@ -179,7 +179,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCost();
     /**
@@ -187,7 +187,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostOrBuilder();
   }
@@ -532,7 +532,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     public boolean hasCost() {
       return ((bitField0_ & 0x00000100) != 0);
@@ -542,7 +542,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCost() {
       return cost_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : cost_;
@@ -552,7 +552,7 @@ public final class Calypso {
      * Cost reflects how many coins you'll have to pay for a read-request
      * </pre>
      *
-     * <code>required .byzcoin.Coin cost = 9;</code>
+     * <code>optional .byzcoin.Coin cost = 9;</code>
      */
     public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostOrBuilder() {
       return cost_ == null ? ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.getDefaultInstance() : cost_;
@@ -593,13 +593,11 @@ public final class Calypso {
         memoizedIsInitialized = 0;
         return false;
       }
-      if (!hasCost()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!getCost().isInitialized()) {
-        memoizedIsInitialized = 0;
-        return false;
+      if (hasCost()) {
+        if (!getCost().isInitialized()) {
+          memoizedIsInitialized = 0;
+          return false;
+        }
       }
       memoizedIsInitialized = 1;
       return true;
@@ -1120,11 +1118,10 @@ public final class Calypso {
         if (!hasLtsid()) {
           return false;
         }
-        if (!hasCost()) {
-          return false;
-        }
-        if (!getCost().isInitialized()) {
-          return false;
+        if (hasCost()) {
+          if (!getCost().isInitialized()) {
+            return false;
+          }
         }
         return true;
       }
@@ -1589,7 +1586,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public boolean hasCost() {
         return ((bitField0_ & 0x00000100) != 0);
@@ -1599,7 +1596,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin getCost() {
         if (costBuilder_ == null) {
@@ -1613,7 +1610,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public Builder setCost(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
         if (costBuilder_ == null) {
@@ -1633,7 +1630,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public Builder setCost(
           ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder builderForValue) {
@@ -1651,7 +1648,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public Builder mergeCost(ch.epfl.dedis.lib.proto.ByzCoinProto.Coin value) {
         if (costBuilder_ == null) {
@@ -1675,7 +1672,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public Builder clearCost() {
         if (costBuilder_ == null) {
@@ -1692,7 +1689,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder getCostBuilder() {
         bitField0_ |= 0x00000100;
@@ -1704,7 +1701,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       public ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder getCostOrBuilder() {
         if (costBuilder_ != null) {
@@ -1719,7 +1716,7 @@ public final class Calypso {
        * Cost reflects how many coins you'll have to pay for a read-request
        * </pre>
        *
-       * <code>required .byzcoin.Coin cost = 9;</code>
+       * <code>optional .byzcoin.Coin cost = 9;</code>
        */
       private com.google.protobuf.SingleFieldBuilderV3<
           ch.epfl.dedis.lib.proto.ByzCoinProto.Coin, ch.epfl.dedis.lib.proto.ByzCoinProto.Coin.Builder, ch.epfl.dedis.lib.proto.ByzCoinProto.CoinOrBuilder> 
@@ -8858,7 +8855,7 @@ public final class Calypso {
       "\nonet.proto\"\216\001\n\005Write\022\014\n\004data\030\001 \002(\014\022\t\n\001u" +
       "\030\002 \002(\014\022\014\n\004ubar\030\003 \002(\014\022\t\n\001e\030\004 \002(\014\022\t\n\001f\030\005 \002" +
       "(\014\022\t\n\001c\030\006 \002(\014\022\021\n\textradata\030\007 \001(\014\022\r\n\005ltsi" +
-      "d\030\010 \002(\014\022\033\n\004cost\030\t \002(\0132\r.byzcoin.Coin\"!\n\004" +
+      "d\030\010 \002(\014\022\033\n\004cost\030\t \001(\0132\r.byzcoin.Coin\"!\n\004" +
       "Read\022\r\n\005write\030\001 \002(\014\022\n\n\002xc\030\002 \002(\014\"\036\n\tAutho" +
       "rise\022\021\n\tbyzcoinid\030\001 \002(\014\"\020\n\016AuthoriseRepl" +
       "y\"*\n\tCreateLTS\022\035\n\005proof\030\001 \002(\0132\016.byzcoin." +
