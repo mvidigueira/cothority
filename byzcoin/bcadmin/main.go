@@ -82,24 +82,6 @@ var cmds = cli.Commands{
 	},
 
 	{
-		Name:      "link",
-		Usage:     "link to existing ledger",
-		Aliases:   []string{"ln"},
-		ArgsUsage: "roster.toml [bcid]",
-		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "darc, ad",
-				Usage: "a darc that has 'evolve_unrestricted'",
-			},
-			cli.StringFlag{
-				Name:  "pub, ap",
-				Usage: "the public key with rights to sign on the darc",
-			},
-		},
-		Action: link,
-	},
-
-	{
 		Name:      "latest",
 		Usage:     "show the latest block in the chain",
 		Aliases:   []string{"s"},
@@ -499,143 +481,25 @@ func link(c *cli.Context) error {
 		}
 		ad := &darc.Darc{}
 		adPub := cothority.Suite.Point()
-		if adIDStr := c.String("admindarc"); len(adIDStr) == 64 {
+		// Accept both plain-darcs, as well as "darc:...." darcs
+		if adIDStr := c.String("admindarc"); len(adIDStr) == 64 || len(adIDStr) == 69 {
+			if len(adIDStr) == 69{
+				adIDStr = adIDStr[4:]
+			}
 			adID, err := hex.DecodeString(adIDStr)
 			if err != nil {
 				return errors.New("couldn't parse given admin: " + err.Error())
 			}
 			adPubBuf, err := hex.DecodeString(c.String("adminpub"))
-			if len(adPubBuf) != 32 || err != nil {
+			// Accept both plain-public keys and "ed25519:..." keys
+			if (len(adPubBuf) != 64 && len(adPubBuf) != 72 )|| err != nil {
 				return errors.New("please give valid admin public key in hex: " + err.Error())
+			}
+			if len(adPubBuf) == 40{
+				adPubBuf = adPubBuf[8:]
 			}
 			adPub = cothority.Suite.Point()
 			if err = adPub.UnmarshalBinary(adPubBuf); err != nil{
-				return errors.New("got an invalid admin public key: " + err.Error())
-			}
-			p, err := cl.GetProof(adID)
-			if err != nil {
-				return errors.New("couldn't get proof for admin-darc: " + err.Error())
-			}
-			if err = p.Proof.Verify(id); err != nil {
-				return errors.New("proof for admin is wrong: " + err.Error())
-			}
-			_, adBuf, cid, _, err := p.Proof.KeyValue()
-			if err != nil {
-				return errors.New("cannot get value for darc: " + err.Error())
-			}
-			if cid != byzcoin.ContractDarcID {
-				return errors.New("please give a darc-instance ID, not: " + cid)
-			}
-			ad, err = darc.NewFromProtobuf(adBuf)
-			if err != nil {
-				return errors.New("invalid darc stored in byzcoin: " + err.Error())
-			}
-		}
-		log.Infof("ByzCoin-config for %+x:\n"+
-			"\tRoster: %s\n"+
-			"\tBlockInterval: %s\n"+
-			"\tMacBlockSize: %d\n"+
-			"\tDarcContracts: %s",
-			id[:], cc.Roster.List, cc.BlockInterval, cc.MaxBlockSize, cc.DarcContractIDs)
-		fn, err := lib.SaveConfig(lib.Config{
-			Roster:        cc.Roster,
-			ByzCoinID:     id,
-			AdminDarc:     *ad,
-			AdminIdentity: darc.NewIdentityEd25519(adPub),
-		})
-		if err != nil {
-			return errors.New("while writing config-file: " + err.Error())
-		}
-		log.Info("Wrote config to", path.Join(lib.ConfigPath, fn))
-	}
-	return nil
-}
-
-func link(c *cli.Context) error {
-	if c.NArg() < 1 {
-		return errors.New("please give the following args: roster.toml [bcid]")
-	}
-	r, err := lib.ReadRoster(c.Args().First())
-	if err != nil {
-		return err
-	}
-
-	scl := skipchain.NewClient()
-	if c.NArg() == 1 {
-		log.Info("Fetching all byzcoin-ids from the roster")
-		var scIDs []skipchain.SkipBlockID
-		for _, si := range r.List {
-			reply, err := scl.GetAllSkipChainIDs(si)
-			if err != nil {
-				log.Warn("Couldn't contact", si.Address, err)
-			} else {
-				scIDs = append(scIDs, reply.IDs...)
-				log.Infof("Got %d id(s) from %s", len(reply.IDs), si.Address)
-			}
-		}
-		sort.Slice(scIDs, func(i, j int) bool {
-			return bytes.Compare(scIDs[i], scIDs[j]) < 0
-		})
-		for i := len(scIDs) - 1; i > 0; i-- {
-			if scIDs[i].Equal(scIDs[i-1]) {
-				scIDs = append(scIDs[0:i], scIDs[i+1:]...)
-			}
-		}
-		log.Info("All IDs available in this roster:")
-		for _, id := range scIDs {
-			log.Infof("%x", id[:])
-		}
-	} else {
-		id, err := hex.DecodeString(c.Args().Get(1))
-		if err != nil || len(id) != 32 {
-			return errors.New("second argument is not a valid ID")
-		}
-		var cl *byzcoin.Client
-		var cc *byzcoin.ChainConfig
-		for _, si := range r.List {
-			reply, err := scl.GetAllSkipChainIDs(si)
-			if err != nil {
-				log.Warn("Got error while asking", si.Address, "for skipchains")
-			}
-			found := false
-			for _, idc := range reply.IDs {
-				if idc.Equal(id) {
-					found = true
-					break
-				}
-			}
-			if found {
-				cl = byzcoin.NewClient(id, *onet.NewRoster([]*network.ServerIdentity{si}))
-				cc, err = cl.GetChainConfig()
-				if err != nil {
-					cl = nil
-					continue
-				}
-				cl.Roster = cc.Roster
-				break
-			}
-		}
-		if cl == nil {
-			return errors.New("didn't manage to find a node with a valid copy of the given skipchain-id")
-		}
-		ad := &darc.Darc{}
-		adPub := cothority.Suite.Point()
-		if adIDStr := c.String("darc"); len(adIDStr) == 69 {
-			adID, err := hex.DecodeString(adIDStr[5:])
-			if err != nil {
-				return errors.New("couldn't parse given admin: " + err.Error())
-			}
-			var adPubBuf []byte
-			if pubStr := c.String("pub"); len(pubStr) == 72 {
-				adPubBuf, err = hex.DecodeString(pubStr[8:])
-				if len(adPubBuf) != 32 || err != nil {
-					return errors.New("please give valid admin public key in hex: " + err.Error())
-				}
-			} else {
-				return errors.New("please give a key in the following format: ed25519:public_key_in_hex")
-			}
-			adPub = cothority.Suite.Point()
-			if err = adPub.UnmarshalBinary(adPubBuf); err != nil {
 				return errors.New("got an invalid admin public key: " + err.Error())
 			}
 			p, err := cl.GetProof(adID)
