@@ -7,7 +7,7 @@ import { registerMessage } from "../protobuf";
 
 const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
-const { bls, Mask } = sign;
+const {bls, Mask} = sign;
 
 /**
  * Convert an integer into a little-endian buffer

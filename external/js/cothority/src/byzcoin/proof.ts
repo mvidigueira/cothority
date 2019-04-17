@@ -1,10 +1,11 @@
 import { createHash } from "crypto";
-import _ from "lodash";
+import * as _ from "lodash";
+import * as Long from "long";
 import { Message, Properties } from "protobufjs/light";
 import { registerMessage } from "../protobuf";
 import { SkipchainRPC } from "../skipchain";
 import { ForwardLink, SkipBlock } from "../skipchain/skipblock";
-import { InstanceID } from "./instance";
+import Instance, { InstanceID } from "./instance";
 import DataHeader from "./proto/data-header";
 
 /**
@@ -30,7 +31,7 @@ export default class Proof extends Message<Proof> {
     readonly latest: SkipBlock;
     readonly links: ForwardLink[];
 
-    private _state: StateChangeBody;
+    protected _state: StateChangeBody;
 
     constructor(props: Properties<Proof>) {
         super(props);
@@ -87,6 +88,20 @@ export default class Proof extends Message<Proof> {
      */
     get key(): Buffer {
         return this.inclusionproof.key;
+    }
+
+    async getVerifiedInstance(genesisID: InstanceID, contractID: string): Promise<Instance> {
+        const err = this.verify(genesisID);
+        if (err != null) {
+            return Promise.reject(err);
+        }
+        if (!this.exists(this.key)) {
+            return Promise.reject("cannot return an Instance from a proof of absence");
+        }
+        if (this.contractID !== contractID) {
+            return Promise.reject("not of correct contractID");
+        }
+        return Instance.fromFields(this.key, this.contractID, this.darcID, this.value);
     }
 
     /**
@@ -170,7 +185,8 @@ export default class Proof extends Message<Proof> {
         }
 
         if (expectedHash.equals(this.inclusionproof.hashLeaf())) {
-            if ( _.difference(bits.slice(0, i), this.inclusionproof.leaf.prefix).length !== 0) {
+            // if (_.difference(bits.slice(0, i), this.inclusionproof.leaf.prefix).length !== 0) {
+            if (_.difference(bits.slice(0, i), this.inclusionproof.leaf.prefix).length !== 0) {
                 throw new Error("invalid prefix in leaf node");
             }
 
@@ -396,12 +412,16 @@ class InclusionProof extends Message<InclusionProof> {
     }
 }
 
-class StateChangeBody extends Message<StateChangeBody> {
+export class StateChangeBody extends Message<StateChangeBody> {
     /**
      * @see README#Message classes
      */
     static register() {
         registerMessage("StateChangeBody", StateChangeBody);
+    }
+
+    static fromBytes(b: Buffer): StateChangeBody {
+        return StateChangeBody.decode(b);
     }
 
     readonly stateaction: number;
@@ -410,12 +430,24 @@ class StateChangeBody extends Message<StateChangeBody> {
     readonly version: Long;
     readonly darcid: Buffer;
 
+    constructor(props?: Properties<StateChangeBody>) {
+        super(props);
+    }
+
     get contractID(): string {
         return this.contractid;
     }
 
     get darcID(): Buffer {
         return this.darcid;
+    }
+
+    /**
+     * Helper to encode the StateChangeBody using protobuf
+     * @returns the bytes
+     */
+    toBytes(): Buffer {
+        return Buffer.from(StateChangeBody.encode(this).finish());
     }
 }
 

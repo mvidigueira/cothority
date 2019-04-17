@@ -57,7 +57,7 @@ describe("ClientTransaction Tests", () => {
             ],
         });
         await ctx.updateCounters(updater, [SIGNER]);
-        ctx.signWith([[SIGNER],[SIGNER]]);
+        ctx.signWith([[SIGNER], [SIGNER]]);
 
         expect(ctx.hash()).toBeDefined();
 

@@ -83,7 +83,7 @@ export default class Rules extends Message<Rules> {
                 expr: Buffer.concat([rule.expr, Buffer.from(` ${op} ${identity.toString()}`)]),
             });
         } else {
-            this.list.push(new Rule({ action, expr: Buffer.from(identity.toString()) }));
+            this.list.push(new Rule({action, expr: Buffer.from(identity.toString())}));
         }
     }
 
@@ -92,7 +92,7 @@ export default class Rules extends Message<Rules> {
      * @returns the clone
      */
     clone(): Rules {
-        return new Rules({ list: this.list.map((r) => r.clone()) });
+        return new Rules({list: this.list.map((r) => r.clone())});
     }
 
     /**

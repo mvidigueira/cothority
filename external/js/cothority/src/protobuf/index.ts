@@ -1,6 +1,9 @@
-import Long from "long";
-import protobuf, { Reader } from "protobufjs/light";
-import Log from "../log";
+import * as Long from "long";
+import { Reader } from "protobufjs/light";
+import { Log } from "../log";
+
+import * as protobuf from "protobufjs/light";
+
 import models from "./models.json";
 
 /**
@@ -13,12 +16,13 @@ if (!protobuf.util.isNode) {
     // The module is needed only for a specific environment so
     // we delay the import
     // tslint:disable-next-line
-    const buffer = require("buffer");
+    const buffer = require('buffer');
 
     // @ts-ignore
     protobuf.Reader.prototype._slice = buffer.Buffer.prototype.slice;
     protobuf.Reader.create = (buf) => new Reader(buffer.Buffer.from(buf));
 
+    // @ts-ignore
     protobuf.util.Long = Long;
     protobuf.configure();
 }
@@ -31,7 +35,7 @@ if (protobuf.build !== "light") {
     throw new Error("expecting to use the light module of protobufs");
 }
 
-const root = protobuf.Root.fromJSON(models);
+export const root = protobuf.Root.fromJSON(models);
 
 export const EMPTY_BUFFER = Buffer.allocUnsafe(0);
 
@@ -62,4 +66,16 @@ export function registerMessage(
     m.ctor = ctor;
 
     Log.lvl3(`Message registered: ${ctor.name}`);
+}
+
+export function objToProto(obj: object, modelName: string): Buffer {
+    const requestModel = root.lookup(modelName);
+    const errMsg = requestModel.verify(obj);
+    if (errMsg) {
+        Log.error("couldn't verify data:", errMsg);
+        return null;
+    }
+    const message = requestModel.create(obj);
+    const marshal = requestModel.encode(message).finish();
+    return new Buffer(marshal.slice());
 }
