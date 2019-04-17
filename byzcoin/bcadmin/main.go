@@ -81,6 +81,8 @@ var cmds = cli.Commands{
 		Action: link,
 	},
 
+
+
 	{
 		Name:      "latest",
 		Usage:     "show the latest block in the chain",
@@ -119,6 +121,12 @@ var cmds = cli.Commands{
 			{
 				Name:      "dump",
 				Usage:     "dumps a given byzcoin instance",
+				Flags: []cli.Flag{
+					cli.BoolFlag{
+						Name: "verbose, v",
+						Usage: "print more information of the instances",
+					},
+				},
 				Action:    debugDump,
 				ArgsUsage: "ip:port byzcoin-id",
 			},
@@ -1146,6 +1154,19 @@ func debugDump(c *cli.Context) error {
 	})
 	for _, inst := range resp.Dump {
 		log.Infof("%x / %d: %s", inst.Key, inst.State.Version, string(inst.State.ContractID))
+		if c.Bool("verbose"){
+			switch inst.State.ContractID{
+			case byzcoin.ContractDarcID:
+				d, err := darc.NewFromProtobuf(inst.State.Value)
+				if err != nil{
+					log.Warn("Didn't recognize as a darc instance")
+				}
+				log.Infof("\tDesc: %s, Rules:", string(d.Description))
+				for _, r := range d.Rules.List{
+					log.Infof("\tAction: %s - Expression: %s", r.Action, r.Expr)
+				}
+			}
+		}
 	}
 
 	return nil

@@ -1,4 +1,4 @@
-import Long from "long";
+import * as Long from "long";
 import ByzCoinRPC from "../../src/byzcoin/byzcoin-rpc";
 import CoinInstance from "../../src/byzcoin/contracts/coin-instance";
 import Rules from "../../src/darc/rules";
@@ -18,7 +18,8 @@ describe("CoinInstance Tests", () => {
         darc.addIdentity("invoke:coin.transfer", SIGNER, Rules.OR);
 
         const rpc = await ByzCoinRPC.newByzCoinRPC(roster, darc, BLOCK_INTERVAL);
-        const ci = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER]);
+        const coinType = Buffer.from("secure coin");
+        const ci = await CoinInstance.spawn(rpc, darc.getBaseID(), [SIGNER], coinType);
 
         expect(ci.value.toNumber()).toBe(0);
 
@@ -27,7 +28,7 @@ describe("CoinInstance Tests", () => {
 
         expect(ci.value.toNumber()).toBe(1000);
 
-        const ci2 = await CoinInstance.create(rpc, darc.getBaseID(), [SIGNER, SIGNER]);
+        const ci2 = await CoinInstance.spawn(rpc, darc.getBaseID(), [SIGNER, SIGNER], coinType);
         await ci.transfer(Long.fromNumber(50), ci2.id, [SIGNER, SIGNER]);
 
         await ci.update();
