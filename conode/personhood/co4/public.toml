@@ -1,0 +1,15 @@
+[[servers]]
+  Address = "tls://local.c4dt.org:7776"
+  Suite = "Ed25519"
+  Public = "845a49a5eec9bf0d925cbf409f640056ee666511a17e20976eb471cbcc3d6ec7"
+  Description = "Conode_4"
+  [servers.Services]
+    [servers.Services.ByzCoin]
+      Public = "6e2764bb1960d2feade5882bc5c6b38ea0274ff0cccaad0bba1bbf049fc6544d428b358772e4c2b4587093f0d7cf0cbe651015f8d9f673bc03f8f484a0a21a2e00128ed4fc5c4ed34f1811c3b43e96b1cb136ae0b7652a2e30cdbace9c21d67478fef3c4f3885beb23754a50e460129cc3bc9587b51abc74d85dc293667c4e29"
+      Suite = "bn256.adapter"
+    [servers.Services.Skipchain]
+      Public = "45a9de16964bbd55afc05b1a408c246e69299e3530e418461c94e5bc744e51648914609c5e1744e4093dd0ef555a9fd3827dfc99e6aa4b993c71ff89d6c88de48de20564a3a3d7e09e0203baab45d11dae2ae01c787a28da217e68340663dcde53770f58b82690da786d484c9634421ddd30ee03c82985c4427cc6c88a8cad13"
+      Suite = "bn256.adapter"
+    [servers.Services.blsCoSiService]
+      Public = "24b73271432ded23909a23452f0de4e0f4a3fd70fcf11200dd29f57795ea8d2b5523d3b1c1c8c0f53b75f7e6de1c049c6cba43ea208a708be9440b92fcfe7cf8514b8865fef8d0ebeca3ae2380902081f41e5ec4154b831c508cdce380291d6b3579318141a244049a6c8fe34254dc9d96724d9a9827a3e87a1a24e62cd0c893"
+      Suite = "bn256.adapter"
