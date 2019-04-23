@@ -93,6 +93,7 @@ func (c *ContractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 			return nil, nil, err
 		}
 		ca = byzcoin.NewInstanceID(d.GetBaseID())
+		darcID = d.GetBaseID()
 	case contracts.ContractCoinID:
 		if err = c.getCoins(cout, c.CostCoin); err != nil {
 			return
