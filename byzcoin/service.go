@@ -351,6 +351,7 @@ func (s *Service) AddTransaction(req *AddTxRequest) (*AddTxResponse, error) {
 					return nil, errors.New("transaction is in block, but got refused")
 				}
 				found = true
+				time.Sleep(interval)
 			case id := <-blockCh:
 				if id.Equal(req.SkipchainID) {
 					blocksLeft--

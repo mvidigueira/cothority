@@ -389,7 +389,7 @@ func create(c *cli.Context) error {
 
 	owner := darc.NewSignerEd25519(nil, nil)
 
-	req, err := byzcoin.DefaultGenesisMsg(byzcoin.CurrentVersion, r, []string{}, owner.Identity())
+	req, err := byzcoin.DefaultGenesisMsg(byzcoin.CurrentVersion, r, []string{"spawn:longTermSecret"}, owner.Identity())
 	if err != nil {
 		log.Error(err)
 		return err

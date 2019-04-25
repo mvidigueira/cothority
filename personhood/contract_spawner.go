@@ -75,7 +75,6 @@ func (c *ContractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	ca := inst.DeriveID("")
 	var instBuf []byte
 	cID := inst.Spawn.ContractID
-	log.Lvlf3("Spawning %s instance to %x", cID, ca.Slice())
 	switch cID {
 	case ContractSpawnerID:
 		c.parseArgs(inst.Spawn.Args)
@@ -179,6 +178,7 @@ func (c *ContractSpawner) Spawn(rst byzcoin.ReadOnlyStateTrie, inst byzcoin.Inst
 	default:
 		return nil, nil, errors.New("don't know how to spawn this type of contract")
 	}
+	log.LLvlf3("Spawning %s instance to %x", cID, ca.Slice())
 	sc = []byzcoin.StateChange{
 		byzcoin.NewStateChange(byzcoin.Create, ca, cID, instBuf, darcID),
 	}
