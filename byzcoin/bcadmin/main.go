@@ -82,7 +82,6 @@ var cmds = cli.Commands{
 	},
 
 
-
 	{
 		Name:      "latest",
 		Usage:     "show the latest block in the chain",
@@ -119,11 +118,11 @@ var cmds = cli.Commands{
 				ArgsUsage: "ip:port",
 			},
 			{
-				Name:      "dump",
-				Usage:     "dumps a given byzcoin instance",
+				Name:  "dump",
+				Usage: "dumps a given byzcoin instance",
 				Flags: []cli.Flag{
 					cli.BoolFlag{
-						Name: "verbose, v",
+						Name:  "verbose, v",
 						Usage: "print more information of the instances",
 					},
 				},
@@ -145,11 +144,11 @@ var cmds = cli.Commands{
 		ArgsUsage: "bc-xxx.cfg key-xxx.cfg public-key #coins",
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "spawner",
+				Name:  "spawner",
 				Usage: "spawner-darc to use - if not given, uses admin-darc",
 			},
 		},
-		Action:    mint,
+		Action: mint,
 	},
 
 	{
@@ -598,6 +597,7 @@ func latest(c *cli.Context) error {
 		return err
 	}
 
+	// Find the latest block by asking for the Proof of the config instance.
 	p, err := cl.GetProof(byzcoin.ConfigInstanceID.Slice())
 	if err != nil {
 		return err
@@ -611,7 +611,7 @@ func latest(c *cli.Context) error {
 	sb := p.Proof.Latest
 	_, err = fmt.Fprintf(c.App.Writer, "Last block:\n\tIndex: %d\n\tBlockMaxHeight: %d\n\tBackLinks: %d\n\tRoster: %s\n\n",
 		sb.Index, sb.Height, len(sb.BackLinkIDs), fmtRoster(sb.Roster))
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -621,7 +621,7 @@ func latest(c *cli.Context) error {
 		fn, err = lib.SaveConfig(cfg)
 		if err == nil {
 			_, err = fmt.Fprintln(c.App.Writer, "updated config file:", fn)
-			if err != nil{
+			if err != nil {
 				return err
 			}
 		}
@@ -697,9 +697,9 @@ func getBcKeyPub(c *cli.Context) (cfg lib.Config, cl *byzcoin.Client, signer *da
 		err = fmt.Errorf("couldn't open %v: %v", fn, err.Error())
 		return
 	}
-	defer func(){
+	defer func() {
 		err := grf.Close()
-		if err != nil{
+		if err != nil {
 			log.Error(err)
 		}
 	}()
@@ -794,7 +794,7 @@ func mint(c *cli.Context) error {
 	var spawnDarc []byte
 	if spawnerStr := c.String("spawner"); spawnerStr != "" {
 		spawnDarc, err = hex.DecodeString(spawnerStr)
-		if err != nil || len(spawnDarc) != 32{
+		if err != nil || len(spawnDarc) != 32 {
 			log.Warn("taking the admin-darc for spawning")
 			spawnDarc = cfg.AdminDarc.GetBaseID()
 		}
@@ -1154,15 +1154,15 @@ func debugDump(c *cli.Context) error {
 	})
 	for _, inst := range resp.Dump {
 		log.Infof("%x / %d: %s", inst.Key, inst.State.Version, string(inst.State.ContractID))
-		if c.Bool("verbose"){
-			switch inst.State.ContractID{
+		if c.Bool("verbose") {
+			switch inst.State.ContractID {
 			case byzcoin.ContractDarcID:
 				d, err := darc.NewFromProtobuf(inst.State.Value)
-				if err != nil{
+				if err != nil {
 					log.Warn("Didn't recognize as a darc instance")
 				}
 				log.Infof("\tDesc: %s, Rules:", string(d.Description))
-				for _, r := range d.Rules.List{
+				for _, r := range d.Rules.List {
 					log.Infof("\tAction: %s - Expression: %s", r.Action, r.Expr)
 				}
 			}

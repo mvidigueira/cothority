@@ -137,7 +137,7 @@ testCreateStoreRead(){
   eval $SED
   [ -z "$BC" ] && exit 1
   bcid=`echo $BC | awk -F- '{print $2}'| sed 's/.cfg$//'`
-  testGrep "ByzCoinID: $bcid" runBA show
+  testGrep "ByzCoinID: $bcid" runBA latest
 }
 
 testAddDarc(){
