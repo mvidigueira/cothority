@@ -4,8 +4,6 @@ import (
 	"crypto/cipher"
 	"crypto/sha256"
 	"errors"
-	"go.dedis.ch/onet/v3/log"
-
 	"go.dedis.ch/cothority/v3/byzcoin"
 	"go.dedis.ch/cothority/v3/darc"
 	"go.dedis.ch/kyber/v3"
@@ -96,71 +94,6 @@ func (wr *Write) CheckProof(suite suite, writeID darc.ID) error {
 	}
 
 	return errors.New("recreated proof is not equal to stored proof")
-}
-
-// EncodeKey can be used by the writer to ByzCoin to encode his symmetric
-// key under the collective public key created by the DKG.
-// As this method uses `Pick` to encode the key, only 29 bytes can be encoded
-// when using the ed25519 curve. The IV can be stored in clear, as it only
-// needs to be unique, but not secret.
-//
-// Input:
-//   - suite - the cryptographic suite to use
-//   - X - the aggregate public key of the DKG
-//   - key - the symmetric key for the document
-//
-// Output:
-//   - U - the schnorr commit
-//   - C - encrypted key
-func EncodeKey(suite suites.Suite, X kyber.Point, key []byte) (U kyber.Point, C kyber.Point) {
-	r := suite.Scalar().Pick(suite.RandomStream())
-	C = suite.Point().Mul(r, X)
-	log.Lvl4("C:", C.String())
-	U = suite.Point().Mul(r, nil)
-	log.Lvl4("U is:", U.String())
-
-	var kp kyber.Point
-	kp = suite.Point().Embed(key, suite.RandomStream())
-	log.Lvl4("Keypoint:", kp.String())
-	log.Lvl4("X:", X.String())
-	C = suite.Point().Add(C, kp)
-	return
-}
-
-// DecodeKey can be used by the reader of ByzCoin to convert the
-// re-encrypted secret back to a symmetric key that can be used later to decode
-// the document.
-//
-// Input:
-//   - suite - the cryptographic suite to use
-//   - X - the aggregate public key of the DKG
-//   - C - the encrypted key
-//   - XhatEnc - the re-encrypted schnorr-commit
-//   - xc - the private key of the reader
-//
-// Output:
-//   - key - the re-assembled key
-//   - err - an eventual error when trying to recover the data from the points
-func DecodeKey(suite kyber.Group, X kyber.Point, C kyber.Point, XhatEnc kyber.Point,
-	xc kyber.Scalar) (key []byte, err error) {
-	log.Lvl4("xc:", xc)
-	xcInv := suite.Scalar().Neg(xc)
-	log.Lvl4("xcInv:", xcInv)
-	log.Lvl4("X:", X)
-	XhatDec := suite.Point().Mul(xcInv, X)
-	log.Lvl4("XhatDec:", XhatDec)
-	log.Lvl4("XhatEnc:", XhatEnc)
-	Xhat := suite.Point().Add(XhatEnc, XhatDec)
-	log.Lvl4("Xhat:", Xhat)
-	XhatInv := suite.Point().Neg(Xhat)
-	log.Lvl4("XhatInv:", XhatInv)
-
-	// Decrypt C to keyPointHat
-	log.Lvl4("C:", C)
-	keyPointHat := suite.Point().Add(C, XhatInv)
-	log.Lvl4("keyPointHat:", keyPointHat)
-	key, err = keyPointHat.Data()
-	return
 }
 
 type newLtsConfig struct {
