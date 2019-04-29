@@ -103,8 +103,14 @@ func (s *Service) AddPolicyCreateOCS(req *AddPolicyCreateOCS) (reply *AddPolicyC
 // participate in the DKG. Every node will store its private key and wait for
 // decryption requests.
 func (s *Service) CreateOCS(req *CreateOCS) (reply *CreateOCSReply, err error) {
-	if err = req.verify(); err != nil {
+	s.storage.Lock()
+	policies := s.storage.PolicyCreateOCS
+	s.storage.Unlock()
+	if err = req.verifyAuth(policies); err != nil {
 		return nil, certs.Erret(err)
+	}
+	if len(req.Roster.List) <= 1 {
+		return nil, errors.New("need at least 2 nodes for DKG")
 	}
 
 	tree := req.Roster.GenerateNaryTreeWithRoot(len(req.Roster.List), s.ServerIdentity())
@@ -416,7 +422,9 @@ func (s *Service) NewProtocol(tn *onet.TreeNodeInstance, conf *onet.GenericConfi
 		if err := protobuf.DecodeWithConstructors(conf.Data, &cfg, network.DefaultConstructors(cothority.Suite)); err != nil {
 			return nil, err
 		}
-		if err := cfg.verify(); err != nil {
+		s.storage.Lock()
+		defer s.storage.Unlock()
+		if err := cfg.verifyAuth(s.storage.PolicyCreateOCS); err != nil {
 			return nil, err
 		}
 

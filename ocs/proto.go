@@ -47,6 +47,7 @@ type AddPolicyCreateOCSReply struct {
 // the policies will differ for this new backend.
 type CreateOCS struct {
 	Roster          onet.Roster
+	Auth            AuthCreate
 	PolicyReencrypt Policy
 	PolicyReshare   Policy
 }
@@ -87,7 +88,6 @@ type Reencrypt struct {
 type ReencryptReply struct {
 	X       kyber.Point
 	XhatEnc kyber.Point
-	C       kyber.Point
 }
 
 // Reshare is called to ask OCS to change the roster. It needs a valid
@@ -142,8 +142,8 @@ type PolicyX509Cert struct {
 // AuthCreate prooves that the caller has the right to create a new OCS
 // instance.
 type AuthCreate struct {
-	ByzCoin  AuthCreateByzcoin
-	X509Cert AuthCreateX509Cert
+	ByzCoin  *AuthCreateByzcoin
+	X509Cert *AuthCreateX509Cert
 }
 
 // AuthCreateByzcoin must give the ByzcoinID and the proof to the LTSInstance
@@ -153,8 +153,10 @@ type AuthCreateByzcoin struct {
 	LTSInstance byzcoin.Proof
 }
 
-// AuthCreateX509Cert must give a threshold number of certificates to proof that
-// the caller has the right to create a new OCS.
+// AuthCreateX509Cert must give one or more certificates rooted in the CreatePolicy certificate
+// to proof that the caller has the right to create a new OCS. The number of certificates
+// needed is defined by the Threshold field of the CreatePolicy. Each certificate must come
+// from another CA.
 type AuthCreateX509Cert struct {
 	Certificates [][]byte
 }

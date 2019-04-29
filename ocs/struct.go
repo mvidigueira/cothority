@@ -12,18 +12,15 @@ import (
 	"go.dedis.ch/protobuf"
 
 	"go.dedis.ch/kyber/v3"
-
-	"go.dedis.ch/onet/v3"
 )
 
-func (ocs CreateOCS) verify() error {
-	if err := ocs.PolicyReencrypt.verify(ocs.Roster); err != nil {
-		return err
+func (ocs CreateOCS) verifyAuth(policies []Policy) error {
+	for _, p := range policies {
+		if err := p.verifyCreate(ocs.Auth); err == nil {
+			return nil
+		}
 	}
-	if err := ocs.PolicyReshare.verify(ocs.Roster); err != nil {
-		return err
-	}
-	return nil
+	return errors.New("no policy matches against the authorization")
 }
 
 func (op OCSProof) Verify() error {
@@ -63,39 +60,14 @@ func (re Reshare) verify() error {
 	return errors.New("not yet implemented")
 }
 
-func (p Policy) verify(r onet.Roster) error {
-	if p.X509Cert != nil {
-		return p.X509Cert.verify(r)
-	}
-	if p.ByzCoin != nil {
-		return p.ByzCoin.verify(r)
-	}
-	return errors.New("need to have a policy for X509 or ByzCoin")
-}
-
-func (px PolicyX509Cert) verify(r onet.Roster) error {
-	// TODO: decide how to make sure the policy fits the reencryption / resharing
-	return nil
-}
-
-func (px PolicyByzCoin) verify(r onet.Roster) error {
-	return certs.Erret(errors.New("not yet implemented"))
-}
-
 func (ar AuthReencrypt) verify(p Policy, X, U kyber.Point) error {
-	if ar.X509Cert == nil || p.X509Cert == nil {
-		return errors.New("currently only checking X509 policies")
+	if ar.X509Cert != nil && p.X509Cert != nil {
+		return ar.X509Cert.verify(p, X, U)
 	}
-	root, err := x509.ParseCertificate(p.X509Cert.CA[0])
-	if err != nil {
-		return certs.Erret(err)
+	if ar.ByzCoin != nil && p.ByzCoin != nil {
+		return ar.ByzCoin.verify(p, X, U)
 	}
-	auth, err := x509.ParseCertificate(ar.X509Cert.Certificates[0])
-	if err != nil {
-		return certs.Erret(err)
-	}
-
-	return certs.Erret(certs.Verify(root, auth, X, U))
+	return errors.New("no matching policy/auth found")
 }
 
 func (ar AuthReencrypt) Xc() (kyber.Point, error) {
@@ -116,6 +88,68 @@ func (ar AuthReencrypt) U() (kyber.Point, error) {
 		return nil, errors.New("can't get secret from ByzCoin yet")
 	}
 	return nil, errors.New("need to have authentication for X509 or ByzCoin")
+}
+
+func (arX509 AuthReencryptX509Cert) verify(p Policy, X, U kyber.Point) error {
+	return certs.Erret(p.X509Cert.verify(arX509.Certificates, func(vo x509.VerifyOptions, cert *x509.Certificate) error {
+		return certs.Verify(vo, cert, X, U)
+	}))
+}
+
+func (arBC AuthReencryptByzCoin) verify(p Policy, X, U kyber.Point) error {
+	return errors.New("not yet implemented")
+}
+
+func (p Policy) verifyCreate(auth AuthCreate) error {
+	if p.X509Cert != nil {
+		return p.X509Cert.verifyCreate(auth)
+	}
+	if p.ByzCoin != nil {
+		return p.ByzCoin.verifyCreate(auth)
+	}
+	return errors.New("neither x509 nor byzcoin policy stored")
+}
+
+func (p509 PolicyX509Cert) verify(certBufs [][]byte, vf func(vo x509.VerifyOptions, cert *x509.Certificate) error) error {
+	var certs []*x509.Certificate
+	for _, certBuf := range certBufs {
+		cert, err := x509.ParseCertificate(certBuf)
+		if err != nil {
+			return err
+		}
+		certs = append(certs, cert)
+	}
+	count := 0
+	for _, caBuf := range p509.CA {
+		ca, err := x509.ParseCertificate(caBuf)
+		if err != nil {
+			return err
+		}
+		roots := x509.NewCertPool()
+		roots.AddCert(ca)
+		opt := x509.VerifyOptions{Roots: roots}
+		for _, cert := range certs {
+			if vf(opt, cert) == nil {
+				count++
+				break
+			}
+		}
+	}
+	if count >= p509.Threshold {
+		return nil
+	}
+	return errors.New("didn't reach threshold")
+}
+
+func (p509 PolicyX509Cert) verifyCreate(auth AuthCreate) error {
+	return p509.verify(auth.X509Cert.Certificates, func(vo x509.VerifyOptions, cert *x509.Certificate) error {
+		_, err := cert.Verify(vo)
+		return err
+	})
+}
+
+func (pBC PolicyByzCoin) verifyCreate(auth AuthCreate) error {
+	return errors.New("not yet implemented")
 }
 
 func NewOCSID(X kyber.Point) (OCSID, error) {

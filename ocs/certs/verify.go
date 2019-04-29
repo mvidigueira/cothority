@@ -24,20 +24,8 @@ var (
 // the certificates with regard to the signature of the root-certificate to the
 // authCert.
 // ocsID is the ID of the LTS cothority, while U is the commitment to the secret.
-func Verify(rootCert *x509.Certificate, authCert *x509.Certificate, X kyber.Point, U kyber.Point) (err error) {
-	roots := x509.NewCertPool()
-	roots.AddCert(rootCert)
-
-	cert, err := x509.ParseCertificate(authCert.Raw)
-	if err != nil {
-		return Erret(err)
-	}
-
-	opts := x509.VerifyOptions{
-		Roots: roots,
-	}
-
-	wid, err := GetExtensionFromCert(authCert, WriteIdOID)
+func Verify(vo x509.VerifyOptions, cert *x509.Certificate, X kyber.Point, U kyber.Point) (err error) {
+	wid, err := GetExtensionFromCert(cert, WriteIdOID)
 	if err != nil {
 		return Erret(err)
 	}
@@ -49,7 +37,7 @@ func Verify(rootCert *x509.Certificate, authCert *x509.Certificate, X kyber.Poin
 	unmarkUnhandledCriticalExtension(cert, WriteIdOID)
 	unmarkUnhandledCriticalExtension(cert, EphemeralKeyOID)
 
-	_, err = cert.Verify(opts)
+	_, err = cert.Verify(vo)
 	return Erret(err)
 }
 
@@ -57,6 +45,9 @@ func Verify(rootCert *x509.Certificate, authCert *x509.Certificate, X kyber.Poin
 type WriteID []byte
 
 func NewWriteID(X, U kyber.Point) (WriteID, error) {
+	if X == nil || U == nil {
+		return nil, errors.New("X or U is missing")
+	}
 	wid := sha256.New()
 	_, err := X.MarshalTo(wid)
 	if err != nil {

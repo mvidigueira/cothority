@@ -24,8 +24,11 @@ func NewClient() *Client {
 }
 
 // AddPolicyCreateOCS stores who is allowed to create new OCS instances.
-func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policy Policy) error {
-	return c.SendProtobuf(si, &AddPolicyCreateOCS{Create: policy}, nil)
+//
+// This can only be called from localhost, except if the environment variable
+// COTHORITY_ALLOW_INSECURE_ADMIN is set to 'true'.
+func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policyCreate Policy) error {
+	return c.SendProtobuf(si, &AddPolicyCreateOCS{Create: policyCreate}, nil)
 }
 
 // CreateOCS starts a new Distributed Key Generation with the nodes in the roster and
@@ -34,16 +37,14 @@ func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policy Policy) e
 //
 // It also sets up an authorisation option for the nodes.
 //
-// This can only be called from localhost, except if the environment variable
-// COTHORITY_ALLOW_INSECURE_ADMIN is set to 'true'.
-//
 // In case of error, X is nil, and the error indicates what is wrong.
 // The `sig` returned is a collective signature on the following hash:
 //   sha256( X | protobuf.Encode(auth) )
-func (c *Client) CreateOCS(roster onet.Roster, policyReencrypt, policyReshare Policy) (OcsID OCSID, err error) {
+func (c *Client) CreateOCS(roster onet.Roster, auth AuthCreate, policyReencrypt, policyReshare Policy) (OcsID OCSID, err error) {
 	var ret CreateOCSReply
 	err = c.SendProtobuf(roster.List[0], &CreateOCS{
 		Roster:          roster,
+		Auth:            auth,
 		PolicyReencrypt: policyReencrypt,
 		PolicyReshare:   policyReshare,
 	}, &ret)
