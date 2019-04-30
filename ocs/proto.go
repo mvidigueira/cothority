@@ -30,7 +30,7 @@ import (
 // AddPolicyCreateOCS is sent by a local admin to add a rule to define who is
 // authorized to create a new OCS.
 type AddPolicyCreateOCS struct {
-	Create Policy
+	Create PolicyCreate
 }
 
 // AddPolicyCreateOCSReply is an empty reply if the policy has been successfully
@@ -48,8 +48,8 @@ type AddPolicyCreateOCSReply struct {
 type CreateOCS struct {
 	Roster          onet.Roster
 	Auth            AuthCreate
-	PolicyReencrypt Policy
-	PolicyReshare   Policy
+	PolicyReencrypt PolicyReencrypt
+	PolicyReshare   PolicyReshare
 }
 
 // CreateOCSReply is the reply sent by the conode if the OCS has been
@@ -112,9 +112,23 @@ type ReshareReply struct {
 // Common structures
 // ***
 
-// Policy holds all possible authentication structures. When using it to call
-// Authorise, only one of the fields must be non-nil.
-type Policy struct {
+// PolicyCreate holds all possible policy structures for creation of a new OCS.
+// Only one of the fields must be non-nil, else the policy is invalid.
+type PolicyCreate struct {
+	ByzCoin  *PolicyByzCoin
+	X509Cert *PolicyX509Cert
+}
+
+// PolicyReencrypt holds all possible policy structures for creation of a new OCS.
+// Only one of the fields must be non-nil, else the policy is invalid.
+type PolicyReencrypt struct {
+	ByzCoin  *PolicyByzCoin
+	X509Cert *PolicyX509Cert
+}
+
+// PolicyReshare holds all possible policy structures for creation of a new OCS.
+// Only one of the fields must be non-nil, else the policy is invalid.
+type PolicyReshare struct {
 	ByzCoin  *PolicyByzCoin
 	X509Cert *PolicyX509Cert
 }
@@ -142,13 +156,13 @@ type PolicyX509Cert struct {
 // AuthCreate prooves that the caller has the right to create a new OCS
 // instance.
 type AuthCreate struct {
-	ByzCoin  *AuthCreateByzcoin
+	ByzCoin  *AuthCreateByzCoin
 	X509Cert *AuthCreateX509Cert
 }
 
-// AuthCreateByzcoin must give the ByzcoinID and the proof to the LTSInstance
+// AuthCreateByzCoin must give the ByzcoinID and the proof to the LTSInstance
 // for the creation of a new OCS.
-type AuthCreateByzcoin struct {
+type AuthCreateByzCoin struct {
 	ByzcoinID   skipchain.SkipBlockID
 	LTSInstance byzcoin.Proof
 }
@@ -222,7 +236,7 @@ type AuthReshareX509Cert struct {
 type OCSProof struct {
 	OcsID           OCSID
 	Roster          onet.Roster
-	PolicyReencrypt Policy
-	PolicyReshare   Policy
+	PolicyReencrypt PolicyReencrypt
+	PolicyReshare   PolicyReshare
 	Signatures      [][]byte
 }

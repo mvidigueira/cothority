@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"go.dedis.ch/cothority/v3/ocs/certs"
-
 	"github.com/stretchr/testify/require"
 	"go.dedis.ch/cothority/v3"
 	dkgprotocol "go.dedis.ch/cothority/v3/dkg/pedersen"
@@ -91,7 +89,7 @@ func TestOnchain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	U, C, err := certs.EncodeKey(suite, X, k[:])
+	U, C, err := EncodeKey(suite, X, k[:])
 	require.NoError(t, err)
 	// U and C is shared with everybody
 
@@ -116,7 +114,7 @@ func TestOnchain(t *testing.T) {
 	log.ErrFatal(err)
 
 	// Decrypt XhatEnc
-	keyHat, err := certs.DecodeKey(suite, X, C, XhatEnc, xc.Private)
+	keyHat, err := DecodeKey(suite, X, C, XhatEnc, xc.Private)
 	log.ErrFatal(err)
 
 	// Extract the message - keyHat is the recovered key
@@ -277,7 +275,7 @@ func ocs(t *testing.T, nbrNodes, threshold, keylen, fail int, refuse bool) {
 	// 2 - writer - Encrypt a symmetric key and publish U, C
 	k := make([]byte, keylen)
 	random.Bytes(k, random.New())
-	U, C, err := certs.EncodeKey(tSuite, X, k)
+	U, C, err := EncodeKey(tSuite, X, k)
 	require.NoError(t, err)
 
 	// 3 - reader - Makes a request to U by giving his public key Xc
@@ -325,7 +323,7 @@ func ocs(t *testing.T, nbrNodes, threshold, keylen, fail int, refuse bool) {
 	require.Nil(t, err, "Reencryption failed")
 
 	// 6 - reader - gets the resulting symmetric key, encrypted under Xc
-	keyHat, err := certs.DecodeKey(suite, X, C, XhatEnc, xc.Private)
+	keyHat, err := DecodeKey(suite, X, C, XhatEnc, xc.Private)
 	require.Nil(t, err)
 
 	require.Equal(t, k, keyHat)

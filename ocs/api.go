@@ -2,7 +2,6 @@ package ocs
 
 import (
 	"go.dedis.ch/cothority/v3"
-	"go.dedis.ch/cothority/v3/ocs/certs"
 	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/onet/v3"
 	"go.dedis.ch/onet/v3/network"
@@ -27,7 +26,7 @@ func NewClient() *Client {
 //
 // This can only be called from localhost, except if the environment variable
 // COTHORITY_ALLOW_INSECURE_ADMIN is set to 'true'.
-func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policyCreate Policy) error {
+func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policyCreate PolicyCreate) error {
 	return c.SendProtobuf(si, &AddPolicyCreateOCS{Create: policyCreate}, nil)
 }
 
@@ -40,7 +39,8 @@ func (c *Client) AddPolicyCreateOCS(si *network.ServerIdentity, policyCreate Pol
 // In case of error, X is nil, and the error indicates what is wrong.
 // The `sig` returned is a collective signature on the following hash:
 //   sha256( X | protobuf.Encode(auth) )
-func (c *Client) CreateOCS(roster onet.Roster, auth AuthCreate, policyReencrypt, policyReshare Policy) (OcsID OCSID, err error) {
+func (c *Client) CreateOCS(roster onet.Roster, auth AuthCreate, policyReencrypt PolicyReencrypt,
+	policyReshare PolicyReshare) (OcsID OCSID, err error) {
 	var ret CreateOCSReply
 	err = c.SendProtobuf(roster.List[0], &CreateOCS{
 		Roster:          roster,
@@ -63,7 +63,7 @@ func (c *Client) GetProofs(roster onet.Roster, OcsID OCSID) (op OCSProof, err er
 		var reply GetProofReply
 		err = c.SendProtobuf(si, &GetProof{OcsID}, &reply)
 		if err != nil {
-			err = certs.Erret(err)
+			err = Erret(err)
 			return
 		}
 		if len(op.Signatures) == 0 {

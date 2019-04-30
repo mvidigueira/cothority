@@ -10,10 +10,6 @@ import (
 	"bytes"
 	"os"
 
-	"go.dedis.ch/onet/v3"
-
-	"go.dedis.ch/cothority/v3/ocs/certs"
-
 	"go.dedis.ch/cothority/v3"
 	"go.dedis.ch/cothority/v3/byzcoin/bcadmin/lib"
 	"go.dedis.ch/cothority/v3/ocs"
@@ -28,50 +24,48 @@ func main() {
 	roster, err := lib.ReadRoster(os.Args[1])
 	log.ErrFatal(err)
 
-	log.Info("Starting rainy day scenario")
-	rainyDay(roster)
-
-	log.Info("Starting happy day scenario")
-	happyDay(roster)
-}
-
-func happyDay(roster *onet.Roster) {
 	log.Info("1. Creating createOCS cert and setting OCS-create policy")
 	cl := ocs.NewClient()
-	coPrivKey, coCert, err := certs.CreateCertCa()
-	log.ErrFatal(err)
+	caCreate1 := ocs.NewBCCA("Create OCS - 1")
+	caCreate2 := ocs.NewBCCA("Create OCS - 2")
 	for _, si := range roster.List {
-		err = cl.AddPolicyCreateOCS(si, ocs.Policy{X509Cert: &ocs.PolicyX509Cert{
-			CA:        [][]byte{coCert.Raw},
-			Threshold: 1,
+		err = cl.AddPolicyCreateOCS(si, ocs.PolicyCreate{X509Cert: &ocs.PolicyX509Cert{
+			CA:        [][]byte{caCreate1.Certificate.Raw, caCreate2.Certificate.Raw},
+			Threshold: 2,
 		}})
 		log.ErrFatal(err)
 	}
 
-	log.Info("2.a) Creating node cert")
-	nodePrivKey, nodeCert, err := certs.CreateCertCa()
-	log.ErrFatal(err)
-
-	px := ocs.Policy{
+	log.Info("2.a) Creating new OCS")
+	caReenc1 := ocs.NewBCCA("Reencrypt - 1")
+	caReenc2 := ocs.NewBCCA("Reencrypt - 2")
+	pxReenc := ocs.PolicyReencrypt{
 		X509Cert: &ocs.PolicyX509Cert{
-			CA:        [][]byte{nodeCert.Raw},
+			CA: [][]byte{caReenc1.Certificate.Raw,
+				caReenc2.Certificate.Raw},
 			Threshold: 2,
 		},
 	}
-
-	log.Info("2.b) Creating new OCS")
-	_, createCert, err := certs.CreateCertNode(coCert, coPrivKey)
-	log.ErrFatal(err)
-	authCreate := ocs.AuthCreate{
-		X509Cert: &ocs.AuthCreateX509Cert{
-			Certificates: [][]byte{createCert.Raw},
+	pxReshare := ocs.PolicyReshare{
+		X509Cert: &ocs.PolicyX509Cert{
+			CA: [][]byte{caReenc1.Certificate.Raw,
+				caReenc2.Certificate.Raw},
+			Threshold: 2,
 		},
 	}
-	ocsID, err := cl.CreateOCS(*roster, authCreate, px, px)
+	cert1 := caCreate1.CreateOCS(pxReenc.X509Cert, pxReshare.X509Cert, *roster).Certificate.Raw
+	cert2 := caCreate2.CreateOCS(pxReenc.X509Cert, pxReshare.X509Cert, *roster).Certificate.Raw
+	authCreate := ocs.AuthCreate{
+		X509Cert: &ocs.AuthCreateX509Cert{
+			Certificates: [][]byte{cert1, cert2},
+		},
+	}
+
+	ocsID, err := cl.CreateOCS(*roster, authCreate, pxReenc, pxReshare)
 	log.ErrFatal(err)
 	log.Infof("New OCS created with ID: %x", ocsID)
 
-	log.Info("2.c) Get proofs of all nodes")
+	log.Info("2.b) Get proofs of all nodes")
 	proof, err := cl.GetProofs(*roster, ocsID)
 	log.ErrFatal(err)
 	log.ErrFatal(proof.Verify())
@@ -84,16 +78,18 @@ func happyDay(roster *onet.Roster) {
 	secret := []byte("ocs for everybody")
 	X, err := ocsID.X()
 	log.ErrFatal(err)
-	U, C, err := certs.EncodeKey(cothority.Suite, X, secret)
+	U, C, err := ocs.EncodeKey(cothority.Suite, X, secret)
 	log.ErrFatal(err)
 
 	log.Info("3.b) Creating 2 certificates for the re-encryption")
 	ephemeralKeyPair := key.NewKeyPair(cothority.Suite)
-	wid, err := certs.NewWriteID(X, U)
+	wid, err := ocs.NewWriteID(X, U)
 	log.ErrFatal(err)
-	reencryptCert1, err := certs.CreateCertReencrypt(nodeCert, nodePrivKey, wid, ephemeralKeyPair.Public)
+	reencryptCert1, err := ocs.CreateCertReencrypt(caReenc1.Certificate, caReenc1.Private,
+		wid, ephemeralKeyPair.Public)
 	log.ErrFatal(err)
-	reencryptCert2, err := certs.CreateCertReencrypt(nodeCert, nodePrivKey, wid, ephemeralKeyPair.Public)
+	reencryptCert2, err := ocs.CreateCertReencrypt(caReenc2.Certificate, caReenc2.Private,
+		wid, ephemeralKeyPair.Public)
 	log.ErrFatal(err)
 
 	log.Info("4. Asking OCS to re-encrypt the secret to an ephemeral key")
@@ -108,102 +104,11 @@ func happyDay(roster *onet.Roster) {
 	log.ErrFatal(err)
 
 	log.Info("5. Decrypt the symmetric key")
-	secretRec, err := certs.DecodeKey(cothority.Suite, X, C, XhatEnc, ephemeralKeyPair.Private)
+	secretRec, err := ocs.DecodeKey(cothority.Suite, X, C, XhatEnc, ephemeralKeyPair.Private)
 	log.ErrFatal(err)
 	if bytes.Compare(secret, secretRec) != 0 {
 		log.Fatal("Recovered secret is not the same")
 	}
 
 	log.Info("Successfully re-encrypted the key")
-}
-
-func rainyDay(roster *onet.Roster) {
-	log.Info("1. Creating createOCS cert and setting OCS-create policy")
-	cl := ocs.NewClient()
-	coPrivKey, coCert, err := certs.CreateCertCa()
-	log.ErrFatal(err)
-	for _, si := range roster.List {
-		err = cl.AddPolicyCreateOCS(si, ocs.Policy{X509Cert: &ocs.PolicyX509Cert{
-			CA:        [][]byte{coCert.Raw},
-			Threshold: 1,
-		}})
-		log.ErrFatal(err)
-	}
-
-	log.Info("2.a) Creating node cert")
-	nodePrivKey, nodeCert, err := certs.CreateCertCa()
-	log.ErrFatal(err)
-
-	px := ocs.Policy{
-		X509Cert: &ocs.PolicyX509Cert{
-			CA:        [][]byte{nodeCert.Raw},
-			Threshold: 2,
-		},
-	}
-
-	log.Info("2.b) Creating new OCS")
-	log.Info("2.b.i) Sending wrong authentication")
-	_, createCert, err := certs.CreateCertNode(nodeCert, nodePrivKey)
-	log.ErrFatal(err)
-	authCreate := ocs.AuthCreate{
-		X509Cert: &ocs.AuthCreateX509Cert{
-			Certificates: [][]byte{createCert.Raw},
-		},
-	}
-	ocsID, err := cl.CreateOCS(*roster, authCreate, px, px)
-	if err == nil {
-		log.Fatal("A wrongly authorized cert should not be able to create an OCS")
-	}
-
-	log.Info("2.b.ii) Sending correct authentication")
-	_, createCert, err = certs.CreateCertNode(coCert, coPrivKey)
-	log.ErrFatal(err)
-	authCreate.X509Cert.Certificates = [][]byte{createCert.Raw}
-	ocsID, err = cl.CreateOCS(*roster, authCreate, px, px)
-	log.ErrFatal(err)
-	log.Infof("New OCS created with ID: %x", ocsID)
-
-	log.Info("2.c) Get proofs of all nodes")
-	proof, err := cl.GetProofs(*roster, ocsID)
-	log.ErrFatal(err)
-	log.ErrFatal(proof.Verify())
-	log.Info("Proof got verified successfully on nodes:")
-	for i, sig := range proof.Signatures {
-		log.Infof("Signature %d of %s: %x", i, proof.Roster.List[i].Address, sig)
-	}
-
-	log.Info("3.a) Creating secret key and encrypting it with the OCS-key")
-	secret := []byte("ocs for everybody")
-	X, err := ocsID.X()
-	log.ErrFatal(err)
-	U, _, err := certs.EncodeKey(cothority.Suite, X, secret)
-	log.ErrFatal(err)
-
-	log.Info("3.b) Creating 2 certificates for the re-encryption")
-	ephemeralKeyPair := key.NewKeyPair(cothority.Suite)
-	wid, err := certs.NewWriteID(X, U)
-	log.ErrFatal(err)
-	reencryptCert1, err := certs.CreateCertReencrypt(nodeCert, nodePrivKey, wid, ephemeralKeyPair.Public)
-	log.ErrFatal(err)
-
-	log.Info("4. Asking OCS to re-encrypt the secret to an ephemeral key")
-	log.Info("4.a) only 1 certificate")
-	authRe := ocs.AuthReencrypt{
-		Ephemeral: ephemeralKeyPair.Public,
-		X509Cert: &ocs.AuthReencryptX509Cert{
-			U:            U,
-			Certificates: [][]byte{reencryptCert1.Raw},
-		},
-	}
-	_, err = cl.Reencrypt(*roster, ocsID, authRe)
-	if err == nil {
-		log.Fatal("One certificate alone shouldn't be accepted with threshold == 2")
-	}
-
-	log.Info("4.b) twice the same certificate")
-	authRe.X509Cert.Certificates = [][]byte{reencryptCert1.Raw, reencryptCert1.Raw}
-	_, err = cl.Reencrypt(*roster, ocsID, authRe)
-	if err == nil {
-		log.Fatal("Twice the same certificate shouldn't be accepted with threshold == 2")
-	}
 }
