@@ -306,6 +306,9 @@ func (s *Service) AddTransaction(req *AddTxRequest) (*AddTxResponse, error) {
 	}
 	txsz := txSize(TxResult{ClientTransaction: req.Transaction})
 	if txsz > maxsz {
+		for _, inst := range req.Transaction.Instructions {
+			log.Printf("Instruction: %+v", inst)
+		}
 		return nil, errors.New("transaction too large")
 	}
 
